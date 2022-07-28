@@ -78,6 +78,8 @@ char *least_idle_ip(dbref player);
 char *least_idle_hostname(dbref player);
 void do_who_mortal(dbref player, char *name);
 void do_who_admin(dbref player, char *name);
+void do_whofile_admin(dbref player);
+void do_whofile_mortal(dbref player);
 void do_who_session(dbref player, char *name);
 char *json_unescape_string(char *input);
 char *json_escape_string(char *input);

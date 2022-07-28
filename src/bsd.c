@@ -385,6 +385,7 @@ struct fcache_entries {
   FBLOCK full_fcache[2];     /**< full.txt and full.html */
   FBLOCK guest_fcache[2];    /**< guest.txt and guest.html */
   FBLOCK who_fcache[2];      /**< textfiles to override connect screen WHO */
+  FBLOCK wiz_who_fcache[2];  /**< text files to override WHO */
   FBLOCK index_fcache;       /**< default HTTP landing page */
 };
 
@@ -2131,6 +2132,7 @@ fcache_read_one(const char *filename)
       hash_add(&lookup, options.full_file[i], &fcache.full_fcache[i]);
       hash_add(&lookup, options.guest_file[i], &fcache.guest_fcache[i]);
       hash_add(&lookup, options.who_file[i], &fcache.who_fcache[i]);
+      hash_add(&lookup, options.wiz_who_file[i], &fcache.wiz_who_fcache[i]);
     }
 
     hash_add(&lookup, options.index_html, &fcache.index_fcache);
@@ -2151,7 +2153,7 @@ void
 fcache_load(dbref player)
 {
   int conn, motd, wiz, new, reg, quit, down, full, index;
-  int guest, who;
+  int guest, who, wiz_who;
   int i;
 
   for (i = 0; i < (SUPPORT_PUEBLO ? 2 : 1); i++) {
@@ -2165,6 +2167,7 @@ fcache_load(dbref player)
     full = fcache_read(&fcache.full_fcache[i], options.full_file[i]);
     guest = fcache_read(&fcache.guest_fcache[i], options.guest_file[i]);
     who = fcache_read(&fcache.who_fcache[i], options.who_file[i]);
+    wiz_who = fcache_read(&fcache.wiz_who_fcache[i], options.wiz_who_file[i]);
 
     if (i == 0) {
       index = fcache_read(&fcache.index_fcache, options.index_html);
@@ -2174,9 +2177,9 @@ fcache_load(dbref player)
       notify_format(player,
                     T("%s sizes:  Index...%d  NewUser...%d  Connect...%d  "
                       "Guest...%d  Motd...%d  Wizmotd...%d  Quit...%d  "
-                      "Register...%d  Down...%d  Full...%d  Who...%d"),
+                      "Register...%d  Down...%d  Full...%d  Who...%d Wiz_Who...%d"),
                     i ? "HTMLFile" : "File", index, new, conn, guest, motd, wiz,
-                    quit, reg, down, full, who);
+                    quit, reg, down, full, who, wiz_who);
     }
   }
 }
@@ -5689,6 +5692,47 @@ do_who_mortal(dbref player, char *name)
   }
 }
 
+
+void do_whofile_admin(dbref player)
+{
+  
+  ufun_attrib ufun;
+  NEW_PE_INFO *pe_info;
+  PE_REGS *pe_regs = NULL;
+  pe_info = make_pe_info("pe_info-atr_comm_match");
+
+    char tbuf1[BUFFER_LEN];
+      
+    if(fetch_ufun_attrib(options.wiz_who_file[0], player, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
+    {
+
+      call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
+      
+      notify(player, tbuf1);
+        return;
+    }
+
+}
+void do_whofile_mortal(dbref player)
+{
+  
+  ufun_attrib ufun;
+  NEW_PE_INFO *pe_info;
+  PE_REGS *pe_regs = NULL;
+  pe_info = make_pe_info("pe_info-atr_comm_match");
+
+    char tbuf1[BUFFER_LEN];
+      
+    if(fetch_ufun_attrib(options.who_file[0], player, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
+    {
+
+      call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
+      
+      notify(player, tbuf1);
+        return;
+    }
+
+}
 /** The admin WHO command */
 void
 do_who_admin(dbref player, char *name)
@@ -7805,6 +7849,7 @@ watch_files_in(void)
     WATCH(options.full_file[n]);
     WATCH(options.guest_file[n]);
     WATCH(options.who_file[n]);
+    WATCH(options.wiz_who_file[n]);
   }
 
   WATCH(options.index_html);

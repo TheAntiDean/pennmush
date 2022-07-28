@@ -1818,9 +1818,24 @@ COMMAND(cmd_session)
 COMMAND(cmd_who)
 {
   if (Priv_Who(executor))
-    do_who_admin(executor, arg_left);
+  {
+    if (options.wiz_who_file)
+      do_whofile_admin(executor);
+    else
+      do_who_admin(executor, arg_left);
+  }
   else
+  {
+    if (options.wiz_who_file)
+    {
+      do_whofile_mortal(executor);
+    }
+    else
+    {
     do_who_mortal(executor, arg_left);
+    }
+  }
+  
 }
 
 #ifdef HAVE_LIBCURL

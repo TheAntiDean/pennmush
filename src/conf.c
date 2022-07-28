@@ -99,6 +99,8 @@ PENNCONF conftable[] = {
    "messages"},
   {"who_file", cf_str, options.who_file[0], sizeof options.who_file[0], 0,
    "messages"},
+   {"wiz_who_file", cf_str, options.wiz_who_file[0], sizeof options.wiz_who_file[0], 0,
+   "messages"},
 
   {"connect_html_file", cf_str, options.connect_file[1],
    sizeof options.connect_file[1], 0, "messages"},

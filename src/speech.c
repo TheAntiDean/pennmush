@@ -198,10 +198,10 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   pe_regs_free(pe_regs);
 
   /* notify everybody */
-  notify_format(player, T("You say, \"%s\""), (mod ? modmsg : message));
+  notify_format(player, T("%sYou say \"%s%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,(mod ? modmsg : message), ANSI_HICYAN, ANSI_END);
   sp = says;
-  safe_format(says, &sp, T("%s says, \"%s\""), spname(player),
-              (mod ? modmsg : message));
+  safe_format(says, &sp, T("%s%s says \"%s%s%s\"%s"), 
+  ANSI_CYAN, spname(player), ANSI_HIWHITE, (mod ? modmsg : message), ANSI_HICYAN, ANSI_END);
   *sp = '\0';
   notify_except(player, loc, player, says, NA_INTER_HEAR);
 }
@@ -443,7 +443,7 @@ do_whisper(dbref player, const char *arg1, const char *arg2, int noisy,
              AName(player, AN_SAY, NULL), gap, arg2);
     p = pbuff;
   } else {
-    notify_format(player, T("You whisper, \"%s\"%s."), arg2, tbuf);
+    notify_format(player, T("You whisper \"%s\"%s."), arg2, tbuf);
     snprintf(pbuff, BUFFER_LEN, T("%s whispers%s: %s"),
              AName(player, AN_SAY, NULL), gcount > 1 ? tbuf : "", arg2);
     p = pbuff;
@@ -638,8 +638,8 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
   pe_regs_free(pe_regs);
 
   mp = message;
-  safe_format(message, &mp, (nospace ? "%s%s" : "%s %s"), spname(player),
-              (mod ? tbuf2 : tbuf1));
+  safe_format(message, &mp, (nospace ? "%s%s%s%s" : "%s%s %s%s"), 
+              ANSI_CYAN, spname(player), (mod ? tbuf2 : tbuf1), ANSI_END);
   *mp = '\0';
 
   notify_anything(player, player, na_loc, &loc, NULL,
@@ -703,7 +703,7 @@ do_wall(dbref player, const char *message, enum wall_type target, int emit)
     flag_broadcast(mask, 0, "%s [%s]: %s", prefix, AName(player, AN_SAY, NULL),
                    message);
   else
-    flag_broadcast(mask, 0, "%s %s %s, \"%s\"", prefix,
+    flag_broadcast(mask, 0, "%s %s %s \"%s\"", prefix,
                    AName(player, AN_SAY, NULL),
                    target == WALL_ALL ? T("shouts") : T("says"), message);
 }
