@@ -1,12 +1,21 @@
-<This is where you announce that they've connected to your MUSH>
-<It's a good idea to include the version/patchlevel of MUSH you're running>
-<It's a good idea to include an email address for questions about the MUSH>
------------------------------------------------------------------------------
+You've connected to KrenMUSH, a Trek-themed development MUSH.
+------------------------------------------------------------------------------
+
+PLEASE NOTE:  This MUSH is intended to become an action-oriented game using a 
+coded combat system for deciding the outcome of combat actions between players
+and between starships.  While roleplay is encouraged to add flavor to the 
+action, it does not dictate the action or its outcome.  If the commands allow
+an action, that action is In Character.  If commands don't allow it, it's not.
+
+If an action-oriented game is not to your liking and you prefer a more 
+roleplay-centric MUSH, there are many others you might consider looking into.
+If you're looking to change our minds and steer us on a more roleplay-centric
+path, you'll be wasting both our time and yours.  RP-twinks need not apply.
+------------------------------------------------------------------------------
 Use create <name> <password> to create a character.
 Use connect <name> <password> to connect to your existing character.
 Use 'ch <name> <pass>' to connect hidden, and cd to connect DARK (admin)
 Use QUIT to logout.
 Use the WHO command to find out who is online currently.
------------------------------------------------------------------------------
-Yell at your local god to personalize this file!
+------------------------------------------------------------------------------
 

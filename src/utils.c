@@ -649,25 +649,38 @@ fullalias(dbref it)
   ATTR *a = atr_get_noparent(it, "ALIAS");
 
   if (!IsExit(it)) {
+    
     if (!a) {
       n[0] = '\0';
       return n;
     }
 
     mush_strncpy(n, atr_value(a), BUFFER_LEN);
+    
   } else {
     char *np = n;
     char *sep;
 
+    char eval[BUFFER_LEN];
+    
+     
+    mush_strncpy(n, eval + ';', BUFFER_LEN);
+
     if ((sep = strchr(Name(it), ';'))) {
       sep++;
       safe_str(sep, n, &np);
+    }
+    if(call_attrib(it,"ALIAS",eval,it,NULL,NULL)) {
+      if(sep)
+        safe_chr(';',n,&np);
+      safe_str(eval,n, &np);
     }
     if (a) {
       if (sep)
         safe_chr(';', n, &np);
       safe_str(atr_value(a), n, &np);
     }
+
     *np = '\0';
   }
 
@@ -690,6 +703,8 @@ shortalias(dbref it)
     n[0] = '\0';
     return n;
   }
+
+  
 
   copy_up_to(n, s, ';');
 
