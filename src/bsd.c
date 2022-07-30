@@ -7677,7 +7677,7 @@ load_reboot_db(void)
     remove(REBOOTFILE);
   }
 
-  flag_broadcast(0, 0, T("GAME: Reboot finished."));
+  flag_broadcast(0, 0, T("%sGAME: %sReboot finished.%s"),ANSI_RED,ANSI_HIBLACK,ANSI_END);
 }
 
 /** Reboot the game without disconnecting players.
@@ -7710,8 +7710,13 @@ do_reboot(dbref player, int flag)
       0, 0, T("GAME: Reboot w/o disconnect from game account, please wait."));
     do_rawlog(LT_WIZ, "Reboot w/o disconnect triggered by signal.");
   } else {
-    flag_broadcast(0, 0, T("GAME: Reboot w/o disconnect by %s, please wait."),
-                   AName(Owner(player), AN_ANNOUNCE, NULL));
+    flag_broadcast("!WIZARD", 0, T("%sGAME: %sReboot w/o disconnect  Please wait.%s"),
+                  ANSI_RED, ANSI_HIBLACK,ANSI_END
+                  );
+    flag_broadcast("WIZARD", 0,
+                     T("%sGAME: %sReboot w/o disconnect by %s%s%s.  Please wait.%s"),
+                  ANSI_RED, ANSI_HIBLACK,ANSI_HIWHITE,
+                   AName(Owner(player), AN_ANNOUNCE, NULL),ANSI_HIBLACK,ANSI_END);
     do_rawlog(LT_WIZ, "Reboot w/o disconnect triggered by %s(#%d).",
               Name(player), player);
   }
@@ -7726,7 +7731,7 @@ do_reboot(dbref player, int flag)
 #endif
   if (!fork_and_dump(0)) {
     /* Database save failed. Cancel the reboot */
-    flag_broadcast(0, 0, T("GAME: Reboot failed."));
+    flag_broadcast(0, 0, T("%sGAME: %sReboot failed.%s"),ANSI_RED,ANSI_HIBLACK,ANSI_END);
     return;
   }
   sql_shutdown();

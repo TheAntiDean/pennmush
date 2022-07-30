@@ -457,7 +457,7 @@ do_chzone(dbref player, char const *name, char const *newobj, bool noisy,
   /* Warn Wiz/Royals when they zone their stuff */
   if ((zone != NOTHING) && Hasprivs(Owner(thing)) && !IsPlayer(thing)) {
     if (noisy)
-      notify(player, T("Warning: @chzoning admin-owned object!"));
+      notify(player, T("Warning: Zoning admin-owned object!"));
   }
   /* everything is okay, do the change */
   Zone(thing) = zone;
@@ -471,7 +471,7 @@ do_chzone(dbref player, char const *name, char const *newobj, bool noisy,
   if (!preserve && ((zone != NOTHING) && !IsPlayer(thing))) {
     /* if the object is a player, resetting these flags is rather
      * inconvenient -- although this may pose a bit of a security
-     * risk. Be careful when @chzone'ing wizard or royal players.
+     * risk. Be careful when Zoning wizard or royal players.
      */
     clear_flag_internal(thing, "WIZARD");
     clear_flag_internal(thing, "ROYALTY");
@@ -481,9 +481,9 @@ do_chzone(dbref player, char const *name, char const *newobj, bool noisy,
   } else {
     if (noisy && (zone != NOTHING)) {
       if (Hasprivs(thing))
-        notify(player, T("Warning: @chzoning a privileged player."));
+        notify(player, T("Warning: Zoning a privileged player."));
       if (Inherit(thing))
-        notify(player, T("Warning: @chzoning a TRUST player."));
+        notify(player, T("Warning: Zoning a TRUST player."));
     }
   }
   if (noisy)

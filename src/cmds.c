@@ -794,7 +794,7 @@ do_list_allocations(dbref player)
   size_t i;
 
   if (!Hasprivs(player)) {
-    notify(player, T("Sorry."));
+    notify(player, T("Permission denied."));
     return;
   }
 

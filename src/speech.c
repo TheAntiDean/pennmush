@@ -188,20 +188,26 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
     message++;
 
   pe_regs = pe_regs_create(PE_REGS_ARG, "do_say");
+  
   pe_regs_setenv_nocopy(pe_regs, 0, message);
   pe_regs_setenv_nocopy(pe_regs, 1, "\"");
   modmsg[0] = '\0';
 
   if (call_attrib(player, "SPEECHMOD", modmsg, player, pe_info, pe_regs) &&
-      *modmsg != '\0')
-    mod = 1;
-  pe_regs_free(pe_regs);
+      *modmsg != '\0') 
+    message = modmsg;
 
+  message = remove_markup(message, NULL);
+  
+  pe_regs_free(pe_regs);
+  
+  
+  
   /* notify everybody */
-  notify_format(player, T("%sYou say \"%s%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,(mod ? modmsg : message), ANSI_HICYAN, ANSI_END);
+  notify_format(player, T("%sYou say \"%s%s%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,message,ANSI_NORMAL, ANSI_CYAN,  ANSI_END);
   sp = says;
-  safe_format(says, &sp, T("%s%s says \"%s%s%s\"%s"), 
-  ANSI_CYAN, spname(player), ANSI_HIWHITE, (mod ? modmsg : message), ANSI_HICYAN, ANSI_END);
+  safe_format(says, &sp, T("%s%s says \"%s%s%s%s\"%s"), 
+  ANSI_CYAN, spname(player), ANSI_HIWHITE, message, ANSI_NORMAL, ANSI_CYAN, ANSI_END);
   *sp = '\0';
   notify_except(player, loc, player, says, NA_INTER_HEAR);
 }
@@ -571,6 +577,8 @@ do_pemit(dbref executor, dbref speaker, char *target, const char *message,
     na_flags |= NA_SPOOF;
   if (flags & PEMIT_PROMPT)
     na_flags |= NA_PROMPT;
+  if (!(flags & PEMIT_SPOOF))
+    message = remove_markup(message, NULL);
 
   if (flags & PEMIT_LIST) {
     l = trim_space_sep(target, ' ');
@@ -633,13 +641,13 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
 
   if (call_attrib(player, "SPEECHMOD", tbuf2, player, pe_info, pe_regs) &&
       *tbuf2 != '\0')
-    mod = 1;
-
+     tbuf1 = tbuf2;
+  tbuf1 = remove_markup(tbuf1, NULL);
   pe_regs_free(pe_regs);
 
   mp = message;
   safe_format(message, &mp, (nospace ? "%s%s%s%s" : "%s%s %s%s"), 
-              ANSI_CYAN, spname(player), (mod ? tbuf2 : tbuf1), ANSI_END);
+              ANSI_CYAN, spname(player), tbuf1, ANSI_END);
   *mp = '\0';
 
   notify_anything(player, player, na_loc, &loc, NULL,
@@ -1215,6 +1223,7 @@ do_emit(dbref executor, dbref speaker, const char *message, int flags,
   char msgmod[BUFFER_LEN];
   PE_REGS *pe_regs;
 
+
   loc = speech_loc(executor);
   if (!GoodObject(loc))
     return;
@@ -1234,6 +1243,8 @@ do_emit(dbref executor, dbref speaker, const char *message, int flags,
       *msgmod != '\0')
     message = msgmod;
   pe_regs_free(pe_regs);
+  if (!(flags & PEMIT_SPOOF))
+    message = remove_markup(message, NULL);
 
   /* notify everybody */
   if (flags & PEMIT_SPOOF)
@@ -1257,6 +1268,8 @@ do_one_remit(dbref executor, dbref speaker, const char *target, const char *msg,
   dbref room;
   int na_flags = NA_INTER_HEAR | NA_PROPAGATE;
   room = match_result(executor, target, NOTYPE, MAT_EVERYTHING);
+  if (!(flags & PEMIT_SPOOF))
+    msg = remove_markup(msg, NULL);
   if (!GoodObject(room)) {
     notify(executor, T("I can't find that."));
   } else {

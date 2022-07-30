@@ -383,8 +383,9 @@ COMLIST commands[] = {
    0, 0},
 
   {"WHO", NULL, cmd_who, CMD_T_ANY, 0, 0},
-  {"DOING", NULL, cmd_who_doing, CMD_T_ANY, 0, 0},
-  {"SESSION", NULL, cmd_session, CMD_T_ANY, 0, 0},
+
+  //{"DOING", NULL, cmd_who_doing, CMD_T_ANY, 0, 0},
+  //{"SESSION", NULL, cmd_session, CMD_T_ANY, 0, 0},
 
   /* ATTRIB_SET is an undocumented command - it's sugar to make it possible
    * to enable/disable attribute setting with &XX or @XX

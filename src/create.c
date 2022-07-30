@@ -492,7 +492,7 @@ do_dig(dbref player, const char *name, char **argv, int tport,
     /* Initialize everything */
     set_name(room, name);
     Owner(room) = Owner(player);
-    Zone(room) = Zone(player);
+    Zone(room) = Zone(Location(player));
     Type(room) = TYPE_ROOM;
     Flags(room) = new_flag_bitmask("FLAG");
     strcpy(flagbuff, options.room_flags);

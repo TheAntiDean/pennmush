@@ -1640,6 +1640,15 @@ notify_format(dbref player, const char *fmt, ...)
   notify(player, buff);
 }
 
+void notify_denied_why(dbref target, const char *message)
+{
+  notify_format(target, T("%sPermission denied.  %s%s"), ANSI_RED, message, ANSI_END);
+}
+void notify_denied(dbref target)
+{
+  notify_denied_why(target, "");
+}
+
 /** Send a message to a list of dbrefs on an attribute on an object.
  * Be sure we don't send a message to the object itself!
  * \param speaker message speaker
@@ -2092,3 +2101,4 @@ freeqs(DESC *d)
   d->raw_input = 0;
   d->raw_input_at = 0;
 }
+

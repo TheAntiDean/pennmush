@@ -2181,7 +2181,7 @@ mailfun_fetch(dbref player, int nargs, char *arg1, char *arg2)
     if (parse_message_spec(target, arg2, &msg, NULL, &folder))
       return real_mail_fetch(target, msg, folder);
     else {
-      notify(player, T("Invalid message specification"));
+      notify_format(player, T("%sMAIL:%s Invalid message specification%s"), ANSI_RED, ANSI_HIBLACK, ANSI_END);
       return NULL;
     }
   }
@@ -2921,7 +2921,7 @@ parse_msglist(const char *msglist, struct mail_selector *ms, dbref player)
   }
   if (isdigit(*p) || *p == '-') {
     if (!parse_message_spec(player, p, &ms->low, &ms->high, &folder)) {
-      notify(player, T("MAIL: Invalid message specification"));
+      notify_format(player, T("%sMAIL:%s Invalid message specification%s"), ANSI_RED, ANSI_HIBLACK, ANSI_END);
       return 0;
     }
     /* remove current folder when other folder specified */
@@ -3020,7 +3020,7 @@ parse_msglist(const char *msglist, struct mail_selector *ms, dbref player)
   } else if (!strcasecmp(p, "me")) {
     ms->player = player;
   } else {
-    notify(player, T("MAIL: Invalid message specification"));
+    notify_format(player, T("%sMAIL:%s Invalid message specification%s"), ANSI_RED, ANSI_HIBLACK, ANSI_END);
     return 0;
   }
   return 1;
@@ -3103,7 +3103,7 @@ check_all_mail(dbref player)
   }
 
   if (!total)
-    notify(player, T("\nMAIL: You have no mail.\n"));
+    notify_format(player, T("\n%sMAIL:%s You have no mail.%s\n"), ANSI_RED, ANSI_HIBLACK, ANSI_END);
   return;
 }
 
@@ -3128,7 +3128,7 @@ check_mail(dbref player, int folder, int silent)
       player, T("MAIL: %d messages in folder %d [%s] (%d unread, %d cleared)."),
       total, folder, get_folder_name(player, folder), uc, cc);
   else if (!silent)
-    notify(player, T("\nMAIL: You have no mail.\n"));
+    notify_format(player, T("\n%sMAIL:%s You have no mail.%s\n"), ANSI_RED, ANSI_HIBLACK, ANSI_END);
   if ((folder == 0) && (total + 5 > mail_limit(player)))
     notify_format(player, T("MAIL: Warning! Limit on inbox messages is %d!"),
                   mail_limit(player));

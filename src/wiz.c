@@ -115,7 +115,7 @@ do_pcreate(dbref creator, const char *player_name, const char *player_password,
   dbref player;
 
   if (!Create_Player(creator)) {
-    notify(creator, T("You do not have the power over body and mind!"));
+    notify_denied_why(creator, "You don't have the @pcreate power.");
     return NOTHING;
   }
   if (!can_pay_fees(creator, 0))
@@ -246,7 +246,7 @@ do_allquota(dbref player, const char *arg1, int quiet)
   dbref who, thing;
 
   if (!God(player)) {
-    notify(player, T("Who do you think you are, GOD?"));
+    notify_denied_why(player, "Only God can use @allquota.");
     return;
   }
   if (!arg1 || !*arg1) {
@@ -376,7 +376,7 @@ do_teleport(dbref player, const char *what, const char *where, int flags,
       notify(player, T("No match."));
       return;
     case AMBIGUOUS:
-      notify(player, T("I don't know which destination you mean!"));
+      notify(player, T("I don't know which destination you mean."));
       return;
     }
   }
@@ -471,7 +471,7 @@ do_teleport_one(dbref player, const char *what, dbref destination, int flags,
      */
     if (!tport_control_ok(player, victim, loc) ||
         !can_open_from(player, destination, pe_info)) {
-      notify(player, T("Permission denied."));
+        notify_denied(player);
       return;
     }
     /* Remove it from its old room */
@@ -597,7 +597,7 @@ do_teleport_one(dbref player, const char *what, dbref destination, int flags,
   } else {
     /* attempted teleport to an exit */
     if (!tport_control_ok(player, victim, Location(victim))) {
-      notify(player, T("Permission denied."));
+      notify_denied(player);
       if (victim != player)
         notify_format(victim,
                       T("%s tries to impose his will on you and fails."),
@@ -605,12 +605,12 @@ do_teleport_one(dbref player, const char *what, dbref destination, int flags,
       return;
     }
     if (Fixed(Owner(victim)) || Fixed(player)) {
-      notify(player, T("Permission denied."));
+      notify_denied(player);
       return;
     }
     if (!Tel_Anywhere(player) && !controls(player, destination) &&
         !nearby(player, destination) && !nearby(victim, destination)) {
-      notify(player, T("Permission denied."));
+      notify_denied(player);
       return;
     } else {
       char absdest[SBUF_LEN];
@@ -638,7 +638,7 @@ do_force(dbref player, dbref caller, const char *what, char *command,
   dbref victim;
 
   if ((victim = match_controlled(player, what)) == NOTHING) {
-    notify(player, T("Sorry."));
+    notify_denied(player);
     return;
   }
   if (options.log_forces) {
@@ -654,7 +654,7 @@ do_force(dbref player, dbref caller, const char *what, char *command,
     }
   }
   if (God(victim) && !God(player)) {
-    notify(player, T("You can't force God!"));
+    notify_denied_why(player, "You can't @force God.");
     return;
   }
 
@@ -772,7 +772,7 @@ do_stats(dbref player, const char *name)
   }
   if (!Search_All(player)) {
     if (owner != ANY_OWNER && owner != player) {
-      notify(player, T("You need a search warrant to do that!"));
+      notify_denied(player);
       return;
     }
   }
@@ -839,7 +839,7 @@ do_newpassword(dbref executor, dbref enactor, const char *name,
     /* Wiz can set null passwords, but not bad passwords */
     notify(executor, T("Bad password."));
   } else if (God(victim) && !God(executor)) {
-    notify(executor, T("You cannot change that player's password."));
+    notify_denied(executor);
   } else {
     /* it's ok, do it */
     (void) atr_add(victim, "XYXXY", password_hash(password, NULL), GOD, 0);
@@ -896,9 +896,9 @@ do_boot(dbref player, const char *name, enum boot_type flag, int silent,
     d = port_desc(parse_integer(name));
     if (!d || (!priv && (!d->connected || d->player != player))) {
       if (priv)
-        notify(player, T("There is noone connected on that descriptor."));
+        notify(player, T("There is no one connected on that descriptor."));
       else
-        notify(player, T("You can't boot other people!"));
+        notify_denied(player);
       return;
     }
     victim = (d->connected ? d->player : AMBIGUOUS);
@@ -910,12 +910,12 @@ do_boot(dbref player, const char *name, enum boot_type flag, int silent,
   }
 
   if (God(victim) && !God(player)) {
-    notify(player, T("Permission denied."));
+    notify_denied(player);
     return;
   }
 
   if (victim != player && !priv) {
-    notify(player, T("You can't boot other people!"));
+    notify_denied(player);
     return;
   }
 
@@ -926,10 +926,10 @@ do_boot(dbref player, const char *name, enum boot_type flag, int silent,
       if (player == victim)
         notify(player, T("You boot a duplicate self."));
       else
-        notify_format(player, T("You booted %s off!"),
+        notify_format(player, T("You booted %s off."),
                       AName(victim, AN_SYS, NULL));
     } else {
-      notify_format(player, T("You booted unconnected port %s!"), name);
+      notify_format(player, T("You booted unconnected port %s."), name);
     }
     do_log(LT_WIZ, player, victim, "*** BOOT ***");
     boot_desc(d, "boot", player);
@@ -941,7 +941,7 @@ do_boot(dbref player, const char *name, enum boot_type flag, int silent,
   if (count) {
     if (flag != BOOT_SELF) {
       do_log(LT_WIZ, player, victim, "*** BOOT ***");
-      notify_format(player, T("You booted %s off!"),
+      notify_format(player, T("You booted %s off."),
                     AName(victim, AN_SYS, NULL));
     }
   } else {
@@ -974,7 +974,7 @@ do_chownall(dbref player, const char *name, const char *target, int preserve,
   int count = 0;
 
   if (!Wizard(player)) {
-    notify(player, T("Try asking them first!"));
+    notify_denied(player);
     return;
   }
   if ((victim = noisy_match_result(player, name, TYPE_PLAYER,
@@ -1024,7 +1024,7 @@ do_chzoneall(dbref player, const char *name, const char *target, bool preserve)
   int count = 0;
 
   if (!Wizard(player)) {
-    notify(player, T("You do not have the power to change reality."));
+    notify_denied(player);
     return;
   }
   if ((victim = noisy_match_result(player, name, TYPE_PLAYER,
@@ -1043,7 +1043,7 @@ do_chzoneall(dbref player, const char *name, const char *target, bool preserve)
       notify(player, T("I can't seem to find that."));
       return;
     case AMBIGUOUS:
-      notify(player, T("I don't know which one you mean!"));
+      notify(player, T("I don't know which one you mean."));
       return;
     }
   }
@@ -1076,7 +1076,7 @@ do_kick(dbref player, const char *num)
   int n;
 
   if (!Wizard(player)) {
-    notify(player, T("Permission denied."));
+    notify_denied(player);
     return;
   }
   if (!num || !*num) {
@@ -1106,7 +1106,7 @@ do_debug_examine(dbref player, const char *name)
   dbref thing;
 
   if (!Hasprivs(player)) {
-    notify(player, T("Permission denied."));
+    notify_denied(player);
     return;
   }
   /* find it */
@@ -1878,7 +1878,7 @@ FUNCTION(fun_quota)
     return;
   }
   if (!(Do_Quotas(executor) || See_All(executor) || controls(executor, who))) {
-    notify(executor, T("You can't see someone else's quota!"));
+    notify_denied(executor);
     safe_str("#-1", buff, bp);
     return;
   }
@@ -2531,7 +2531,7 @@ raw_search(dbref player, struct search_spec *spec, dbref **result,
   result_size = (db_top / 4) + 1;
   *result = mush_calloc(result_size, sizeof(dbref), "search_results");
   if (!*result)
-    mush_panic("Couldn't allocate memory in search!");
+    mush_panic("Couldn't allocate memory in search.");
 
   if (spec->low < 0) {
     spec->low = 0;
@@ -2626,7 +2626,7 @@ raw_search(dbref player, struct search_spec *spec, dbref **result,
       result_size *= 2;
       newresults = (dbref *) realloc(*result, sizeof(dbref) * result_size);
       if (!newresults)
-        mush_panic("Couldn't reallocate memory in search!");
+        mush_panic("Couldn't reallocate memory in search.");
       *result = newresults;
     }
 
