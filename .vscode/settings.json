@@ -2,6 +2,8 @@
     "makefile.extensionOutputFolder": "./.vscode",
     "files.associations": {
         "parse.h": "c",
-        "cstdlib": "c"
+        "cstdlib": "c",
+        "externs.h": "c",
+        "intrface.h": "c"
     }
 }

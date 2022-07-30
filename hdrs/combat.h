@@ -41,30 +41,64 @@
 
 typedef struct
 {
-    int Health;
-    int MaxHealth;
-    int Stamina;
-    int MaxStamina;
-    int AttackSkill;
-    int DodgeSkill;
-    int Damage;
-    dbref EquippedBy;
+    int health;
+    int maxHealth;
+    int stamina;
+    int maxStamina;
+    int attackSkill;
+    int dodgeSkill;
+    int damage;
+    dbref equippedBy;
+    int attackSpeed;
+    int nextAttackTime;
+    int actionStamina;
 } combatStats;
 
+#define CE_HEALTH "HEALTH"
+#define CE_MAXHEALTH "MAXHEALTH"
+#define CE_STAMINA "STAMINA"
+#define CE_MAXSTAMINA "MAXSTAMINA"
+#define CE_DAMAGE "DAMAGE"
+#define CE_SKILLATTACK "SKILL`ATTACK"
+#define CE_SKILLDODGE "SKILL`DODGE"
+#define CE_BLEED "BLEED"
+#define CE_EQUIPPEDBY "EQUIPPEDBY"
+#define CE_NEXTATTACKTIME "NEXTATTACKTIME"
+#define CE_ATTACKSPEED "ATTACKSPEED"
+#define CE_ACTIONSTAMINA "ACTIONSTAMINA"
+
+#define CF_ARMOR "ARMOR"
+#define CF_WEAPON "WEAPON"
+
+// Main Loop
 extern void do_combat_iterate();
+
+// Setup
 extern void initCombat();
 extern void setupCombatFlags();
 extern void setupCombatPowers();
 extern void setupCombatCmds();
 extern void setupCombatFunc();
 extern void setupCombatAttr();
+
+// Attrib Helpers
 extern combatStats getStats(dbref Obj);
+extern combatStats getModifiedStats(dbref player);
+extern char * getAtrValue(dbref obj, char * name);
+extern bool setAtrValue(dbref player, char *attr, int value);
+
+// Item Helpers
 extern bool isCombatItem(dbref obj);
 extern dbref equippedBy(dbref obj);
-extern combatStats getModifiedStats(dbref player);
-extern bool do_attack(dbref attacker, dbref defender);
-extern bool do_defend(dbref attacker, dbref defender);
-extern char * getAtrValue(dbref obj, char * name);
+
+// Combat do things
+extern void do_attack(dbref attacker, dbref defender);
+extern void do_defend(dbref attacker, dbref defender);
+
+// Announce
+extern void notify_dodge(dbref attacker, dbref defender);
+extern void notify_hit(dbref attacker, dbref defender);
+extern void notify_miss(dbref attacker, dbref defender);
 
 
 #endif // __COMBAT_H
