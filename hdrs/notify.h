@@ -169,4 +169,9 @@ void notify_format(dbref player, const char *fmt, ...)
 
 int queue_newwrite(DESC *d, const char *b, int n);
 
+/* indicate permission denied, with an optional explanation */ 
+void notify_denied_why(dbref target, const char *message);
+/* indicate permission denied */ 
+void notify_denied(dbref target) ;
+
 #endif /* __NOTIFY_H */
