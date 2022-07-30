@@ -5707,7 +5707,8 @@ void do_whofile_admin(dbref player)
     {
 
       call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
-      
+      free_pe_info(pe_info);
+      free_pe_regs_trees(pe_regs);
       notify(player, tbuf1);
         return;
     }
@@ -5727,7 +5728,8 @@ void do_whofile_mortal(dbref player)
     {
 
       call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
-      
+      free_pe_info(pe_info);
+      free_pe_regs_trees(pe_regs);
       notify(player, tbuf1);
         return;
     }

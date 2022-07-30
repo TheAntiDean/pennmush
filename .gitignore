@@ -46,11 +46,7 @@ hdrs/buildinf.h
 hdrs/cmds.h
 hdrs/funs.h
 hdrs/gitinfo.h
-src/cmdlocal.c
-src/flaglocal.c
-src/funlocal.c
 src/info_slave
-src/local.c
 src/netmud
 src/ssl_slave
 src/TAGS

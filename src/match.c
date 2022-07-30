@@ -314,10 +314,13 @@ match_aliases(dbref match, const char *name)
       }
 
 
-    a = atr_get(match, "ALIAS");
+    a = atr_get_noparent(match, "ALIAS");
     if (!a)
       return 0;
+
+    
     mush_strncpy(tbuf1, atr_value(a), BUFFER_LEN);
+    free(a);
     return check_alias(name, tbuf1);
   }
 }

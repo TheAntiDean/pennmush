@@ -37,6 +37,7 @@
 #include "intmap.h"
 #include "version.h"
 #include "mymalloc.h"
+#include "notify.h"
 
 typedef struct
 {
@@ -63,6 +64,7 @@ extern dbref equippedBy(dbref obj);
 extern combatStats getModifiedStats(dbref player);
 extern bool do_attack(dbref attacker, dbref defender);
 extern bool do_defend(dbref attacker, dbref defender);
+extern char * getAtrValue(dbref obj, char * name);
 
 
 #endif // __COMBAT_H
