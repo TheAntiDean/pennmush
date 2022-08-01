@@ -563,6 +563,6 @@ format_combat(char *msg)
   char *bp = message;
   *bp = '\0';
 
-  safe_format(message, &bp, "%sGAME:%s %s", ANSI_HIGREEN, ANSI_END, msg);
+  safe_format(message, &bp, "%sGAME:%s %s%s%s", ANSI_HIGREEN, ANSI_END, ANSI_CYAN, msg, ANSI_ENDALL);
   return message;
 }
