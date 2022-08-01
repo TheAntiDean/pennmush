@@ -310,9 +310,9 @@ struct spaceconfig {
 	double cochrane_rate;
 };
 
-extern intmap *border_map;
+intmap *border_map;
 
-extern HASHTAB aspace_consoles;
+HASHTAB aspace_consoles;
 
 typedef struct spaceconfig SPACETAB;
 extern SPACETAB configstruct;

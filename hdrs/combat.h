@@ -81,6 +81,10 @@ typedef union combat_attrib_table {
     char *oblock;
     char *block;
     char *vblock;
+    char *equip;
+    char *oequip;
+    char *unequip;
+    char *ounequip;
   };
 } CATRTAB;
 

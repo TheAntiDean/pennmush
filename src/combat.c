@@ -23,7 +23,11 @@ CATRTAB cattr = {.health = "COMBAT`STATS`HEALTH",
                  .vdodge = "COMBAT`MESSAGES`VICTIM`DODGE",
                  .oblock = "COMBAT`MESSAGES`OTHER`BLOCK",
                  .block = "COMBAT`MESSAGES`ATTACKER`BLOCK",
-                 .vblock = "COMBAT`MESSAGES`VICTIM`BLOCK"};
+                 .vblock = "COMBAT`MESSAGES`VICTIM`BLOCK",
+                 .equip = "COMBAT`MESSAGES`EQUIP",
+                 .oequip = "COMBAT`MESSAGES`OEQUIP",
+                 .unequip = "COMBAT`MESSAGES`UNEQUIP",
+                 .ounequip = "COMBAT`MESSAGES`OUNEQUIP"};
 
 char *oAction[4];
 char *action[4];
@@ -176,8 +180,8 @@ COMMAND(cmd_local_equip)
   do_lock(GOD, unparse_dbref(target), "#FALSE", "DROP");
   do_set_atr(target, cattr.equippedby, unparse_dbref(executor), GOD, 0);
   notify_except(executor, Location(executor), executor,
-                get_eval_attr(target, "OSUCCESS", executor, -1), 0);
-  notify(executor, get_eval_attr(target, "SUCCESS", executor, -1));
+                get_eval_attr(target, cattr.oequip, executor, -1), 0);
+  notify(executor, get_eval_attr(target, cattr.equip, executor, -1));
 }
 COMMAND(cmd_local_unequip)
 {
@@ -200,8 +204,8 @@ COMMAND(cmd_local_unequip)
     do_lock(GOD, unparse_dbref(target), NULL, "DROP");
     atr_clr(target, cattr.equippedby, GOD);
     notify_except(executor, Location(executor), executor,
-                  get_eval_attr(target, "ODROP", executor, -1), 0);
-    notify(executor, get_eval_attr(target, "DROP", executor, -1));
+                  get_eval_attr(target, cattr.ounequip, executor, -1), 0);
+    notify(executor, get_eval_attr(target, cattr.unequip, executor, -1));
   } else
   {
     notify(executor, format_combat("You're not using that."));
@@ -285,6 +289,10 @@ setupDefaultsOrConfig()
     cattr.oblock = getAtrValue(conf, cattr.oblock);
     cattr.block = getAtrValue(conf, cattr.block);
     cattr.vblock = getAtrValue(conf, cattr.vblock);
+    cattr.equip = getAtrValue(conf, cattr.equip);
+    cattr.oequip = getAtrValue(conf, cattr.oequip);
+    cattr.unequip = getAtrValue(conf, cattr.unequip);
+    cattr.ounequip = getAtrValue(conf, cattr.ounequip);
   }
 
   oAction[0] = cattr.ohit;
