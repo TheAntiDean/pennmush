@@ -20,6 +20,7 @@
 #include "htab.h"
 #include "lock.h"
 #include "parse.h"
+#include "space.h"
 
 extern HASHTAB htab_reserved_aliases;
 
@@ -50,6 +51,7 @@ sq_register_loop_msec(250, local_timer, NULL, NULL);
 #endif
 
   initCombat();
+  (void) initSpace(); /**< ASpace Related */
 }
 
 /* Add you own runtime configuration options here, and you can set
@@ -103,6 +105,7 @@ local_locks(void)
 void
 local_dump_database(void)
 {
+  (void) dump_space(GOD); /**< ASpace Related */
 }
 
 /* Called when the MUSH is shutting down.
@@ -112,6 +115,7 @@ local_dump_database(void)
 void
 local_shutdown(void)
 {
+  (void) dump_space(GOD); /**< Aspace Related */
 }
 
 /* Called when the MUSH is performing a dbck database check,
@@ -131,8 +135,9 @@ bool
 local_timer(void *data __attribute__((__unused__)))
 {
   do_combat_iterate();
+  (void) do_space_db_iterate(); /**< ASpace Related */
   /* The callback has to be set back up or it'll only run once. */
-  return true;
+  return false;
 }
 
 /* Called when a player connects. If this is a new creation,
