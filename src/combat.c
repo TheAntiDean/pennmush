@@ -173,6 +173,7 @@ COMMAND(cmd_local_equip)
     return;
   }
 
+  do_lock(GOD, unparse_dbref(target), "#FALSE", "DROP");
   do_set_atr(target, cattr.equippedby, unparse_dbref(executor), GOD, 0);
   notify_except(executor, Location(executor), executor,
                 get_eval_attr(target, "OSUCCESS", executor, -1), 0);
@@ -196,6 +197,7 @@ COMMAND(cmd_local_unequip)
   }
   // Check if the person already has it equipped. This is the one we care about.
   if (parse_dbref(getAtrValue(target, cattr.equippedby)) == executor) {
+    do_lock(GOD, unparse_dbref(target), NULL, "DROP");
     atr_clr(target, cattr.equippedby, GOD);
     notify_except(executor, Location(executor), executor,
                   get_eval_attr(target, "ODROP", executor, -1), 0);

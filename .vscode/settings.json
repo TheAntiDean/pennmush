@@ -4,7 +4,9 @@
         "parse.h": "c",
         "cstdlib": "c",
         "externs.h": "c",
-        "intrface.h": "c"
+        "intrface.h": "c",
+        "*.inc": "c",
+        "typeinfo": "c"
     },
     "cmake.configureOnOpen": true
 }
