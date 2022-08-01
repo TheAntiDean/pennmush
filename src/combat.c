@@ -1,6 +1,39 @@
 #include "config.h"
 #include "combat.h"
 
+CATRTAB cattr = {   
+    .health = "COMBAT`STATS`HEALTH",
+    .max_health = "COMBAT`STATS`HEALTH`MAX",
+    .stamina = "COMBAT`STATS`STAMINA",
+    .max_stamina = "COMBAT`STATS`STAMINA`MAX",
+    .action_stamina = "COMBAT`STATS`STAMINA`ACTIONS",
+    .bleed = "COMBAT`STATS`BLEED",
+    .equippedby = "COMBAT`EQUIPPEDBY",
+    .next_attack_time = "COMBAT`STATS`NEXTATTACKTIME",
+    .attack_speed = "COMBAT`STATS`ATTACKSPEED",
+    .skill_attack = "COMBAT`SKILLS`ATTACK",
+    .skill_dodge = "COMBAT`SKILLS`DODGE",
+    .ohit = "COMBAT`MESSAGES`OTHER`HIT",
+    .hit = "COMBAT`MESSAGES`ATTACKER`HIT",
+    .vhit = "COMBAT`MESSAGES`VICTIM`HIT",
+    .omiss = "COMBAT`MESSAGES`OTHER`MISS",
+    .miss =  "COMBAT`MESSAGES`ATTACKER`MISS",
+    .vmiss = "COMBAT`MESSAGES`VICTIM`MISS",
+    .ododge = "COMBAT`MESSAGES`OTHER`DODGE",
+    .dodge =  "COMBAT`MESSAGES`ATTACKER`DODGE",
+    .vdodge = "COMBAT`MESSAGES`VICTIM`DODGE",
+    .oblock = "COMBAT`MESSAGES`OTHER`BLOCK",
+    .block = "COMBAT`MESSAGES`ATTACKER`BLOCK",
+    .vblock = "COMBAT`MESSAGES`VICTIM`BLOCK"
+     };
+
+char *oAction[4];
+char *action[4];
+char *vAction[4];
+
+
+
+
 COMMAND(cmd_local_attack)
 {
   time_t t;
@@ -10,7 +43,7 @@ COMMAND(cmd_local_attack)
   // get the current time for attack timing.
 
   int timeNow = time(NULL);
-  
+
   dbref target =
     noisy_match_result(executor, arg_left, TYPE_PLAYER, MAT_EVERYTHING);
   //  - Determine Defender dbref - Done
@@ -25,6 +58,8 @@ COMMAND(cmd_local_attack)
                   (timeNow - aStats.nextAttackTime) + '0');
     return;
   }
+
+  dbref weapon = equippedWeapon(executor);
 
   notify_format(executor, "Target found: %s", Name(target));
   if (aStats.stamina < 1) {
@@ -92,15 +127,15 @@ COMMAND(cmd_local_attack)
     // - decrement attacker stamina
     // - Display miss messages for weapon
 
-    notify_miss(executor, target);
+    notify_combat(executor, target, CA_MISS, weapon);
   }
 
   // Regardless of what happened, assign next attack time
-  setAtrValue(executor, CE_NEXTATTACKTIME, (timeNow + aStats.attackSpeed));
+  setAtrValue(executor, cattr.next_attack_time, (timeNow + aStats.attackSpeed));
   // Decrease attacker stamina
-  setAtrValue(executor, CE_STAMINA, aStats.stamina - aModStats.actionStamina);
+  setAtrValue(executor, cattr.stamina, aStats.stamina - aModStats.actionStamina);
 
-  return 1;
+  return;
   /*
 
   DODGE:
@@ -122,24 +157,101 @@ COMMAND(cmd_local_unequip) {}
 
 FUNCTION(local_fun_attack) { safe_format(buff, bp, "Attack%sAttack", args[0]); }
 
-// ~250ms
+// Approximately every 250ms, handle combat updates.
 void
 do_combat_iterate()
 {
-  // Update Health
-  // Update Bleed
-  // Undate Unconscious
+  // ~250ms
   // Update Stamina
+  // - increase stamina by a point or so
+  // - increase stamina by bonuses on equipped items
+  // Update Health
+  // - increase health by a miniscule amount regardless
+  // - increase health by bonuses on equipped items.
+  // Update Bleed
+  // - decrease health by the Bleeding attribute.
+  // - decrease bleeding amount by a point or so.
+  // Update Unconscious
+  // - If a player's health has dropped below 10% of their maxhealth, and they
+  // are not UNCONSCIOUS.
+  // --  Set them UNCONSCIOUS
+  // --  Notify them they have fallen unconscious
+  // --  UNCONSCIOUS players should not be able to perform any actions
+  // - If they are unconscious and their health has risen above 10%,
+  // --  set them !UNCONSCIOUS.
+  // --  Notify them they have reawakened.
+  // Update Death
+  // - If a player's health has dropped to <= 0,
+  // --  set their health to 0 and set them DEAD
+  // --  Notify the player that they have died.
+  // --  Increment their death count
+  // --  @boot the player from the game.
+  // --  DEAD players should not be able to perform any actions until they are
+  // respawned or whatever.
 }
 
 void
 initCombat()
 {
+
+  //setupDefaultsOrConfig();
+
   setupCombatFlags();
   setupCombatPowers();
   setupCombatCmds();
   setupCombatFunc();
   setupCombatAttr();
+
+
+}
+
+void
+setupDefaultsOrConfig()
+{
+  dbref conf = options.combat_config;
+  if (GoodObject(conf)) {
+    CATRTAB tempatr = {
+    .health = getAtrValue(conf, cattr.health),
+    .max_health  = getAtrValue(conf, cattr.max_health),
+    .stamina = getAtrValue(conf, cattr.stamina) ,
+    .max_stamina  = getAtrValue(conf, cattr.max_stamina),
+    .action_stamina = getAtrValue(conf, cattr.action_stamina),
+    .bleed = getAtrValue(conf, cattr.bleed),
+    .equippedby = getAtrValue(conf, cattr.equippedby),
+    .next_attack_time = getAtrValue(conf, cattr.next_attack_time),
+    .attack_speed = getAtrValue(conf, cattr.attack_speed),
+    .skill_attack = getAtrValue(conf, cattr.skill_attack),
+    .skill_dodge = getAtrValue(conf, cattr.skill_dodge),
+    .ohit = getAtrValue(conf, cattr.ohit),
+    .hit = getAtrValue(conf, cattr.hit),
+    .vhit = getAtrValue(conf, cattr.vhit),
+    .omiss  = getAtrValue(conf, cattr.omiss),
+    .miss = getAtrValue(conf, cattr.miss),
+    .vmiss = getAtrValue(conf, cattr.vmiss),
+    .ododge = getAtrValue(conf, cattr.ododge),
+    .dodge = getAtrValue(conf, cattr.dodge),
+    .vdodge = getAtrValue(conf, cattr.vdodge),
+    .oblock = getAtrValue(conf, cattr.oblock),
+    .block = getAtrValue(conf, cattr.block),
+    .vblock = getAtrValue(conf, cattr.vblock)
+  };
+
+    cattr = tempatr;
+
+  }
+
+    oAction[0] = cattr.ohit;
+    oAction[1] = cattr.omiss;
+    oAction[2] = cattr.ododge;
+    oAction[3] = cattr.oblock;
+    action[0] = cattr.hit;
+    action[1] = cattr.miss;
+    action[2] = cattr.dodge;
+    action[3] = cattr.block;
+    vAction[0] = cattr.vhit;
+    vAction[1] = cattr.vmiss;
+    vAction[2] = cattr.vdodge;
+    vAction[3] = cattr.vblock;
 }
 
 void
@@ -156,23 +268,26 @@ setupCombatCmds()
               "NOISY NOEVAL VERY", cmd_local_equip);
   command_add("UNEQUIP", CMD_T_ANY, "WIZARD ROYALTY", "SEE_ALL",
               "NOISY NOEVAL VERY", cmd_local_unequip);
+
+    
+
 }
 void
 setupCombatFlags()
 {
 
   add_flag(
-    "WEAPON", "*", TYPE_THING, F_ANY,
+    "WEAPON", '\0', TYPE_THING, F_ANY,
     F_ANY); // signifies an object that provides attack damage and stamina
-  add_flag("ARMOR", "A", TYPE_THING, F_ANY,
+  add_flag("ARMOR", '\0', TYPE_THING, F_ANY,
            F_ANY); // Signifies an object that provides armor and stamina and
                    // defense bonuses.
-  add_flag("BLEEDING", "b", TYPE_PLAYER, F_ANY,
+  add_flag("BLEEDING", '\0', TYPE_PLAYER, F_ANY,
            F_ANY); // player will loose health each combat tick.
-  add_flag("UNCONSCIOUS", "b", TYPE_PLAYER, F_ANY,
+  add_flag("UNCONSCIOUS", '\0', TYPE_PLAYER, F_ANY,
            F_ANY); // player will be unable to move/speak/hear/use commands.
                    // Will eventually recover over time
-  add_flag("DEAD", "D", TYPE_PLAYER, F_ANY,
+  add_flag("DEAD", '\0', TYPE_PLAYER, F_ANY,
            F_ANY); // player will be unable to move/speak/hear/use commands.
                    // Will not recover.
 }
@@ -196,41 +311,33 @@ void
 setupCombatAttr()
 {
 
-  add_new_attr(CE_HEALTH,
-               AF_WIZARD); // The current health of the player/armor/weapon
-  add_new_attr(CE_MAXHEALTH,
-               AF_WIZARD); // The most health a player can heal up to or
-                           // armor/weapon can be repaired to.
-  add_new_attr(
-    CE_STAMINA,
-    AF_WIZARD); // The current stamina of the player or the bonus/penalty to
-                // player stamina caused by the armor/weapon
-  add_new_attr(
-    CE_MAXSTAMINA,
-    AF_WIZARD); // The most stamina a player can recover, or an bonus/penalty to
-                // base stamina caused by armor/weapon
+    add_new_attr(cattr.health, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.max_health, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.max_health, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.max_stamina, AF_WIZARD & AF_VEILED); 
+    add_new_attr(cattr.damage, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.bleed, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.equippedby, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.next_attack_time, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.attack_speed, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.skill_attack, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.skill_dodge, AF_WIZARD & AF_VEILED);
 
-  add_new_attr(
-    CE_SKILLATTACK,
-    AF_WIZARD); // How likely the player is to land a hit.  For weapon or armor,
-                // bonus or penalty to player base stat
-  add_new_attr(
-    CE_SKILLDODGE,
-    AF_WIZARD); // How likely the player is to dodge an attack.  For weapon or
-                // armor, bonus or penalty to player base stat.
-  add_new_attr(
-    CE_DAMAGE,
-    AF_WIZARD); // How much damage the weapon (or player) can dish out
-  add_new_attr(CE_EQUIPPEDBY, AF_WIZARD); // dbref of player using weapon/armor
+    add_new_attr(cattr.action_stamina, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.ohit, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.hit, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.vhit, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.omiss, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.miss, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.vmiss, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.ododge, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.dodge, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.vdodge, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.oblock, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.block, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.vblock, AF_WIZARD & AF_VEILED);
 
-  add_new_attr(
-    CE_NEXTATTACKTIME,
-    AF_WIZARD &
-      AF_INTERNAL); // TImestamp at which time the next attack can be performed
-  add_new_attr(CE_ATTACKSPEED,
-               AF_WIZARD); // number of seconds to increment current timestamp
-                           // when performing an attack.
-  add_new_attr(CE_ACTIONSTAMINA, AF_WIZARD);
+
 
   alias_attribute("Health", "Life");
 }
@@ -239,17 +346,17 @@ combatStats
 getStats(dbref obj)
 {
   combatStats cstat;
-  cstat.health = parse_number(getAtrValue(obj, CE_HEALTH));
-  cstat.maxHealth = parse_number(getAtrValue(obj, CE_MAXHEALTH));
-  cstat.stamina = parse_number(getAtrValue(obj, CE_STAMINA));
-  cstat.maxStamina = parse_number(getAtrValue(obj, CE_MAXSTAMINA));
-  cstat.attackSkill = parse_number(getAtrValue(obj, CE_SKILLATTACK));
-  cstat.dodgeSkill = parse_number(getAtrValue(obj, CE_SKILLDODGE));
-  cstat.equippedBy = parse_number(getAtrValue(obj, CE_EQUIPPEDBY));
-  cstat.damage = parse_number(getAtrValue(obj, CE_DAMAGE));
-  cstat.attackSpeed = parse_number(getAtrValue(obj, CE_ATTACKSPEED));
-  cstat.nextAttackTime = parse_number(getAtrValue(obj, CE_NEXTATTACKTIME));
-  cstat.actionStamina = parse_number(getAtrValue(obj, CE_ACTIONSTAMINA));
+  cstat.health = parse_number(getAtrValue(obj, cattr.health));
+  cstat.maxHealth = parse_number(getAtrValue(obj, cattr.max_health));
+  cstat.stamina = parse_number(getAtrValue(obj, cattr.stamina));
+  cstat.maxStamina = parse_number(getAtrValue(obj, cattr.max_stamina));
+  cstat.attackSkill = parse_number(getAtrValue(obj, cattr.skill_attack));
+  cstat.dodgeSkill = parse_number(getAtrValue(obj, cattr.skill_dodge));
+  cstat.equippedBy = parse_number(getAtrValue(obj, cattr.equippedby));
+  cstat.damage = parse_number(getAtrValue(obj, cattr.damage));
+  cstat.attackSpeed = parse_number(getAtrValue(obj, cattr.attack_speed));
+  cstat.nextAttackTime = parse_number(getAtrValue(obj, cattr.next_attack_time));
+  cstat.actionStamina = parse_number(getAtrValue(obj, cattr.action_stamina));
 
   return cstat;
 }
@@ -266,7 +373,7 @@ getAtrValue(dbref obj, char *name)
 
   ATTR *a = atr_get_noparent(obj, name);
   if (!a)
-    return "";
+    return NULL;
 
   return atr_value(a);
 }
@@ -284,7 +391,19 @@ equippedBy(dbref obj)
 {
   // If an object is dropped, it should get this attribute cleared automatically
   // somehow
-  return parse_dbref(atr_value(atr_get(obj, CE_EQUIPPEDBY)));
+  return parse_dbref(atr_value(atr_get(obj, cattr.equippedby)));
+}
+
+dbref equippedWeapon(dbref player)
+{
+  dbref invItem;
+    DOLIST (invItem, Contents(player)) {
+    if (has_flag_by_name(invItem, CF_WEAPON, NOTYPE) && equippedBy(invItem) == player) {
+        return invItem;
+    }
+  }
+
+  return -1;
 }
 
 combatStats
@@ -322,9 +441,9 @@ do_attack(dbref attacker, dbref defender)
   combatStats dStats = getStats(defender);
   combatStats aModStats = getModifiedStats(attacker),
               dModStats = getModifiedStats(defender);
-  setAtrValue(defender, CE_HEALTH, dStats.health - aModStats.damage);
-  setAtrValue(defender, CE_STAMINA, dStats.stamina - dModStats.actionStamina);
-  notify_hit(attacker, defender);
+  setAtrValue(defender, cattr.health, dStats.health - aModStats.damage);
+  setAtrValue(defender, cattr.stamina, dStats.stamina - dModStats.actionStamina);
+  notify_combat(attacker, defender, CA_HIT, equippedWeapon(attacker));
 }
 
 void
@@ -333,54 +452,69 @@ do_defend(dbref attacker, dbref defender)
   combatStats aStats = getStats(attacker), dStats = getStats(defender);
   combatStats aModStats = getModifiedStats(attacker),
               dModStats = getModifiedStats(defender);
-  setAtrValue(defender, CE_STAMINA, dStats.stamina - dModStats.actionStamina);
-  notify_dodge(attacker, defender);
+  setAtrValue(defender, cattr.stamina, dStats.stamina - dModStats.actionStamina);
+  notify_combat(attacker, defender, CA_DODGE, equippedWeapon(attacker));
 }
 
 void
-notify_dodge(dbref attacker, dbref defender)
+notify_combat(dbref attacker, dbref defender, int state, dbref equipped)
 {
-  static char msg[BUFFER_LEN];
-  char *bp = msg;
-  safe_format(msg, &bp, "%sGAME:%s %s%s%s%s attacks %s%s%s%s but they dodge.%s",
-              ANSI_HIGREEN, ANSI_END, ANSI_HIWHITE, Name(attacker), ANSI_END,
-              ANSI_CYAN, ANSI_HIWHITE, Name(defender), ANSI_END, ANSI_CYAN,
-              ANSI_ENDALL);
-  notify_except(attacker, Location(attacker), attacker, msg, 0);
-  notify_format(attacker, "%sGAME: %s%sYou attack %s%s%s%s but they dodge.%s",
-                ANSI_HIGREEN, ANSI_END, ANSI_CYAN, ANSI_HIWHITE, Name(defender),
-                ANSI_END, ANSI_CYAN, ANSI_ENDALL);
-  *bp = '\0';
+  dbref invoke = attacker;
+  if(GoodObject(equipped))
+    invoke = equipped;
+
+  notify_except2(attacker, Location(attacker), attacker, defender,
+                 get_eval_attr(invoke, oAction[state], attacker, defender),
+                 0);
+  notify(attacker, get_eval_attr(invoke, action[state], attacker, defender));
+  notify(defender, get_eval_attr(invoke, vAction[state], attacker, defender));
 }
 
-void
-notify_hit(dbref attacker, dbref defender)
+char *
+cmessage_format(char *inmessage)
 {
-  static char msg[BUFFER_LEN];
-  char *bp = msg;
-  safe_format(
-    msg, &bp, "%sGAME:%s %s%s%s%s attacks %s%s%s%s and scores a hit.%s",
-    ANSI_HIGREEN, ANSI_END, ANSI_HIWHITE, Name(attacker), ANSI_END, ANSI_CYAN,
-    ANSI_HIWHITE, Name(defender), ANSI_END, ANSI_CYAN, ANSI_ENDALL);
-  notify_except(attacker, Location(attacker), attacker, msg, 0);
-  notify_format(attacker, "%sGAME: %s%sYou attack %s%s%s%s and you hit.%s",
-                ANSI_HIGREEN, ANSI_END, ANSI_CYAN, ANSI_HIWHITE, Name(defender),
-                ANSI_END, ANSI_CYAN, ANSI_ENDALL);
-  *bp = '\0';
+
+  return inmessage;
 }
 
-void
-notify_miss(dbref attacker, dbref defender)
+char *
+get_eval_attr(dbref obj, char *atr, dbref attacker, dbref defender)
 {
-  static char msg[BUFFER_LEN];
+  ufun_attrib ufun;
+  NEW_PE_INFO *pe_info;
+  PE_REGS *pe_regs = NULL;
+  pe_info = make_pe_info("pe_info-atr_ufun_cbt");
+
+  char tbuf1[BUFFER_LEN];
+  *tbuf1 = '\0';
+  char *msg = mush_malloc(sizeof(BUFFERQ), "bufferq");
   char *bp = msg;
-  safe_format(msg, &bp, "%sGAME:%s %s%s%s%s attacks %s%s%s%s but misses.%s",
-              ANSI_HIGREEN, ANSI_END, ANSI_HIWHITE, Name(attacker), ANSI_END,
-              ANSI_CYAN, ANSI_HIWHITE, Name(defender), ANSI_END, ANSI_CYAN,
-              ANSI_ENDALL);
-  notify_except(attacker, Location(attacker), attacker, msg, 0);
-  notify_format(attacker, "%sGAME: %s%sYou attack %s%s%s%s but you miss.%s",
-                ANSI_HIGREEN, ANSI_END, ANSI_CYAN, ANSI_HIWHITE, Name(defender),
-                ANSI_END, ANSI_CYAN, ANSI_ENDALL);
   *bp = '\0';
+
+  if (fetch_ufun_attrib(atr, obj, &ufun, UFUN_IGNORE_PERMS)) {
+
+    pe_regs = pe_regs_create(PE_REGS_ARG, "cmd_attack");
+
+    pe_regs_setenv(pe_regs, 0, unparse_dbref(attacker)); // %0 is the attacker
+    pe_regs_setenv(pe_regs, 1, unparse_dbref(defender)); // %1 is the victim
+    pi_regs_setq(pe_info, "A", unparse_dbref(attacker)); // %qA is the attacker
+    pi_regs_setq(pe_info, "V", unparse_dbref(defender)); // %qV is the victim
+
+    // %qD damage
+    // %qB bleed
+    // %qP poison
+    // %qS extra stamina loss?
+
+    // call_attrib(attacker, CO_ATTACKMSG, tbuf1, attacker, pe_info, pe_regs);
+    call_ufun(&ufun, tbuf1, obj, obj, pe_info, pe_regs);
+
+    free_pe_info(pe_info);
+    free_pe_regs_trees(pe_regs);
+
+    safe_format(msg, &bp, "%sGAME:%s %s", ANSI_HIGREEN, ANSI_END, tbuf1);
+    //
+
+    // return msg;
+  }
+  return msg;
 }

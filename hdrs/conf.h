@@ -175,6 +175,7 @@ struct options_table {
   dbref ancestor_player;  /**< The ultimate parent player (help ancestors) */
   dbref event_handler;    /**< The Event Handler (help events). */
   dbref http_handler;     /**< The HTTP Handler (GET, POST, etc) */
+  dbref combat_config;    /**< The Combat Config obj */
   int http_per_second;    /**< Maximum number of commands run from http every
                              second */
   int connect_fail_limit; /**< Maximum number of connect fails in 10 mins. */

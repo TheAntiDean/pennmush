@@ -5971,8 +5971,8 @@ announce_connect(DESC *d, int isnew, int num)
   } else {
     message = (num > 1) ? T("has reconnected.") : T("has connected.");
   }
-  snprintf(tbuf1, BUFFER_LEN, "%s %s", AName(player, AN_ANNOUNCE, NULL),
-           message);
+  snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN, AName(player, AN_ANNOUNCE, NULL),
+           message, ANSI_HIWHITE);
 
   /* send out messages */
   if (Suspect(player))
@@ -6173,8 +6173,8 @@ announce_disconnect(DESC *saved, const char *reason, dbref executor)
     message =
       (numleft) ? T("has partially disconnected.") : T("has disconnected.");
   }
-  snprintf(tbuf1, BUFFER_LEN, "%s %s", AName(player, AN_ANNOUNCE, NULL),
-           message);
+  snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN, AName(player, AN_ANNOUNCE, NULL),
+           message, ANSI_ENDALL);
 
   if (ANNOUNCE_CONNECTS) {
     if (!Dark(player))
@@ -6230,8 +6230,7 @@ do_motd(dbref player, int key, const char *message)
 
   if (!(((key & MOTD_TYPE) == MOTD_MOTD) ? Can_Announce(player)
                                          : Hasprivs(player))) {
-    notify(player, T("You may get 15 minutes of fame and glory in life, but "
-                     "not right now."));
+    notify(player, T("You do not have permission to set the message of the day."));
     return;
   }
 
@@ -6384,7 +6383,7 @@ do_poll(dbref player, const char *message, int clear)
   }
 
   if (!Change_Poll(player)) {
-    notify(player, T("Who do you think you are, Gallup?"));
+    notify(player, T("You do not have permission to set the poll."));
     return;
   }
 

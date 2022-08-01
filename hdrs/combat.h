@@ -54,21 +54,51 @@ typedef struct
     int actionStamina;
 } combatStats;
 
-#define CE_HEALTH "HEALTH"
-#define CE_MAXHEALTH "MAXHEALTH"
-#define CE_STAMINA "STAMINA"
-#define CE_MAXSTAMINA "MAXSTAMINA"
-#define CE_DAMAGE "DAMAGE"
-#define CE_SKILLATTACK "SKILL`ATTACK"
-#define CE_SKILLDODGE "SKILL`DODGE"
-#define CE_BLEED "BLEED"
-#define CE_EQUIPPEDBY "EQUIPPEDBY"
-#define CE_NEXTATTACKTIME "NEXTATTACKTIME"
-#define CE_ATTACKSPEED "ATTACKSPEED"
-#define CE_ACTIONSTAMINA "ACTIONSTAMINA"
 
+
+typedef union combat_attrib_table {
+    struct
+{
+    char *health;
+    char *max_health;
+    char *stamina;
+    char *max_stamina;
+    char *damage;
+    char *bleed;
+    char *equippedby;
+    char *next_attack_time;
+    char *attack_speed;
+    char *skill_attack;
+    char *skill_dodge;
+    char *action_stamina;
+    char *ohit;
+    char *hit;
+    char *vhit;
+    char *omiss;
+    char *miss;
+    char *vmiss;
+    char *ododge;
+    char *dodge;
+    char *vdodge;
+    char *oblock;
+    char *block;
+    char *vblock;
+};
+} CATRTAB;
+
+
+// ItemTypes
+// Flag to indicate this item is armor.
 #define CF_ARMOR "ARMOR"
+// FLag to indicate this item is a weapon.
 #define CF_WEAPON "WEAPON"
+
+// actions
+#define CA_HIT 0
+#define CA_MISS 1 
+#define CA_DODGE 2 // move out of the way of the attack
+#define CA_BLOCK 3 // Use weapon to block attack
+
 
 // Main Loop
 extern void do_combat_iterate();
@@ -80,6 +110,7 @@ extern void setupCombatPowers();
 extern void setupCombatCmds();
 extern void setupCombatFunc();
 extern void setupCombatAttr();
+extern void setupDefaultsOrConfig();
 
 // Attrib Helpers
 extern combatStats getStats(dbref Obj);
@@ -90,15 +121,19 @@ extern bool setAtrValue(dbref player, char *attr, int value);
 // Item Helpers
 extern bool isCombatItem(dbref obj);
 extern dbref equippedBy(dbref obj);
-
+extern dbref equippedWeapon(dbref player);
 // Combat do things
 extern void do_attack(dbref attacker, dbref defender);
 extern void do_defend(dbref attacker, dbref defender);
 
 // Announce
-extern void notify_dodge(dbref attacker, dbref defender);
-extern void notify_hit(dbref attacker, dbref defender);
-extern void notify_miss(dbref attacker, dbref defender);
+
+extern void notify_combat(dbref attacker, dbref defender, int state, dbref equipped);
+extern char * 
+cmessage_format(char *message);
+extern char * 
+get_eval_attr(dbref obj, char *atr, dbref attacker, dbref defender);
+
 
 
 #endif // __COMBAT_H
