@@ -320,7 +320,7 @@ match_aliases(dbref match, const char *name)
 
     
     mush_strncpy(tbuf1, atr_value(a), BUFFER_LEN);
-    free(a);
+    
     return check_alias(name, tbuf1);
   }
 }

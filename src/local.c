@@ -130,7 +130,7 @@ local_dbck(void)
 bool
 local_timer(void *data __attribute__((__unused__)))
 {
-    do_combat_iterate();
+  do_combat_iterate();
   /* The callback has to be set back up or it'll only run once. */
   return true;
 }

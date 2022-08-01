@@ -194,7 +194,7 @@ void
 initCombat()
 {
 
-  //setupDefaultsOrConfig();
+  setupDefaultsOrConfig();
 
   setupCombatFlags();
   setupCombatPowers();
@@ -210,33 +210,33 @@ setupDefaultsOrConfig()
 {
   dbref conf = options.combat_config;
   if (GoodObject(conf)) {
-    CATRTAB tempatr = {
-    .health = getAtrValue(conf, cattr.health),
-    .max_health  = getAtrValue(conf, cattr.max_health),
-    .stamina = getAtrValue(conf, cattr.stamina) ,
-    .max_stamina  = getAtrValue(conf, cattr.max_stamina),
-    .action_stamina = getAtrValue(conf, cattr.action_stamina),
-    .bleed = getAtrValue(conf, cattr.bleed),
-    .equippedby = getAtrValue(conf, cattr.equippedby),
-    .next_attack_time = getAtrValue(conf, cattr.next_attack_time),
-    .attack_speed = getAtrValue(conf, cattr.attack_speed),
-    .skill_attack = getAtrValue(conf, cattr.skill_attack),
-    .skill_dodge = getAtrValue(conf, cattr.skill_dodge),
-    .ohit = getAtrValue(conf, cattr.ohit),
-    .hit = getAtrValue(conf, cattr.hit),
-    .vhit = getAtrValue(conf, cattr.vhit),
-    .omiss  = getAtrValue(conf, cattr.omiss),
-    .miss = getAtrValue(conf, cattr.miss),
-    .vmiss = getAtrValue(conf, cattr.vmiss),
-    .ododge = getAtrValue(conf, cattr.ododge),
-    .dodge = getAtrValue(conf, cattr.dodge),
-    .vdodge = getAtrValue(conf, cattr.vdodge),
-    .oblock = getAtrValue(conf, cattr.oblock),
-    .block = getAtrValue(conf, cattr.block),
-    .vblock = getAtrValue(conf, cattr.vblock)
-  };
+    
+    cattr.health = getAtrValue(conf, cattr.health);
+    cattr.max_health  = getAtrValue(conf, cattr.max_health);
+    cattr.stamina = getAtrValue(conf, cattr.stamina) ;
+    cattr.max_stamina  = getAtrValue(conf, cattr.max_stamina);
+    cattr.action_stamina = getAtrValue(conf, cattr.action_stamina);
+    cattr.bleed = getAtrValue(conf, cattr.bleed);
+    cattr.equippedby = getAtrValue(conf, cattr.equippedby);
+    cattr.next_attack_time = getAtrValue(conf, cattr.next_attack_time);
+    cattr.attack_speed = getAtrValue(conf, cattr.attack_speed);
+    cattr.skill_attack = getAtrValue(conf, cattr.skill_attack);
+    cattr.skill_dodge = getAtrValue(conf, cattr.skill_dodge);
+    cattr.ohit = getAtrValue(conf, cattr.ohit);
+    cattr.hit = getAtrValue(conf, cattr.hit);
+    cattr.vhit = getAtrValue(conf, cattr.vhit);
+    cattr.omiss  = getAtrValue(conf, cattr.omiss);
+    cattr.miss = getAtrValue(conf, cattr.miss);
+    cattr.vmiss = getAtrValue(conf, cattr.vmiss);
+    cattr.ododge = getAtrValue(conf, cattr.ododge);
+    cattr.dodge = getAtrValue(conf, cattr.dodge);
+    cattr.vdodge = getAtrValue(conf, cattr.vdodge);
+    cattr.oblock = getAtrValue(conf, cattr.oblock);
+    cattr.block = getAtrValue(conf, cattr.block);
+    cattr.vblock = getAtrValue(conf, cattr.vblock);
+  
 
-    cattr = tempatr;
+    
 
   }
 
@@ -277,17 +277,17 @@ setupCombatFlags()
 {
 
   add_flag(
-    "WEAPON", '\0', TYPE_THING, F_ANY,
+    "WEAPON", '*', TYPE_THING, F_ANY,
     F_ANY); // signifies an object that provides attack damage and stamina
-  add_flag("ARMOR", '\0', TYPE_THING, F_ANY,
+  add_flag("ARMOR", 'a', TYPE_THING, F_ANY,
            F_ANY); // Signifies an object that provides armor and stamina and
                    // defense bonuses.
-  add_flag("BLEEDING", '\0', TYPE_PLAYER, F_ANY,
+  add_flag("BLEEDING", 'b', TYPE_PLAYER, F_ANY,
            F_ANY); // player will loose health each combat tick.
-  add_flag("UNCONSCIOUS", '\0', TYPE_PLAYER, F_ANY,
+  add_flag("UNCONSCIOUS", 'u', TYPE_PLAYER, F_ANY,
            F_ANY); // player will be unable to move/speak/hear/use commands.
                    // Will eventually recover over time
-  add_flag("DEAD", '\0', TYPE_PLAYER, F_ANY,
+  add_flag("DEAD", 'd', TYPE_PLAYER, F_ANY,
            F_ANY); // player will be unable to move/speak/hear/use commands.
                    // Will not recover.
 }
@@ -313,7 +313,7 @@ setupCombatAttr()
 
     add_new_attr(cattr.health, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.max_health, AF_WIZARD & AF_VEILED);
-    add_new_attr(cattr.max_health, AF_WIZARD & AF_VEILED);
+    add_new_attr(cattr.stamina, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.max_stamina, AF_WIZARD & AF_VEILED); 
     add_new_attr(cattr.damage, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.bleed, AF_WIZARD & AF_VEILED);
@@ -322,7 +322,6 @@ setupCombatAttr()
     add_new_attr(cattr.attack_speed, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.skill_attack, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.skill_dodge, AF_WIZARD & AF_VEILED);
-
     add_new_attr(cattr.action_stamina, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.ohit, AF_WIZARD & AF_VEILED);
     add_new_attr(cattr.hit, AF_WIZARD & AF_VEILED);
@@ -346,6 +345,7 @@ combatStats
 getStats(dbref obj)
 {
   combatStats cstat;
+  
   cstat.health = parse_number(getAtrValue(obj, cattr.health));
   cstat.maxHealth = parse_number(getAtrValue(obj, cattr.max_health));
   cstat.stamina = parse_number(getAtrValue(obj, cattr.stamina));
@@ -354,6 +354,7 @@ getStats(dbref obj)
   cstat.dodgeSkill = parse_number(getAtrValue(obj, cattr.skill_dodge));
   cstat.equippedBy = parse_number(getAtrValue(obj, cattr.equippedby));
   cstat.damage = parse_number(getAtrValue(obj, cattr.damage));
+
   cstat.attackSpeed = parse_number(getAtrValue(obj, cattr.attack_speed));
   cstat.nextAttackTime = parse_number(getAtrValue(obj, cattr.next_attack_time));
   cstat.actionStamina = parse_number(getAtrValue(obj, cattr.action_stamina));
@@ -370,12 +371,16 @@ setAtrValue(dbref player, char *attr, int value)
 char *
 getAtrValue(dbref obj, char *name)
 {
-
-  ATTR *a = atr_get_noparent(obj, name);
+  if(name)
+  {
+  ATTR *a = atr_get(obj, name);
   if (!a)
-    return NULL;
+    return "0";;
+  
 
   return atr_value(a);
+  }
+  return "0";
 }
 
 bool

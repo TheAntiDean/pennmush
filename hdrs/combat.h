@@ -39,7 +39,7 @@
 #include "mymalloc.h"
 #include "notify.h"
 
-typedef struct
+struct combStats
 {
     int health;
     int maxHealth;
@@ -52,7 +52,9 @@ typedef struct
     int attackSpeed;
     int nextAttackTime;
     int actionStamina;
-} combatStats;
+};
+
+typedef struct combStats combatStats;
 
 
 
