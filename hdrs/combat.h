@@ -39,28 +39,24 @@
 #include "mymalloc.h"
 #include "notify.h"
 
-struct combStats
-{
-    int health;
-    int maxHealth;
-    int stamina;
-    int maxStamina;
-    int attackSkill;
-    int dodgeSkill;
-    int damage;
-    dbref equippedBy;
-    int attackSpeed;
-    int nextAttackTime;
-    int actionStamina;
+struct combStats {
+  int health;
+  int maxHealth;
+  int stamina;
+  int maxStamina;
+  int attackSkill;
+  int dodgeSkill;
+  int damage;
+  dbref equippedBy;
+  int attackSpeed;
+  int nextAttackTime;
+  int actionStamina;
 };
 
 typedef struct combStats combatStats;
 
-
-
 typedef union combat_attrib_table {
-    struct
-{
+  struct {
     char *health;
     char *max_health;
     char *stamina;
@@ -85,22 +81,22 @@ typedef union combat_attrib_table {
     char *oblock;
     char *block;
     char *vblock;
-};
+  };
 } CATRTAB;
-
 
 // ItemTypes
 // Flag to indicate this item is armor.
 #define CF_ARMOR "ARMOR"
 // FLag to indicate this item is a weapon.
 #define CF_WEAPON "WEAPON"
+#define cformat(str)                                                           \
+  safe_format(msg, &bp, "%sGAME:%s %s", ANSI_HIGREEN, ANSI_END, str)
 
 // actions
 #define CA_HIT 0
-#define CA_MISS 1 
+#define CA_MISS 1
 #define CA_DODGE 2 // move out of the way of the attack
 #define CA_BLOCK 3 // Use weapon to block attack
-
 
 // Main Loop
 extern void do_combat_iterate();
@@ -117,7 +113,7 @@ extern void setupDefaultsOrConfig();
 // Attrib Helpers
 extern combatStats getStats(dbref Obj);
 extern combatStats getModifiedStats(dbref player);
-extern char * getAtrValue(dbref obj, char * name);
+extern char *getAtrValue(dbref obj, char *name);
 extern bool setAtrValue(dbref player, char *attr, int value);
 
 // Item Helpers
@@ -130,14 +126,11 @@ extern void do_defend(dbref attacker, dbref defender);
 
 // Announce
 
-extern void notify_combat(dbref attacker, dbref defender, int state, dbref equipped);
-extern char * 
-cmessage_format(char *message);
-extern char * 
-get_eval_attr(dbref obj, char *atr, dbref attacker, dbref defender);
-
-
+extern void notify_combat(dbref attacker, dbref defender, int state,
+                          dbref equipped);
+extern char *cmessage_format(char *message);
+extern char *get_eval_attr(dbref obj, char *atr, dbref attacker,
+                           dbref defender);
+extern char *format_combat(char *msg);
 
 #endif // __COMBAT_H
-
-
