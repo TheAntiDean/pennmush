@@ -417,7 +417,6 @@ getAtrValue(dbref obj, char *name)
     ATTR *a = atr_get(obj, name);
     if (!a)
       return "0";
-    ;
 
     return atr_value(a);
   }
@@ -437,7 +436,7 @@ equippedBy(dbref obj)
 {
   // If an object is dropped, it should get this attribute cleared automatically
   // somehow
-  return parse_dbref(atr_value(atr_get(obj, cattr.equippedby)));
+  return parse_dbref(getAtrValue(obj, cattr.equippedby));
 }
 
 dbref
