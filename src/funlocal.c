@@ -53,19 +53,35 @@ FUNCTION(local_fun_silly) { safe_format(buff, bp, "Silly%sSilly", args[0]); }
 
 FUNCTION(local_fun_rgbcolor)
 {
+  char **list = mush_calloc(BUFFER_LEN/2, sizeof(char *), "ptrarray");
   char argval[BUFFER_LEN];
-  char *ap = argval;
-  safe_str("font color=", argval, &ap);
-  safe_str(args[0], argval, &ap);
+  char *ap;
+  ap = argval;
 
-  if (!Can_Send_OOB(executor) && !is_allowed_tag(args[0], arglens[0]))
-    safe_str("#-1", buff, bp);
-  else {
-    if (nargs == 2)
-      safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
-    else
-      safe_str("#-1", buff, bp);
+  int res = list2arr(list,BUFFER_LEN /2, args[0], ' ', 1);
+  if(res== 2)
+  {
+   safe_str("color=", argval, &ap);
+   safe_str(list[0], argval, &ap);
+  safe_str(" bgcolor=", argval, &ap);
+   safe_str(list[1], argval, &ap);
   }
+  else if(res == 1) {
+    safe_str("color=", argval, &ap);
+   safe_str(list[0], argval, &ap);
+   safe_str("bg color=#", argval, &ap);
+  }
+  else
+  {
+    safe_str("#-1", buff, bp);
+    return;
+  }
+
+      safe_tag_wrap("font", argval, args[1], buff, bp, executor);
+  *ap = '\0';
+  mush_free(list,"ptarray");
+
+
 }
 
 

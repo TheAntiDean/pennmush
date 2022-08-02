@@ -265,6 +265,7 @@ FUNCTION(fun_get)
   dbref thing;
   char *s;
 
+
   s = strchr(args[0], '/');
   if (!s) {
     safe_str(T("#-1 BAD ARGUMENT FORMAT TO GET"), buff, bp);
