@@ -69,7 +69,7 @@ FUNCTION(local_fun_rgbcolor)
   else if(res == 1) {
     safe_str("font color=", argval, &ap);
    safe_str((char*)list[0], argval, &ap);
-   safe_str("bg color=#000000", argval, &ap);
+   safe_str(" bgcolor=#000000", argval, &ap);
   }
   else
   {
