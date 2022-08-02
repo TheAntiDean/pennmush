@@ -53,7 +53,7 @@ FUNCTION(local_fun_silly) { safe_format(buff, bp, "Silly%sSilly", args[0]); }
 
 FUNCTION(local_fun_rgbcolor)
 {
-  char **list = mush_calloc(BUFFER_LEN/2, sizeof(char *), "ptrarray");
+  char *list[BUFFER_LEN/2];
   char argval[BUFFER_LEN];
   char *ap;
   ap = argval;
@@ -61,15 +61,15 @@ FUNCTION(local_fun_rgbcolor)
   int res = list2arr(list,BUFFER_LEN /2, args[0], ' ', 1);
   if(res== 2)
   {
-   safe_str("color=", argval, &ap);
-   safe_str(list[0], argval, &ap);
+   safe_str("font color=", argval, &ap);
+   safe_str((char*)list[0], argval, &ap);
   safe_str(" bgcolor=", argval, &ap);
-   safe_str(list[1], argval, &ap);
+   safe_str((char*)list[1], argval, &ap);
   }
   else if(res == 1) {
-    safe_str("color=", argval, &ap);
-   safe_str(list[0], argval, &ap);
-   safe_str("bg color=#", argval, &ap);
+    safe_str("font color=", argval, &ap);
+   safe_str((char*)list[0], argval, &ap);
+   safe_str("bg color=#000000", argval, &ap);
   }
   else
   {
@@ -77,9 +77,9 @@ FUNCTION(local_fun_rgbcolor)
     return;
   }
 
-      safe_tag_wrap("font", argval, args[1], buff, bp, executor);
+      safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
   *ap = '\0';
-  mush_free(list,"ptarray");
+  //mush_free(list,"ptarray");
 
 
 }
@@ -118,7 +118,7 @@ void
 local_functions(void)
 {
   function_add("NAMEFORMAT", local_fun_nameformat, 1, 1, FN_REG| FN_STRIPANSI);
-  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG| FN_STRIPANSI);
+  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif
