@@ -102,8 +102,13 @@ FUNCTION(local_fun_nameformat)
       DESC *match = lookup_desc(caller, Name(caller));
 
       if (((Location(caller) == Location(it)) || Hasprivs(caller)) &&
-          (match->conn_flags & CONN_HTML)) {
-        safe_str("\"look ", argval, &ap);
+          (match->conn_flags & CONN_HTML) && nargs == 2 && parse_number(args[1])) {
+        if (IsExit(it)) {
+          safe_str("\"go ", argval, &ap);
+        } else {
+          safe_str("\"look ", argval, &ap);
+        }
+
         safe_str(unparse_dbref(it), argval, &ap);
         safe_str("\"", argval, &ap);
         safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
@@ -127,7 +132,7 @@ FUNCTION(local_fun_nameformat)
 void
 local_functions(void)
 {
-  function_add("NAMEFORMAT", local_fun_nameformat, 1, 1, FN_REG | FN_STRIPANSI);
+  function_add("NAMEFORMAT", local_fun_nameformat, 1, 2, FN_REG | FN_STRIPANSI);
   function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
