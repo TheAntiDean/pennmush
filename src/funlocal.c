@@ -25,15 +25,18 @@
 #include "flags.h"
 #include "function.h"
 #include "game.h"
+#include "ansi.h"
 #include "lock.h"
 #include "log.h"
 #include "match.h"
 #include "memcheck.h"
+#include "markup.h"
 #include "mushdb.h"
 #include "mymalloc.h"
 #include "parse.h"
 #include "privtab.h"
 #include "strutil.h"
+
 
 void local_functions(void);
 
@@ -46,6 +49,24 @@ FUNCTION(local_fun_silly) { safe_format(buff, bp, "Silly%sSilly", args[0]); }
 
 #endif
 
+
+
+FUNCTION(local_fun_rgbcolor)
+{
+  char argval[BUFFER_LEN];
+  char *ap = argval;
+  safe_str("font color=", argval, &ap);
+  safe_str(args[0], argval, &ap);
+
+  if (!Can_Send_OOB(executor) && !is_allowed_tag(args[0], arglens[0]))
+    safe_str("#-1", buff, bp);
+  else {
+    if (nargs == 2)
+      safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
+    else
+      safe_str("#-1", buff, bp);
+  }
+}
 
 
 FUNCTION(local_fun_nameformat)
@@ -81,6 +102,7 @@ void
 local_functions(void)
 {
   function_add("NAMEFORMAT", local_fun_nameformat, 1, 1, FN_REG| FN_STRIPANSI);
+  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG| FN_STRIPANSI);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif

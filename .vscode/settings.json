@@ -6,7 +6,8 @@
         "externs.h": "c",
         "intrface.h": "c",
         "*.inc": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "strutil.h": "c"
     },
     "cmake.configureOnOpen": true
 }
