@@ -36,7 +36,9 @@
 #include "parse.h"
 #include "privtab.h"
 #include "strutil.h"
+#include "mushtype.h"
 
+extern DESC *lookup_desc(dbref executor, const char *name);
 
 void local_functions(void);
 
@@ -49,41 +51,32 @@ FUNCTION(local_fun_silly) { safe_format(buff, bp, "Silly%sSilly", args[0]); }
 
 #endif
 
-
-
 FUNCTION(local_fun_rgbcolor)
 {
-  char *list[BUFFER_LEN/2];
+  char *list[BUFFER_LEN / 2];
   char argval[BUFFER_LEN];
   char *ap;
   ap = argval;
 
-  int res = list2arr(list,BUFFER_LEN /2, args[0], ' ', 1);
-  if(res== 2)
-  {
-   safe_str("font color=", argval, &ap);
-   safe_str((char*)list[0], argval, &ap);
-  safe_str(" bgcolor=", argval, &ap);
-   safe_str((char*)list[1], argval, &ap);
-  }
-  else if(res == 1) {
+  int res = list2arr(list, BUFFER_LEN / 2, args[0], ' ', 1);
+  if (res == 2) {
     safe_str("font color=", argval, &ap);
-   safe_str((char*)list[0], argval, &ap);
-   safe_str(" bgcolor=#000000", argval, &ap);
-  }
-  else
-  {
+    safe_str((char *) list[0], argval, &ap);
+    safe_str(" bgcolor=", argval, &ap);
+    safe_str((char *) list[1], argval, &ap);
+  } else if (res == 1) {
+    safe_str("font color=", argval, &ap);
+    safe_str((char *) list[0], argval, &ap);
+    safe_str(" bgcolor=#000000", argval, &ap);
+  } else {
     safe_str("#-1", buff, bp);
     return;
   }
 
-      safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
+  safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
   *ap = '\0';
-  //mush_free(list,"ptarray");
-
-
+  // mush_free(list,"ptarray");
 }
-
 
 FUNCTION(local_fun_nameformat)
 {
@@ -93,7 +86,6 @@ FUNCTION(local_fun_nameformat)
   char *ap;
   ap = argval;
 
-  
   if (GoodObject(it)) {
     /* You must either be see_all, control it, or be inside it */
     // if (!(controls(executor, it) || See_All(executor) ||
@@ -101,41 +93,41 @@ FUNCTION(local_fun_nameformat)
     //   safe_str(T(e_perm), buff, bp);
     //   return;
     // }
-    
+
     if (flaglist_check_long("FLAG", executor, it, "HALT", 1) == 1)
       safe_str(accented_name(it), buff, bp);
     else if (nameformat(executor, it, tbuf1,
-        IsExit(it) ? shortname(it) : (char *) accented_name(it), 1,
-        pe_info))
-      {
-      
-      safe_str("\"look ", argval, &ap);
-      safe_str(unparse_dbref(it), argval, &ap);
-      safe_str("\"", argval, &ap);
-      safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
-      *ap = '\0';
+                        IsExit(it) ? shortname(it) : (char *) accented_name(it),
+                        1, pe_info)) {
+      DESC *match = lookup_desc(caller, Name(caller));
+
+      if (((Location(caller) == Location(it)) || Hasprivs(caller)) &&
+          (match->conn_flags & CONN_HTML)) {
+        safe_str("\"look ", argval, &ap);
+        safe_str(unparse_dbref(it), argval, &ap);
+        safe_str("\"", argval, &ap);
+        safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
+        *ap = '\0';
+      } else {
+        safe_str(tbuf1, buff, bp);
       }
-      //safe_str(tbuf1, buff, bp);
-    else if (IsExit(it))
-    {
-      safe_str(shortname(it), buff, bp);
+
     }
-    else
-    {
+
+    else if (IsExit(it)) {
+      safe_str(shortname(it), buff, bp);
+    } else {
       safe_str(accented_name(it), buff, bp);
     }
-//DESC *match =lookup_desc(executor, NULL);
-  //    if(match->conn_flags & CONN_HTML)
-          
+
   } else
     safe_str(T(e_notvis), buff, bp);
 }
 
-
 void
 local_functions(void)
 {
-  function_add("NAMEFORMAT", local_fun_nameformat, 1, 1, FN_REG| FN_STRIPANSI);
+  function_add("NAMEFORMAT", local_fun_nameformat, 1, 1, FN_REG | FN_STRIPANSI);
   function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
