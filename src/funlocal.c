@@ -89,8 +89,11 @@ FUNCTION(local_fun_nameformat)
 {
   dbref it = match_thing(executor, args[0]);
   char tbuf1[BUFFER_LEN];
+  char argval[BUFFER_LEN];
+  char *ap;
+  ap = argval;
 
-
+  
   if (GoodObject(it)) {
     /* You must either be see_all, control it, or be inside it */
     // if (!(controls(executor, it) || See_All(executor) ||
@@ -104,15 +107,30 @@ FUNCTION(local_fun_nameformat)
     else if (nameformat(executor, it, tbuf1,
         IsExit(it) ? shortname(it) : (char *) accented_name(it), 1,
         pe_info))
-      safe_str(tbuf1, buff, bp);
+      {
+      
+      safe_str("\"look ", argval, &ap);
+      safe_str(unparse_dbref(it), argval, &ap);
+      safe_str("\"", argval, &ap);
+      safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
+      *ap = '\0';
+      }
+      //safe_str(tbuf1, buff, bp);
     else if (IsExit(it))
+    {
       safe_str(shortname(it), buff, bp);
-
+    }
     else
+    {
       safe_str(accented_name(it), buff, bp);
+    }
+//DESC *match =lookup_desc(executor, NULL);
+  //    if(match->conn_flags & CONN_HTML)
+          
   } else
     safe_str(T(e_notvis), buff, bp);
 }
+
 
 void
 local_functions(void)
