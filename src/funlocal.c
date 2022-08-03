@@ -94,34 +94,33 @@ FUNCTION(local_fun_nameformat)
                         1, pe_info)) {
       DESC *match = lookup_desc(caller, Name(caller));
 
-      //if (caller != it) {
-        if (IsRoom(caller) || (Can_Locate(caller, it) && (match->conn_flags & CONN_HTML) &&
-            nargs == 2 && parse_number(args[1]))) {
-          if (IsExit(it)) {
-            safe_str("\"go ", argval, &ap);
-          } else {
-            safe_str("\"look ", argval, &ap);
-          }
-          if (!Hasprivs(caller)) {
-            safe_str(Name(it), argval, &ap);
-          } else {
-            safe_str(unparse_dbref(it), argval, &ap);
-          }
-          safe_str("\"", argval, &ap);
-          safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
-          *ap = '\0';
+      // if (caller != it) {
+      if (IsRoom(caller) ||
+          (Can_Locate(caller, it) && (match->conn_flags & CONN_HTML) &&
+           nargs == 2 && parse_number(args[1]))) {
+        if (IsExit(it)) {
+          safe_str("\"go ", argval, &ap);
         } else {
-          safe_str(tbuf1, buff, bp);
+          safe_str("\"look ", argval, &ap);
         }
-      } else if (IsExit(it)) {
-        safe_str(shortname(it), buff, bp);
+        if (!Hasprivs(caller)) {
+          safe_str(Name(it), argval, &ap);
+        } else {
+          safe_str(unparse_dbref(it), argval, &ap);
+        }
+        safe_str("\"", argval, &ap);
+        safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
+        *ap = '\0';
       } else {
-        safe_str(accented_name(it), buff, bp);
+        safe_str(tbuf1, buff, bp);
       }
-     
-    //else {
-    //   safe_str(tbuf1, buff, bp);
-    // }
+    } else {
+      safe_str(accented_name(it), buff, bp);
+    }
+
+    // else {
+    //    safe_str(tbuf1, buff, bp);
+    //  }
 
   } else
     safe_str(T(e_notvis), buff, bp);

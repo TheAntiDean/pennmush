@@ -5703,7 +5703,7 @@ void do_whofile_admin(dbref player)
 
     char tbuf1[BUFFER_LEN];
       
-    if(fetch_ufun_attrib(options.wiz_who_file[0], player, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
+    if(fetch_ufun_attrib(options.wiz_who_file[0], GOD, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
     {
 
       call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
@@ -5724,7 +5724,7 @@ void do_whofile_mortal(dbref player)
 
     char tbuf1[BUFFER_LEN];
       
-    if(fetch_ufun_attrib(options.who_file[0], player, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
+    if(fetch_ufun_attrib(options.who_file[0], GOD, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
     {
 
       call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
