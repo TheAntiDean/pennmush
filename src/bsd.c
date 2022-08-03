@@ -5695,932 +5695,939 @@ do_who_mortal(dbref player, char *name)
 
 void do_whofile_admin(dbref player)
 {
-  
-  ufun_attrib ufun;
-  NEW_PE_INFO *pe_info;
-  PE_REGS *pe_regs = NULL;
-  pe_info = make_pe_info("pe_info-atr_comm_match");
 
-    char tbuf1[BUFFER_LEN];
-      
-    if(fetch_ufun_attrib(options.wiz_who_file[0], GOD, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
-    {
+  char buff[BUFFER_LEN], tmp[BUFFER_LEN], *tbuf;
+  char *bp;
+  char const *tp;
+  bp = buff;
+  ATTR *a;
 
-      call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
-      free_pe_info(pe_info);
-      free_pe_regs_trees(pe_regs);
-      notify(player, tbuf1);
-        return;
-    }
+  char *list[BUFFER_LEN / 2];
 
+  int res = list2arr(list, BUFFER_LEN / 2, mush_strdup(options.wiz_who_file[0],"opt.wiz_who"), '/', 1);
+  if (res == 2) {
+    dbref thing = parse_dbref(list[0]);
+    a = atr_get(thing, strupper_r(list[1], tmp, sizeof tmp));
+    if (!a)
+      return;
+    tp = tbuf = safe_atr_value(a, "fun_eval.attr_value");
+    process_expression(buff, &bp, &tp, GOD, GOD, GOD, PE_DEFAULT, PT_DEFAULT,
+                       NULL);
+    notify(player, buff);
+    *bp = '\0';
+
+    mush_free(tbuf, "fun_eval.attr_value");
+    res = NULL;
+    return;
+
+  }
 }
-void do_whofile_mortal(dbref player)
-{
-  
-  ufun_attrib ufun;
-  NEW_PE_INFO *pe_info;
-  PE_REGS *pe_regs = NULL;
-  pe_info = make_pe_info("pe_info-atr_comm_match");
-
-    char tbuf1[BUFFER_LEN];
-      
-    if(fetch_ufun_attrib(options.who_file[0], GOD, &ufun, UFUN_OBJECT | UFUN_LAMBDA | UFUN_IGNORE_PERMS))
-    {
-
-      call_ufun(&ufun, tbuf1, player, player, pe_info, pe_regs);
-      free_pe_info(pe_info);
-      free_pe_regs_trees(pe_regs);
-      notify(player, tbuf1);
-        return;
-    }
-
-}
-/** The admin WHO command */
 void
-do_who_admin(dbref player, char *name)
+do_whofile_mortal(dbref player)
 {
-  DESC *d;
-  int count = 0;
-  char tbuf[BUFFER_LEN];
-  char addr[28];
-  bool wild = 0;
-  char *tp;
-  int nlen;
-  PUEBLOBUFF;
+  char buff[BUFFER_LEN], tmp[BUFFER_LEN], *tbuf;
+  char *bp;
+  char const *tp;
+  bp = buff;
+  ATTR *a;
 
-  if (SUPPORT_PUEBLO) {
-    PUSE;
-    tag("PRE");
-    PEND;
-    notify_noenter(player, pbuff);
-  }
+  char *list[BUFFER_LEN / 2];
 
-  if (name && *name && wildcard_count(name, 0) == -1)
-    wild = 1;
+  int res = list2arr(list, BUFFER_LEN / 2, mush_strdup(options.who_file[0],"opt.file_who"), '/', 1);
+  if (res == 2) {
+    dbref thing = parse_dbref(list[0]);
+    a = atr_get(thing, strupper_r(list[1], tmp, sizeof tmp));
+    if (!a)
+      return;
+    tp = tbuf = safe_atr_value(a, "fun_eval.attr_value");
+    process_expression(buff, &bp, &tp, GOD, GOD, GOD, PE_DEFAULT, PT_DEFAULT,
+                       NULL);
+    *bp = '\0';
 
-  notify_format(player, "%-16s %6s %9s %5s %5s %-4s %-s", T("Player Name"),
-                T("Loc #"), T("On For"), T("Idle"), T("Cmds"), T("Des"),
-                T("Host"));
-  for (d = descriptor_list; d; d = d->next) {
-    if (d->connected)
-      count++;
-    if (!who_check_name(d, name, wild))
-      continue;
-    if (d->connected) {
-      char conntype[3] = {'\0'};
-      int cti = 0;
-      tp = tbuf;
-      safe_str(AName(d->player, AN_WHO, NULL), tbuf, &tp);
-      nlen = strlen(Name(d->player));
-      if (nlen < 16)
-        safe_fill(' ', 16 - nlen, tbuf, &tp);
+    notify(player, buff);
+    mush_free(tbuf, "fun_eval.attr_value");
 
-      if (is_ssl_desc(d))
-        conntype[cti++] = 'S';
-      else if (!is_remote_desc(d))
-        conntype[cti++] = 'L';
-      if (is_ws_desc(d))
-        conntype[cti] = 'W';
-      safe_format(
-        tbuf, &tp, " %6s %9s %5s  %4d %3d%s ",
-        unparse_dbref(Location(d->player)), onfor_time_fmt(d->connected_at, 9),
-        idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor, conntype);
-      mush_strncpy(addr, d->addr, sizeof addr);
-      if (Dark(d->player)) {
-        addr[20] = '\0';
-        strcat(addr, " (Dark)");
-      } else if (Hidden(d)) {
-        addr[20] = '\0';
-        strcat(addr, " (Hide)");
-      } else {
-        addr[27] = '\0';
-      }
-      safe_str(addr, tbuf, &tp);
-      *tp = '\0';
-    } else if (d->conn_flags & CONN_HTTP_REQUEST) {
-      snprintf(tbuf, sizeof tbuf, "%-16s %6s %9s %5s %4d %3d%c %s",
-               T("HTTP Request"), "#-1", onfor_time_fmt(d->connected_at, 9),
-               idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
-               is_ssl_desc(d) ? 'S' : ' ', d->addr);
-      tbuf[78] = '\0';
-    } else {
-      snprintf(tbuf, sizeof tbuf, "%-16s %6s %9s %5s %4d %3d%c %s",
-               T("Connecting..."), "#-1", onfor_time_fmt(d->connected_at, 9),
-               idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
-               is_ssl_desc(d) ? 'S' : ' ', d->addr);
-      tbuf[78] = '\0';
-    }
-    notify(player, tbuf);
-  }
-
-  switch (count) {
-  case 0:
-    notify(player, T("There are no players connected."));
-    break;
-  case 1:
-    notify(player, T("There is one player connected."));
-    break;
-  default:
-    notify_format(player, T("There are %d players connected."), count);
-    break;
-  }
-
-  if (SUPPORT_PUEBLO) {
-    PUSE;
-    tag_cancel("PRE");
-    PEND;
-    notify_noenter(player, pbuff);
   }
 }
+  /** The admin WHO command */
+  void do_who_admin(dbref player, char *name)
+  {
+    DESC *d;
+    int count = 0;
+    char tbuf[BUFFER_LEN];
+    char addr[28];
+    bool wild = 0;
+    char *tp;
+    int nlen;
+    PUEBLOBUFF;
 
-/** The SESSION command */
-void
-do_who_session(dbref player, char *name)
-{
-  DESC *d;
-  int count = 0;
-  bool wild = 0;
-  char nbuff[BUFFER_LEN];
-  char *np;
-  int nlen;
-  PUEBLOBUFF;
+    if (SUPPORT_PUEBLO) {
+      PUSE;
+      tag("PRE");
+      PEND;
+      notify_noenter(player, pbuff);
+    }
 
-  if (SUPPORT_PUEBLO) {
-    PUSE;
-    tag("PRE");
-    PEND;
-    notify_noenter(player, pbuff);
-  }
+    if (name && *name && wildcard_count(name, 0) == -1)
+      wild = 1;
 
-  if (name && *name && wildcard_count(name, 0) == -1)
-    wild = 1;
+    notify_format(player, "%-16s %6s %9s %5s %5s %-4s %-s", T("Player Name"),
+                  T("Loc #"), T("On For"), T("Idle"), T("Cmds"), T("Des"),
+                  T("Host"));
+    for (d = descriptor_list; d; d = d->next) {
+      if (d->connected)
+        count++;
+      if (!who_check_name(d, name, wild))
+        continue;
+      if (d->connected) {
+        char conntype[3] = {'\0'};
+        int cti = 0;
+        tp = tbuf;
+        safe_str(AName(d->player, AN_WHO, NULL), tbuf, &tp);
+        nlen = strlen(Name(d->player));
+        if (nlen < 16)
+          safe_fill(' ', 16 - nlen, tbuf, &tp);
 
-  notify_format(player, "%-16s %6s %9s %5s %5s %4s %7s %7s %7s",
-                T("Player Name"), T("Loc #"), T("On For"), T("Idle"), T("Cmds"),
-                T("Des"), T("Sent"), T("Recv"), T("Pend"));
-
-  for (d = descriptor_list; d; d = d->next) {
-    if (d->connected)
-      count++;
-    if (!who_check_name(d, name, wild))
-      continue;
-    if (d->connected) {
-      np = nbuff;
-      safe_str(AName(d->player, AN_WHO, NULL), nbuff, &np);
-      nlen = strlen(Name(d->player));
-      if (nlen < 16)
-        safe_fill(' ', 16 - nlen, nbuff, &np);
-      *np = '\0';
-
-      notify_format(player, "%s %6s %9s %5s %5d %3d%c %7lu %7lu %7d", nbuff,
+        if (is_ssl_desc(d))
+          conntype[cti++] = 'S';
+        else if (!is_remote_desc(d))
+          conntype[cti++] = 'L';
+        if (is_ws_desc(d))
+          conntype[cti] = 'W';
+        safe_format(tbuf, &tp, " %6s %9s %5s  %4d %3d%s ",
                     unparse_dbref(Location(d->player)),
                     onfor_time_fmt(d->connected_at, 9),
                     idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
-                    is_ssl_desc(d) ? 'S' : ' ', d->input_chars, d->output_chars,
-                    d->output_size);
-    } else {
-      notify_format(player, "%-16s %6s %9s %5s %5d %3d%c %7lu %7lu %7d",
-                    T("Connecting..."), "#-1",
-                    onfor_time_fmt(d->connected_at, 9),
-                    idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
-                    is_ssl_desc(d) ? 'S' : ' ', d->input_chars, d->output_chars,
-                    d->output_size);
-    }
-  }
-
-  switch (count) {
-  case 0:
-    notify(player, T("There are no players connected."));
-    break;
-  case 1:
-    notify(player, T("There is one player connected."));
-    break;
-  default:
-    notify_format(player, T("There are %d players connected."), count);
-    break;
-  }
-
-  if (SUPPORT_PUEBLO) {
-    PUSE;
-    tag_cancel("PRE");
-    PEND;
-    notify_noenter(player, pbuff);
-  }
-}
-
-/** Format the time the player has been on for for WHO/DOING/ETC.
- *
- * \param at the time connected at.
- * \param len the length of the field to fill.
- * \return a static buffer to a string with the formatted elapsed time.
- */
-static char *
-onfor_time_fmt(time_t at, int len)
-{
-  static char buf[64];
-  int secs = difftime(mudtime, at);
-  return etime_fmt(buf, secs, len);
-}
-
-/** Format idle time for WHO/DOING
- *
- * \param last the time the player was last active.
- * \parm len the length of the field to fill.
- * \return a static buffer to a string with the formatted elapsed time.
- */
-static char *
-idle_time_fmt(time_t last, int len)
-{
-  static char buf[64];
-  int secs = difftime(mudtime, last);
-  return etime_fmt(buf, secs, len);
-}
-
-/* connection messages
- * isnew: newly created or not?
- * num: how many times connected?
- */
-static void
-announce_connect(DESC *d, int isnew, int num)
-{
-  dbref loc;
-  char tbuf1[BUFFER_LEN];
-  char *message;
-  PE_REGS *pe_regs;
-  dbref zone;
-  dbref obj;
-
-  dbref player = d->player;
-
-  set_flag_internal(player, "CONNECTED");
-
-  if (isnew) {
-    /* A brand new player created. */
-    snprintf(tbuf1, BUFFER_LEN, T("%s created."),
-             AName(player, AN_ANNOUNCE, NULL));
-    flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
-    if (Suspect(player))
-      flag_broadcast("WIZARD", 0, T("GAME: Suspect %s created."),
-                     AName(player, AN_ANNOUNCE, NULL));
-  }
-
-  /* Redundant, but better for translators */
-  if (Hidden(d)) {
-    message =
-      (num > 1) ? T("has HIDDEN-reconnected.") : T("has HIDDEN-connected.");
-  } else {
-    message = (num > 1) ? T("has reconnected.") : T("has connected.");
-  }
-  snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN, AName(player, AN_ANNOUNCE, NULL),
-           message, ANSI_HIWHITE);
-
-  /* send out messages */
-  if (Suspect(player))
-    flag_broadcast("WIZARD", 0, T("GAME: Suspect %s"), tbuf1);
-
-  if (Dark(player)) {
-    flag_broadcast("ROYALTY WIZARD", "HEAR_CONNECT", "%s %s", T("GAME:"),
-                   tbuf1);
-  } else
-    flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
-
-  if (ANNOUNCE_CONNECTS)
-    chat_player_announce(d, message, 0);
-
-  loc = Location(player);
-  if (!GoodObject(loc)) {
-    notify(player, T("You are nowhere!"));
-    return;
-  }
-
-  if (*cf_motd_msg) {
-    raw_notify(player, cf_motd_msg);
-  }
-  raw_notify(player, " ");
-  if (Hasprivs(player) && *cf_wizmotd_msg) {
-    if (*cf_motd_msg)
-      raw_notify(player, asterisk_line);
-    raw_notify(player, cf_wizmotd_msg);
-  }
-
-  if (ANNOUNCE_CONNECTS)
-    notify_except(player, player, player, tbuf1, 0);
-
-  /* added to allow player's inventory to hear a player connect */
-  if (ANNOUNCE_CONNECTS)
-    if (!Dark(player))
-      notify_except(player, loc, player, tbuf1, NA_INTER_PRESENCE);
-
-  queue_event(player, "PLAYER`CONNECT", "%s,%d,%d", unparse_objid(player), num,
-              d->descriptor);
-  /* And then load it up, as follows:
-   * %0 (unused, reserved for "reason for disconnect")
-   * %1 (number of connections after connect)
-   */
-  pe_regs = pe_regs_create(PE_REGS_ARG, "announce_connect");
-  pe_regs_setenv(pe_regs, 1, unparse_integer(num));
-
-  /* do the person's personal connect action */
-  (void) queue_attribute_base(player, "ACONNECT", player, 0, pe_regs, 0);
-  if (ROOM_CONNECTS) {
-    /* Do the room the player connected into */
-    if (IsRoom(loc) || IsThing(loc)) {
-      (void) queue_attribute_base(loc, "ACONNECT", player, 0, pe_regs, 0);
-    }
-  }
-  /* do the zone of the player's location's possible aconnect */
-  if ((zone = Zone(loc)) != NOTHING) {
-    switch (Typeof(zone)) {
-    case TYPE_THING:
-      (void) queue_attribute_base(zone, "ACONNECT", player, 0, pe_regs, 0);
-      break;
-    case TYPE_ROOM:
-      /* check every object in the room for a connect action */
-      DOLIST (obj, Contents(zone)) {
-        (void) queue_attribute_base(obj, "ACONNECT", player, 0, pe_regs, 0);
+                    conntype);
+        mush_strncpy(addr, d->addr, sizeof addr);
+        if (Dark(d->player)) {
+          addr[20] = '\0';
+          strcat(addr, " (Dark)");
+        } else if (Hidden(d)) {
+          addr[20] = '\0';
+          strcat(addr, " (Hide)");
+        } else {
+          addr[27] = '\0';
+        }
+        safe_str(addr, tbuf, &tp);
+        *tp = '\0';
+      } else if (d->conn_flags & CONN_HTTP_REQUEST) {
+        snprintf(tbuf, sizeof tbuf, "%-16s %6s %9s %5s %4d %3d%c %s",
+                 T("HTTP Request"), "#-1", onfor_time_fmt(d->connected_at, 9),
+                 idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
+                 is_ssl_desc(d) ? 'S' : ' ', d->addr);
+        tbuf[78] = '\0';
+      } else {
+        snprintf(tbuf, sizeof tbuf, "%-16s %6s %9s %5s %4d %3d%c %s",
+                 T("Connecting..."), "#-1", onfor_time_fmt(d->connected_at, 9),
+                 idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
+                 is_ssl_desc(d) ? 'S' : ' ', d->addr);
+        tbuf[78] = '\0';
       }
+      notify(player, tbuf);
+    }
+
+    switch (count) {
+    case 0:
+      notify(player, T("There are no players connected."));
+      break;
+    case 1:
+      notify(player, T("There is one player connected."));
       break;
     default:
-      do_rawlog_lvl(LT_ERR, MLOG_ERR,
-                    "Invalid zone #%d for %s(#%d) has bad type %d", zone,
-                    Name(player), player, Typeof(zone));
-    }
-  }
-  /* now try the master room */
-  DOLIST (obj, Contents(MASTER_ROOM)) {
-    (void) queue_attribute_base(obj, "ACONNECT", player, 0, pe_regs, 0);
-  }
-  pe_regs_free(pe_regs);
-}
-
-static void
-announce_disconnect(DESC *saved, const char *reason, dbref executor)
-{
-  dbref loc;
-  int numleft = 0;
-  DESC *d;
-  char tbuf1[BUFFER_LEN];
-  char *message;
-  dbref zone, obj;
-  dbref player;
-  ATTR *a;
-  PE_REGS *pe_regs;
-
-  player = saved->player;
-  loc = Location(player);
-  if (!GoodObject(loc))
-    return;
-
-  DESC_ITER_CONN (d) {
-    /* Don't count this current DESC, we want number of _other_ DESCs for this
-     * player.
-     * In a QUIT, saved won't be in descriptor_list, but in a LOGOUT, it will
-     * be. */
-    if (d == saved)
-      continue;
-    if (d->player == player)
-      numleft += 1;
-  }
-
-  /* And then load it up, as follows:
-   * %0 (unused, reserved for "reason for disconnect")
-   * %1 (number of connections remaining after disconnect)
-   * %2 (bytes received)
-   * %3 (bytes sent)
-   * %4 (commands queued)
-   * %5 (hidden)
-   */
-  pe_regs = pe_regs_create(PE_REGS_ARG, "announce_disconnect");
-  pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
-  pe_regs_setenv(pe_regs, 2, unparse_integer(saved->input_chars));
-  pe_regs_setenv(pe_regs, 3, unparse_integer(saved->output_chars));
-  pe_regs_setenv(pe_regs, 4, unparse_integer(saved->cmds));
-  pe_regs_setenv(pe_regs, 5, unparse_integer(Hidden(saved)));
-
-  /* Eww. Unwieldy.
-   * (objid, count, hidden, cause, ip, descriptor, conn,
-   * idle, recv/sent/commands)  */
-  queue_event(executor, "PLAYER`DISCONNECT",
-              "%s,%d,%d,%s,%s,%d,%d,%d,%lu/%lu/%d", unparse_objid(player),
-              numleft, Hidden(saved), reason, saved->ip, saved->descriptor,
-              (int) difftime(mudtime, saved->connected_at),
-              (int) difftime(mudtime, saved->last_time), saved->input_chars,
-              saved->output_chars, saved->cmds);
-
-  (void) queue_attribute_base(player, "ADISCONNECT", player, 0, pe_regs, 0);
-  if (ROOM_CONNECTS)
-    if (IsRoom(loc) || IsThing(loc)) {
-      a = queue_attribute_getatr(loc, "ADISCONNECT", 0);
-      if (a) {
-        if (!Priv_Who(loc) && !Can_Examine(loc, player))
-          pe_regs_setenv_nocopy(pe_regs, 1, "");
-        (void) queue_attribute_useatr(loc, a, player, pe_regs, 0, NULL, NULL);
-        if (!Priv_Who(loc) && !Can_Examine(loc, player))
-          pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
-      }
-    }
-  /* do the zone of the player's location's possible adisconnect */
-  if ((zone = Zone(loc)) != NOTHING) {
-    switch (Typeof(zone)) {
-    case TYPE_THING:
-      a = queue_attribute_getatr(zone, "ADISCONNECT", 0);
-      if (a) {
-        if (!Priv_Who(zone) && !Can_Examine(zone, player))
-          pe_regs_setenv_nocopy(pe_regs, 1, "");
-        (void) queue_attribute_useatr(zone, a, player, pe_regs, 0, NULL, NULL);
-        if (!Priv_Who(zone) && !Can_Examine(zone, player))
-          pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
-      }
+      notify_format(player, T("There are %d players connected."), count);
       break;
-    case TYPE_ROOM:
-      /* check every object in the room for a connect action */
-      DOLIST (obj, Contents(zone)) {
-        a = queue_attribute_getatr(obj, "ADISCONNECT", 0);
+    }
+
+    if (SUPPORT_PUEBLO) {
+      PUSE;
+      tag_cancel("PRE");
+      PEND;
+      notify_noenter(player, pbuff);
+    }
+  }
+
+  /** The SESSION command */
+  void do_who_session(dbref player, char *name)
+  {
+    DESC *d;
+    int count = 0;
+    bool wild = 0;
+    char nbuff[BUFFER_LEN];
+    char *np;
+    int nlen;
+    PUEBLOBUFF;
+
+    if (SUPPORT_PUEBLO) {
+      PUSE;
+      tag("PRE");
+      PEND;
+      notify_noenter(player, pbuff);
+    }
+
+    if (name && *name && wildcard_count(name, 0) == -1)
+      wild = 1;
+
+    notify_format(player, "%-16s %6s %9s %5s %5s %4s %7s %7s %7s",
+                  T("Player Name"), T("Loc #"), T("On For"), T("Idle"),
+                  T("Cmds"), T("Des"), T("Sent"), T("Recv"), T("Pend"));
+
+    for (d = descriptor_list; d; d = d->next) {
+      if (d->connected)
+        count++;
+      if (!who_check_name(d, name, wild))
+        continue;
+      if (d->connected) {
+        np = nbuff;
+        safe_str(AName(d->player, AN_WHO, NULL), nbuff, &np);
+        nlen = strlen(Name(d->player));
+        if (nlen < 16)
+          safe_fill(' ', 16 - nlen, nbuff, &np);
+        *np = '\0';
+
+        notify_format(player, "%s %6s %9s %5s %5d %3d%c %7lu %7lu %7d", nbuff,
+                      unparse_dbref(Location(d->player)),
+                      onfor_time_fmt(d->connected_at, 9),
+                      idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
+                      is_ssl_desc(d) ? 'S' : ' ', d->input_chars,
+                      d->output_chars, d->output_size);
+      } else {
+        notify_format(player, "%-16s %6s %9s %5s %5d %3d%c %7lu %7lu %7d",
+                      T("Connecting..."), "#-1",
+                      onfor_time_fmt(d->connected_at, 9),
+                      idle_time_fmt(d->last_time, 5), d->cmds, d->descriptor,
+                      is_ssl_desc(d) ? 'S' : ' ', d->input_chars,
+                      d->output_chars, d->output_size);
+      }
+    }
+
+    switch (count) {
+    case 0:
+      notify(player, T("There are no players connected."));
+      break;
+    case 1:
+      notify(player, T("There is one player connected."));
+      break;
+    default:
+      notify_format(player, T("There are %d players connected."), count);
+      break;
+    }
+
+    if (SUPPORT_PUEBLO) {
+      PUSE;
+      tag_cancel("PRE");
+      PEND;
+      notify_noenter(player, pbuff);
+    }
+  }
+
+  /** Format the time the player has been on for for WHO/DOING/ETC.
+   *
+   * \param at the time connected at.
+   * \param len the length of the field to fill.
+   * \return a static buffer to a string with the formatted elapsed time.
+   */
+  static char *onfor_time_fmt(time_t at, int len)
+  {
+    static char buf[64];
+    int secs = difftime(mudtime, at);
+    return etime_fmt(buf, secs, len);
+  }
+
+  /** Format idle time for WHO/DOING
+   *
+   * \param last the time the player was last active.
+   * \parm len the length of the field to fill.
+   * \return a static buffer to a string with the formatted elapsed time.
+   */
+  static char *idle_time_fmt(time_t last, int len)
+  {
+    static char buf[64];
+    int secs = difftime(mudtime, last);
+    return etime_fmt(buf, secs, len);
+  }
+
+  /* connection messages
+   * isnew: newly created or not?
+   * num: how many times connected?
+   */
+  static void announce_connect(DESC * d, int isnew, int num)
+  {
+    dbref loc;
+    char tbuf1[BUFFER_LEN];
+    char *message;
+    PE_REGS *pe_regs;
+    dbref zone;
+    dbref obj;
+
+    dbref player = d->player;
+
+    set_flag_internal(player, "CONNECTED");
+
+    if (isnew) {
+      /* A brand new player created. */
+      snprintf(tbuf1, BUFFER_LEN, T("%s created."),
+               AName(player, AN_ANNOUNCE, NULL));
+      flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
+      if (Suspect(player))
+        flag_broadcast("WIZARD", 0, T("GAME: Suspect %s created."),
+                       AName(player, AN_ANNOUNCE, NULL));
+    }
+
+    /* Redundant, but better for translators */
+    if (Hidden(d)) {
+      message =
+        (num > 1) ? T("has HIDDEN-reconnected.") : T("has HIDDEN-connected.");
+    } else {
+      message = (num > 1) ? T("has reconnected.") : T("has connected.");
+    }
+    snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN,
+             AName(player, AN_ANNOUNCE, NULL), message, ANSI_HIWHITE);
+
+    /* send out messages */
+    if (Suspect(player))
+      flag_broadcast("WIZARD", 0, T("GAME: Suspect %s"), tbuf1);
+
+    if (Dark(player)) {
+      flag_broadcast("ROYALTY WIZARD", "HEAR_CONNECT", "%s %s", T("GAME:"),
+                     tbuf1);
+    } else
+      flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
+
+    if (ANNOUNCE_CONNECTS)
+      chat_player_announce(d, message, 0);
+
+    loc = Location(player);
+    if (!GoodObject(loc)) {
+      notify(player, T("You are nowhere!"));
+      return;
+    }
+
+    if (*cf_motd_msg) {
+      raw_notify(player, cf_motd_msg);
+    }
+    raw_notify(player, " ");
+    if (Hasprivs(player) && *cf_wizmotd_msg) {
+      if (*cf_motd_msg)
+        raw_notify(player, asterisk_line);
+      raw_notify(player, cf_wizmotd_msg);
+    }
+
+    if (ANNOUNCE_CONNECTS)
+      notify_except(player, player, player, tbuf1, 0);
+
+    /* added to allow player's inventory to hear a player connect */
+    if (ANNOUNCE_CONNECTS)
+      if (!Dark(player))
+        notify_except(player, loc, player, tbuf1, NA_INTER_PRESENCE);
+
+    queue_event(player, "PLAYER`CONNECT", "%s,%d,%d", unparse_objid(player),
+                num, d->descriptor);
+    /* And then load it up, as follows:
+     * %0 (unused, reserved for "reason for disconnect")
+     * %1 (number of connections after connect)
+     */
+    pe_regs = pe_regs_create(PE_REGS_ARG, "announce_connect");
+    pe_regs_setenv(pe_regs, 1, unparse_integer(num));
+
+    /* do the person's personal connect action */
+    (void) queue_attribute_base(player, "ACONNECT", player, 0, pe_regs, 0);
+    if (ROOM_CONNECTS) {
+      /* Do the room the player connected into */
+      if (IsRoom(loc) || IsThing(loc)) {
+        (void) queue_attribute_base(loc, "ACONNECT", player, 0, pe_regs, 0);
+      }
+    }
+    /* do the zone of the player's location's possible aconnect */
+    if ((zone = Zone(loc)) != NOTHING) {
+      switch (Typeof(zone)) {
+      case TYPE_THING:
+        (void) queue_attribute_base(zone, "ACONNECT", player, 0, pe_regs, 0);
+        break;
+      case TYPE_ROOM:
+        /* check every object in the room for a connect action */
+        DOLIST (obj, Contents(zone)) {
+          (void) queue_attribute_base(obj, "ACONNECT", player, 0, pe_regs, 0);
+        }
+        break;
+      default:
+        do_rawlog_lvl(LT_ERR, MLOG_ERR,
+                      "Invalid zone #%d for %s(#%d) has bad type %d", zone,
+                      Name(player), player, Typeof(zone));
+      }
+    }
+    /* now try the master room */
+    DOLIST (obj, Contents(MASTER_ROOM)) {
+      (void) queue_attribute_base(obj, "ACONNECT", player, 0, pe_regs, 0);
+    }
+    pe_regs_free(pe_regs);
+  }
+
+  static void announce_disconnect(DESC * saved, const char *reason,
+                                  dbref executor)
+  {
+    dbref loc;
+    int numleft = 0;
+    DESC *d;
+    char tbuf1[BUFFER_LEN];
+    char *message;
+    dbref zone, obj;
+    dbref player;
+    ATTR *a;
+    PE_REGS *pe_regs;
+
+    player = saved->player;
+    loc = Location(player);
+    if (!GoodObject(loc))
+      return;
+
+    DESC_ITER_CONN (d) {
+      /* Don't count this current DESC, we want number of _other_ DESCs for this
+       * player.
+       * In a QUIT, saved won't be in descriptor_list, but in a LOGOUT, it will
+       * be. */
+      if (d == saved)
+        continue;
+      if (d->player == player)
+        numleft += 1;
+    }
+
+    /* And then load it up, as follows:
+     * %0 (unused, reserved for "reason for disconnect")
+     * %1 (number of connections remaining after disconnect)
+     * %2 (bytes received)
+     * %3 (bytes sent)
+     * %4 (commands queued)
+     * %5 (hidden)
+     */
+    pe_regs = pe_regs_create(PE_REGS_ARG, "announce_disconnect");
+    pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
+    pe_regs_setenv(pe_regs, 2, unparse_integer(saved->input_chars));
+    pe_regs_setenv(pe_regs, 3, unparse_integer(saved->output_chars));
+    pe_regs_setenv(pe_regs, 4, unparse_integer(saved->cmds));
+    pe_regs_setenv(pe_regs, 5, unparse_integer(Hidden(saved)));
+
+    /* Eww. Unwieldy.
+     * (objid, count, hidden, cause, ip, descriptor, conn,
+     * idle, recv/sent/commands)  */
+    queue_event(executor, "PLAYER`DISCONNECT",
+                "%s,%d,%d,%s,%s,%d,%d,%d,%lu/%lu/%d", unparse_objid(player),
+                numleft, Hidden(saved), reason, saved->ip, saved->descriptor,
+                (int) difftime(mudtime, saved->connected_at),
+                (int) difftime(mudtime, saved->last_time), saved->input_chars,
+                saved->output_chars, saved->cmds);
+
+    (void) queue_attribute_base(player, "ADISCONNECT", player, 0, pe_regs, 0);
+    if (ROOM_CONNECTS)
+      if (IsRoom(loc) || IsThing(loc)) {
+        a = queue_attribute_getatr(loc, "ADISCONNECT", 0);
         if (a) {
-          if (!Priv_Who(obj) && !Can_Examine(obj, player))
+          if (!Priv_Who(loc) && !Can_Examine(loc, player))
             pe_regs_setenv_nocopy(pe_regs, 1, "");
-          (void) queue_attribute_useatr(obj, a, player, pe_regs, 0, NULL, NULL);
-          if (!Priv_Who(obj) && !Can_Examine(obj, player))
+          (void) queue_attribute_useatr(loc, a, player, pe_regs, 0, NULL, NULL);
+          if (!Priv_Who(loc) && !Can_Examine(loc, player))
             pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
         }
       }
+    /* do the zone of the player's location's possible adisconnect */
+    if ((zone = Zone(loc)) != NOTHING) {
+      switch (Typeof(zone)) {
+      case TYPE_THING:
+        a = queue_attribute_getatr(zone, "ADISCONNECT", 0);
+        if (a) {
+          if (!Priv_Who(zone) && !Can_Examine(zone, player))
+            pe_regs_setenv_nocopy(pe_regs, 1, "");
+          (void) queue_attribute_useatr(zone, a, player, pe_regs, 0, NULL,
+                                        NULL);
+          if (!Priv_Who(zone) && !Can_Examine(zone, player))
+            pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
+        }
+        break;
+      case TYPE_ROOM:
+        /* check every object in the room for a connect action */
+        DOLIST (obj, Contents(zone)) {
+          a = queue_attribute_getatr(obj, "ADISCONNECT", 0);
+          if (a) {
+            if (!Priv_Who(obj) && !Can_Examine(obj, player))
+              pe_regs_setenv_nocopy(pe_regs, 1, "");
+            (void) queue_attribute_useatr(obj, a, player, pe_regs, 0, NULL,
+                                          NULL);
+            if (!Priv_Who(obj) && !Can_Examine(obj, player))
+              pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
+          }
+        }
+        break;
+      default:
+        do_rawlog_lvl(LT_ERR, MLOG_ERR,
+                      "Invalid zone #%d for %s(#%d) has bad type %d", zone,
+                      Name(player), player, Typeof(zone));
+      }
+    }
+    /* now try the master room */
+    DOLIST (obj, Contents(MASTER_ROOM)) {
+      a = queue_attribute_getatr(obj, "ADISCONNECT", 0);
+      if (a) {
+        if (!Priv_Who(obj) && !Can_Examine(obj, player))
+          pe_regs_setenv_nocopy(pe_regs, 1, "");
+        (void) queue_attribute_useatr(obj, a, player, pe_regs, 0, NULL, NULL);
+        if (!Priv_Who(obj) && !Can_Examine(obj, player))
+          pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
+      }
+    }
+
+    pe_regs_free(pe_regs);
+
+    /* Redundant, but better for translators */
+    if (Hidden(saved)) {
+      message = (numleft) ? T("has partially HIDDEN-disconnected.")
+                          : T("has HIDDEN-disconnected.");
+    } else {
+      message =
+        (numleft) ? T("has partially disconnected.") : T("has disconnected.");
+    }
+    snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN,
+             AName(player, AN_ANNOUNCE, NULL), message, ANSI_ENDALL);
+
+    if (ANNOUNCE_CONNECTS) {
+      if (!Dark(player))
+        notify_except(player, loc, player, tbuf1, NA_INTER_PRESENCE);
+      /* notify contents */
+      notify_except(player, player, player, tbuf1, 0);
+      /* notify channels */
+      chat_player_announce(saved, message, !numleft);
+    }
+
+    /* Monitor broadcasts */
+    if (Suspect(player))
+      flag_broadcast("WIZARD", 0, T("GAME: Suspect %s"), tbuf1);
+    if (Dark(player)) {
+      flag_broadcast("ROYALTY WIZARD", "HEAR_CONNECT", "%s %s", T("GAME:"),
+                     tbuf1);
+    } else
+      flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
+
+    if (!numleft) {
+      clear_flag_internal(player, "CONNECTED");
+      (void) atr_add(player, "LASTLOGOUT", show_time(mudtime, 0), GOD, 0);
+    }
+
+    /* local_disconnect expects num to include logged out sock, for backwards
+     * compat. */
+    local_disconnect(player, numleft + 1);
+  }
+
+  /** Set an motd message.
+   * \verbatim
+   * This implements @motd.
+   * \endverbatim
+   * \param player the enactor.
+   * \param key type of MOTD to set.
+   * \param message text to set the motd to.
+   */
+  void do_motd(dbref player, int key, const char *message)
+  {
+    const char *what;
+
+    if ((key & MOTD_ACTION) == MOTD_LIST ||
+        ((key & MOTD_ACTION) == MOTD_SET && (!message || !*message))) {
+      notify_format(player, T("MOTD: %s"), cf_motd_msg);
+      if (Hasprivs(player) && (key & MOTD_ACTION) == MOTD_LIST) {
+        notify_format(player, T("Wiz MOTD: %s"), cf_wizmotd_msg);
+        notify_format(player, T("Down MOTD: %s"), cf_downmotd_msg);
+        notify_format(player, T("Full MOTD: %s"), cf_fullmotd_msg);
+      }
+      return;
+    }
+
+    if (!(((key & MOTD_TYPE) == MOTD_MOTD) ? Can_Announce(player)
+                                           : Hasprivs(player))) {
+      notify(player,
+             T("You do not have permission to set the message of the day."));
+      return;
+    }
+
+    if (key & MOTD_CLEAR) {
+      what = T("cleared");
+      message = "";
+    } else
+      what = T("set");
+
+    switch (key & MOTD_TYPE) {
+    case MOTD_MOTD:
+      mush_strncpy(cf_motd_msg, message, BUFFER_LEN);
+      notify_format(player, T("Motd %s."), what);
+      break;
+    case MOTD_WIZ:
+      mush_strncpy(cf_wizmotd_msg, message, BUFFER_LEN);
+      notify_format(player, T("Wizard motd %s."), what);
+      break;
+    case MOTD_DOWN:
+      mush_strncpy(cf_downmotd_msg, message, BUFFER_LEN);
+      notify_format(player, T("Down motd %s."), what);
+      break;
+    case MOTD_FULL:
+      mush_strncpy(cf_fullmotd_msg, message, BUFFER_LEN);
+      notify_format(player, T("Full motd %s."), what);
       break;
     default:
-      do_rawlog_lvl(LT_ERR, MLOG_ERR,
-                    "Invalid zone #%d for %s(#%d) has bad type %d", zone,
-                    Name(player), player, Typeof(zone));
-    }
-  }
-  /* now try the master room */
-  DOLIST (obj, Contents(MASTER_ROOM)) {
-    a = queue_attribute_getatr(obj, "ADISCONNECT", 0);
-    if (a) {
-      if (!Priv_Who(obj) && !Can_Examine(obj, player))
-        pe_regs_setenv_nocopy(pe_regs, 1, "");
-      (void) queue_attribute_useatr(obj, a, player, pe_regs, 0, NULL, NULL);
-      if (!Priv_Who(obj) && !Can_Examine(obj, player))
-        pe_regs_setenv(pe_regs, 1, unparse_integer(numleft));
+      notify(player, T("Set what?"));
     }
   }
 
-  pe_regs_free(pe_regs);
+  /** Return a player's \@doing.
+   * \param player the dbref of the player whose \@doing we want
+   * \param caller
+   * \param enactor the enactor
+   * \param full Return the full doing, or limit to DOING_LEN chars for WHO?
+   * \return a pointer to a STATIC buffer with the doing in.
+   */
+  static char *get_doing(dbref player, dbref caller, dbref enactor,
+                         NEW_PE_INFO * pe_info, bool full)
+  {
+    static char doing[BUFFER_LEN];
+    char *dp = doing;
+    ufun_attrib ufun;
 
-  /* Redundant, but better for translators */
-  if (Hidden(saved)) {
-    message = (numleft) ? T("has partially HIDDEN-disconnected.")
-                        : T("has HIDDEN-disconnected.");
-  } else {
-    message =
-      (numleft) ? T("has partially disconnected.") : T("has disconnected.");
-  }
-  snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN, AName(player, AN_ANNOUNCE, NULL),
-           message, ANSI_ENDALL);
+    doing[0] = '\0';
 
-  if (ANNOUNCE_CONNECTS) {
-    if (!Dark(player))
-      notify_except(player, loc, player, tbuf1, NA_INTER_PRESENCE);
-    /* notify contents */
-    notify_except(player, player, player, tbuf1, 0);
-    /* notify channels */
-    chat_player_announce(saved, message, !numleft);
-  }
-
-  /* Monitor broadcasts */
-  if (Suspect(player))
-    flag_broadcast("WIZARD", 0, T("GAME: Suspect %s"), tbuf1);
-  if (Dark(player)) {
-    flag_broadcast("ROYALTY WIZARD", "HEAR_CONNECT", "%s %s", T("GAME:"),
-                   tbuf1);
-  } else
-    flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
-
-  if (!numleft) {
-    clear_flag_internal(player, "CONNECTED");
-    (void) atr_add(player, "LASTLOGOUT", show_time(mudtime, 0), GOD, 0);
-  }
-
-  /* local_disconnect expects num to include logged out sock, for backwards
-   * compat. */
-  local_disconnect(player, numleft + 1);
-}
-
-/** Set an motd message.
- * \verbatim
- * This implements @motd.
- * \endverbatim
- * \param player the enactor.
- * \param key type of MOTD to set.
- * \param message text to set the motd to.
- */
-void
-do_motd(dbref player, int key, const char *message)
-{
-  const char *what;
-
-  if ((key & MOTD_ACTION) == MOTD_LIST ||
-      ((key & MOTD_ACTION) == MOTD_SET && (!message || !*message))) {
-    notify_format(player, T("MOTD: %s"), cf_motd_msg);
-    if (Hasprivs(player) && (key & MOTD_ACTION) == MOTD_LIST) {
-      notify_format(player, T("Wiz MOTD: %s"), cf_wizmotd_msg);
-      notify_format(player, T("Down MOTD: %s"), cf_downmotd_msg);
-      notify_format(player, T("Full MOTD: %s"), cf_fullmotd_msg);
+    if (!GoodObject(player) || !IsPlayer(player)) {
+      /* No such player; probably used on an unconnected descriptor */
+      return "";
     }
-    return;
-  }
 
-  if (!(((key & MOTD_TYPE) == MOTD_MOTD) ? Can_Announce(player)
-                                         : Hasprivs(player))) {
-    notify(player, T("You do not have permission to set the message of the day."));
-    return;
-  }
+    if (!fetch_ufun_attrib("DOING", player, &ufun,
+                           UFUN_LOCALIZE | UFUN_REQUIRE_ATTR |
+                             UFUN_IGNORE_PERMS))
+      return ""; /* No DOING attribute */
 
-  if (key & MOTD_CLEAR) {
-    what = T("cleared");
-    message = "";
-  } else
-    what = T("set");
+    call_ufun(&ufun, doing, caller, enactor, pe_info, NULL);
+    if (!doing[0])
+      return "";
 
-  switch (key & MOTD_TYPE) {
-  case MOTD_MOTD:
-    mush_strncpy(cf_motd_msg, message, BUFFER_LEN);
-    notify_format(player, T("Motd %s."), what);
-    break;
-  case MOTD_WIZ:
-    mush_strncpy(cf_wizmotd_msg, message, BUFFER_LEN);
-    notify_format(player, T("Wizard motd %s."), what);
-    break;
-  case MOTD_DOWN:
-    mush_strncpy(cf_downmotd_msg, message, BUFFER_LEN);
-    notify_format(player, T("Down motd %s."), what);
-    break;
-  case MOTD_FULL:
-    mush_strncpy(cf_fullmotd_msg, message, BUFFER_LEN);
-    notify_format(player, T("Full motd %s."), what);
-    break;
-  default:
-    notify(player, T("Set what?"));
-  }
-}
-
-/** Return a player's \@doing.
- * \param player the dbref of the player whose \@doing we want
- * \param caller
- * \param enactor the enactor
- * \param full Return the full doing, or limit to DOING_LEN chars for WHO?
- * \return a pointer to a STATIC buffer with the doing in.
- */
-static char *
-get_doing(dbref player, dbref caller, dbref enactor, NEW_PE_INFO *pe_info,
-          bool full)
-{
-  static char doing[BUFFER_LEN];
-  char *dp = doing;
-  ufun_attrib ufun;
-
-  doing[0] = '\0';
-
-  if (!GoodObject(player) || !IsPlayer(player)) {
-    /* No such player; probably used on an unconnected descriptor */
-    return "";
-  }
-
-  if (!fetch_ufun_attrib("DOING", player, &ufun,
-                         UFUN_LOCALIZE | UFUN_REQUIRE_ATTR | UFUN_IGNORE_PERMS))
-    return ""; /* No DOING attribute */
-
-  call_ufun(&ufun, doing, caller, enactor, pe_info, NULL);
-  if (!doing[0])
-    return "";
-
-  if (!full) {
-    /* Truncate to display on WHO */
-    if (has_markup(doing)) {
-      /* Contains ANSI */
-      ansi_string *as;
-      dp = doing;
-      as = parse_ansi_string(doing);
-      safe_ansi_string(as, 0, DOING_LEN - 1, doing, &dp);
-      *dp = '\0';
-      free_ansi_string(as);
-    } else {
-      /* Nice and easy */
-      doing[DOING_LEN - 1] = '\0';
-    }
-  }
-
-  /* Smash any undesirable characters */
-  dp = doing;
-  WALK_ANSI_STRING (dp) {
-    if (!char_isprint((int) *dp) || (*dp == '\n') || (*dp == '\r') ||
-        (*dp == '\t') || (*dp == BEEP_CHAR)) {
-      *dp = ' ';
-    }
-    dp++;
-  }
-
-  return doing;
-}
-
-/** Get the current poll message.
- * If there isn't one currently set, sets it to "Doing" first.
- */
-char *
-get_poll(void)
-{
-  if (!*poll_msg)
-    set_poll(NULL);
-  return poll_msg;
-}
-
-/** Set the poll message.
- * \param message The new poll, or NULL to use the default, "Doing")
- * \return number of characters trimmed from new poll
- */
-int
-set_poll(const char *message)
-{
-  int i = 0;
-  size_t len = 0;
-
-  if (message && *message) {
-    mush_strncpy(poll_msg, remove_markup(message, &len), sizeof poll_msg);
-    len--; /* Length includes trailing null */
-  } else {
-    mush_strncpy(poll_msg, T("Doing"), sizeof poll_msg);
-  }
-  for (i = 0; i < DOING_LEN; i++) {
-    if (poll_msg[i] == '\0') {
-      break;
-    } else if ((poll_msg[i] == '\r') || (poll_msg[i] == '\n') ||
-               (poll_msg[i] == '\t') || (poll_msg[i] == BEEP_CHAR)) {
-      poll_msg[i] = ' ';
-    }
-  }
-
-  if ((int) len >= DOING_LEN)
-    return ((int) len - DOING_LEN);
-  else
-    return 0;
-}
-
-/** Set a poll message (which replaces "Doing" in the DOING output).
- * \verbatim
- * This implements @poll.
- * \endverbatim
- * \param player the enactor.
- * \param message the message to set.
- * \param clear true if the poll should be reset to the default 'Doing'
- */
-void
-do_poll(dbref player, const char *message, int clear)
-{
-  int i;
-
-  if ((!message || !*message) && !clear) {
-    /* Just display the poll. */
-    notify_format(player, T("The current poll is: %s"), get_poll());
-    return;
-  }
-
-  if (!Change_Poll(player)) {
-    notify(player, T("You do not have permission to set the poll."));
-    return;
-  }
-
-  if (clear) {
-    set_poll(NULL);
-    notify(player, T("Poll reset."));
-    return;
-  }
-
-  i = set_poll(message);
-
-  if (i) {
-    notify_format(player, T("Poll set to '%s'. %d characters lost."), poll_msg,
-                  i);
-  } else
-    notify_format(player, T("Poll set to: %s"), poll_msg);
-  do_log(LT_WIZ, player, NOTHING, "Poll Set to '%s'.", poll_msg);
-}
-
-/** Match the partial name of a connected player.
- * \param match string to match.
- * \return dbref of a unique connected player whose name partial-matches,
- * AMBIGUOUS, or NOTHING.
- */
-dbref
-short_page(const char *match)
-{
-  DESC *d;
-  dbref who1 = NOTHING;
-  int count = 0;
-
-  if (!(match && *match))
-    return NOTHING;
-
-  for (d = descriptor_list; d; d = d->next) {
-    if (d->connected) {
-      if (!string_prefix(Name(d->player), match))
-        continue;
-      if (!strcasecmp(Name(d->player), match)) {
-        count = 1;
-        who1 = d->player;
-        break;
+    if (!full) {
+      /* Truncate to display on WHO */
+      if (has_markup(doing)) {
+        /* Contains ANSI */
+        ansi_string *as;
+        dp = doing;
+        as = parse_ansi_string(doing);
+        safe_ansi_string(as, 0, DOING_LEN - 1, doing, &dp);
+        *dp = '\0';
+        free_ansi_string(as);
+      } else {
+        /* Nice and easy */
+        doing[DOING_LEN - 1] = '\0';
       }
-      if (who1 == NOTHING || d->player != who1) {
-        who1 = d->player;
+    }
+
+    /* Smash any undesirable characters */
+    dp = doing;
+    WALK_ANSI_STRING (dp) {
+      if (!char_isprint((int) *dp) || (*dp == '\n') || (*dp == '\r') ||
+          (*dp == '\t') || (*dp == BEEP_CHAR)) {
+        *dp = ' ';
+      }
+      dp++;
+    }
+
+    return doing;
+  }
+
+  /** Get the current poll message.
+   * If there isn't one currently set, sets it to "Doing" first.
+   */
+  char *get_poll(void)
+  {
+    if (!*poll_msg)
+      set_poll(NULL);
+    return poll_msg;
+  }
+
+  /** Set the poll message.
+   * \param message The new poll, or NULL to use the default, "Doing")
+   * \return number of characters trimmed from new poll
+   */
+  int set_poll(const char *message)
+  {
+    int i = 0;
+    size_t len = 0;
+
+    if (message && *message) {
+      mush_strncpy(poll_msg, remove_markup(message, &len), sizeof poll_msg);
+      len--; /* Length includes trailing null */
+    } else {
+      mush_strncpy(poll_msg, T("Doing"), sizeof poll_msg);
+    }
+    for (i = 0; i < DOING_LEN; i++) {
+      if (poll_msg[i] == '\0') {
+        break;
+      } else if ((poll_msg[i] == '\r') || (poll_msg[i] == '\n') ||
+                 (poll_msg[i] == '\t') || (poll_msg[i] == BEEP_CHAR)) {
+        poll_msg[i] = ' ';
+      }
+    }
+
+    if ((int) len >= DOING_LEN)
+      return ((int) len - DOING_LEN);
+    else
+      return 0;
+  }
+
+  /** Set a poll message (which replaces "Doing" in the DOING output).
+   * \verbatim
+   * This implements @poll.
+   * \endverbatim
+   * \param player the enactor.
+   * \param message the message to set.
+   * \param clear true if the poll should be reset to the default 'Doing'
+   */
+  void do_poll(dbref player, const char *message, int clear)
+  {
+    int i;
+
+    if ((!message || !*message) && !clear) {
+      /* Just display the poll. */
+      notify_format(player, T("The current poll is: %s"), get_poll());
+      return;
+    }
+
+    if (!Change_Poll(player)) {
+      notify(player, T("You do not have permission to set the poll."));
+      return;
+    }
+
+    if (clear) {
+      set_poll(NULL);
+      notify(player, T("Poll reset."));
+      return;
+    }
+
+    i = set_poll(message);
+
+    if (i) {
+      notify_format(player, T("Poll set to '%s'. %d characters lost."),
+                    poll_msg, i);
+    } else
+      notify_format(player, T("Poll set to: %s"), poll_msg);
+    do_log(LT_WIZ, player, NOTHING, "Poll Set to '%s'.", poll_msg);
+  }
+
+  /** Match the partial name of a connected player.
+   * \param match string to match.
+   * \return dbref of a unique connected player whose name partial-matches,
+   * AMBIGUOUS, or NOTHING.
+   */
+  dbref short_page(const char *match)
+  {
+    DESC *d;
+    dbref who1 = NOTHING;
+    int count = 0;
+
+    if (!(match && *match))
+      return NOTHING;
+
+    for (d = descriptor_list; d; d = d->next) {
+      if (d->connected) {
+        if (!string_prefix(Name(d->player), match))
+          continue;
+        if (!strcasecmp(Name(d->player), match)) {
+          count = 1;
+          who1 = d->player;
+          break;
+        }
+        if (who1 == NOTHING || d->player != who1) {
+          who1 = d->player;
+          count++;
+        }
+      }
+    }
+
+    if (count > 1)
+      return AMBIGUOUS;
+    else if (count == 0)
+      return NOTHING;
+
+    return who1;
+  }
+
+  /** Match the partial name of a connected player the enactor can see.
+   * \param player the enactor
+   * \param match string to match.
+   * \return dbref of a unique connected player whose name partial-matches,
+   * AMBIGUOUS, or NOTHING.
+   */
+  dbref visible_short_page(dbref player, const char *match)
+  {
+    dbref target;
+    target = short_page(match);
+    if (Priv_Who(player) || !GoodObject(target))
+      return target;
+    if (Dark(target) || (hidden(target) && !nearby(player, target)))
+      return NOTHING;
+    return target;
+  }
+
+  /* LWHO() function - really belongs elsewhere but needs stuff declared here */
+
+  FUNCTION(fun_xwho)
+  {
+    DESC *d;
+    int nwho;
+    int first;
+    int start, count;
+    int powered = (*(called_as + 1) != 'M') && Priv_Who(executor);
+    int objid = (strchr(called_as, 'D') != NULL);
+    int firstnum = 0;
+    dbref victim;
+
+    if (nargs > 2) {
+      firstnum = 1;
+      if ((victim = noisy_match_result(executor, args[0], NOTYPE,
+                                       MAT_EVERYTHING)) == NOTHING) {
+        safe_str(T(e_notvis), buff, bp);
+        return;
+      }
+      if (!powered && victim != executor) {
+        safe_str(T(e_perm), buff, bp);
+        return;
+      }
+      if (!Priv_Who(victim))
+        powered = 0;
+    }
+
+    if (!is_strict_integer(args[firstnum]) ||
+        !is_strict_integer(args[firstnum + 1])) {
+      safe_str(T(e_int), buff, bp);
+      return;
+    }
+    start = parse_integer(args[firstnum]);
+    count = parse_integer(args[firstnum + 1]);
+
+    if (start < 1 || count < 1) {
+      safe_str(T(e_argrange), buff, bp);
+      return;
+    }
+
+    nwho = 0;
+    first = 1;
+
+    DESC_ITER_CONN (d) {
+      if (!Hidden(d) || (powered)) {
+        nwho += 1;
+        if (nwho >= start && nwho < (start + count)) {
+          if (first)
+            first = 0;
+          else
+            safe_chr(' ', buff, bp);
+          safe_dbref(d->player, buff, bp);
+          if (objid) {
+            safe_chr(':', buff, bp);
+            safe_integer(CreTime(d->player), buff, bp);
+          }
+        }
+      }
+    }
+  }
+
+  /* ARGSUSED */
+  FUNCTION(fun_nwho)
+  {
+    DESC *d;
+    dbref victim;
+    int count = 0;
+    int powered = ((*(called_as + 1) != 'M') && Priv_Who(executor));
+
+    if (nargs && args[0] && *args[0]) {
+      /* An argument was given. Find the victim and choose the lowest
+       * perms possible */
+      if ((victim = noisy_match_result(executor, args[0], NOTYPE,
+                                       MAT_EVERYTHING)) == NOTHING) {
+        safe_str(T(e_notvis), buff, bp);
+        return;
+      }
+      if (!powered && victim != executor) {
+        safe_str(T(e_perm), buff, bp);
+        return;
+      }
+      if (!Priv_Who(victim))
+        powered = 0;
+    }
+
+    DESC_ITER_CONN (d) {
+      if (!Hidden(d) || powered) {
         count++;
       }
     }
+    safe_integer(count, buff, bp);
   }
 
-  if (count > 1)
-    return AMBIGUOUS;
-  else if (count == 0)
-    return NOTHING;
+  /* ARGSUSED */
+  FUNCTION(fun_lwho)
+  {
+    DESC *d;
+    int first = 1;
+    dbref victim;
+    int powered = ((*called_as == 'L') && Priv_Who(executor));
+    int objid = (strchr(called_as, 'D') != NULL);
+    int online = 1;
+    int offline = 0;
 
-  return who1;
-}
-
-/** Match the partial name of a connected player the enactor can see.
- * \param player the enactor
- * \param match string to match.
- * \return dbref of a unique connected player whose name partial-matches,
- * AMBIGUOUS, or NOTHING.
- */
-dbref
-visible_short_page(dbref player, const char *match)
-{
-  dbref target;
-  target = short_page(match);
-  if (Priv_Who(player) || !GoodObject(target))
-    return target;
-  if (Dark(target) || (hidden(target) && !nearby(player, target)))
-    return NOTHING;
-  return target;
-}
-
-/* LWHO() function - really belongs elsewhere but needs stuff declared here */
-
-FUNCTION(fun_xwho)
-{
-  DESC *d;
-  int nwho;
-  int first;
-  int start, count;
-  int powered = (*(called_as + 1) != 'M') && Priv_Who(executor);
-  int objid = (strchr(called_as, 'D') != NULL);
-  int firstnum = 0;
-  dbref victim;
-
-  if (nargs > 2) {
-    firstnum = 1;
-    if ((victim = noisy_match_result(executor, args[0], NOTYPE,
-                                     MAT_EVERYTHING)) == NOTHING) {
-      safe_str(T(e_notvis), buff, bp);
-      return;
+    if (nargs && args[0] && *args[0]) {
+      /* An argument was given. Find the victim and choose the lowest
+       * perms possible */
+      if ((victim = noisy_match_result(executor, args[0], NOTYPE,
+                                       MAT_EVERYTHING)) == NOTHING) {
+        safe_str(T(e_notvis), buff, bp);
+        return;
+      }
+      if (!powered && victim != executor) {
+        safe_str(T(e_perm), buff, bp);
+        return;
+      }
+      if (!Priv_Who(victim))
+        powered = 0;
     }
-    if (!powered && victim != executor) {
-      safe_str(T(e_perm), buff, bp);
-      return;
+
+    if (nargs > 1 && args[1] && *args[1]) {
+      if (strcasecmp("all", args[1]) == 0) {
+        offline = online = 1;
+      } else if (strcasecmp("online", args[1]) == 0) {
+        online = 1;
+        offline = 0;
+      } else if (strcasecmp("offline", args[1]) == 0) {
+        online = 0;
+        offline = 1;
+      } else {
+        safe_str(T("#-1 INVALID SECOND ARGUMENT"), buff, bp);
+        return;
+      }
+      if (offline && !powered) {
+        safe_str(T(e_perm), buff, bp);
+        return;
+      }
     }
-    if (!Priv_Who(victim))
-      powered = 0;
-  }
 
-  if (!is_strict_integer(args[firstnum]) ||
-      !is_strict_integer(args[firstnum + 1])) {
-    safe_str(T(e_int), buff, bp);
-    return;
-  }
-  start = parse_integer(args[firstnum]);
-  count = parse_integer(args[firstnum + 1]);
-
-  if (start < 1 || count < 1) {
-    safe_str(T(e_argrange), buff, bp);
-    return;
-  }
-
-  nwho = 0;
-  first = 1;
-
-  DESC_ITER_CONN (d) {
-    if (!Hidden(d) || (powered)) {
-      nwho += 1;
-      if (nwho >= start && nwho < (start + count)) {
-        if (first)
-          first = 0;
-        else
-          safe_chr(' ', buff, bp);
+    DESC_ITER (d) {
+      if ((d->connected && !online) || (!d->connected && !offline))
+        continue;
+      if (d->conn_flags & CONN_HTTP_REQUEST)
+        continue;
+      if (!powered && (d->connected && Hidden(d)))
+        continue;
+      if (first)
+        first = 0;
+      else
+        safe_chr(' ', buff, bp);
+      if (d->connected) {
         safe_dbref(d->player, buff, bp);
         if (objid) {
           safe_chr(':', buff, bp);
           safe_integer(CreTime(d->player), buff, bp);
         }
-      }
+      } else
+        safe_dbref(-1, buff, bp);
     }
   }
-}
-
-/* ARGSUSED */
-FUNCTION(fun_nwho)
-{
-  DESC *d;
-  dbref victim;
-  int count = 0;
-  int powered = ((*(called_as + 1) != 'M') && Priv_Who(executor));
-
-  if (nargs && args[0] && *args[0]) {
-    /* An argument was given. Find the victim and choose the lowest
-     * perms possible */
-    if ((victim = noisy_match_result(executor, args[0], NOTYPE,
-                                     MAT_EVERYTHING)) == NOTHING) {
-      safe_str(T(e_notvis), buff, bp);
-      return;
-    }
-    if (!powered && victim != executor) {
-      safe_str(T(e_perm), buff, bp);
-      return;
-    }
-    if (!Priv_Who(victim))
-      powered = 0;
-  }
-
-  DESC_ITER_CONN (d) {
-    if (!Hidden(d) || powered) {
-      count++;
-    }
-  }
-  safe_integer(count, buff, bp);
-}
-
-/* ARGSUSED */
-FUNCTION(fun_lwho)
-{
-  DESC *d;
-  int first = 1;
-  dbref victim;
-  int powered = ((*called_as == 'L') && Priv_Who(executor));
-  int objid = (strchr(called_as, 'D') != NULL);
-  int online = 1;
-  int offline = 0;
-
-  if (nargs && args[0] && *args[0]) {
-    /* An argument was given. Find the victim and choose the lowest
-     * perms possible */
-    if ((victim = noisy_match_result(executor, args[0], NOTYPE,
-                                     MAT_EVERYTHING)) == NOTHING) {
-      safe_str(T(e_notvis), buff, bp);
-      return;
-    }
-    if (!powered && victim != executor) {
-      safe_str(T(e_perm), buff, bp);
-      return;
-    }
-    if (!Priv_Who(victim))
-      powered = 0;
-  }
-
-  if (nargs > 1 && args[1] && *args[1]) {
-    if (strcasecmp("all", args[1]) == 0) {
-      offline = online = 1;
-    } else if (strcasecmp("online", args[1]) == 0) {
-      online = 1;
-      offline = 0;
-    } else if (strcasecmp("offline", args[1]) == 0) {
-      online = 0;
-      offline = 1;
-    } else {
-      safe_str(T("#-1 INVALID SECOND ARGUMENT"), buff, bp);
-      return;
-    }
-    if (offline && !powered) {
-      safe_str(T(e_perm), buff, bp);
-      return;
-    }
-  }
-
-  DESC_ITER (d) {
-    if ((d->connected && !online) || (!d->connected && !offline))
-      continue;
-    if (d->conn_flags & CONN_HTTP_REQUEST)
-      continue;
-    if (!powered && (d->connected && Hidden(d)))
-      continue;
-    if (first)
-      first = 0;
-    else
-      safe_chr(' ', buff, bp);
-    if (d->connected) {
-      safe_dbref(d->player, buff, bp);
-      if (objid) {
-        safe_chr(':', buff, bp);
-        safe_integer(CreTime(d->player), buff, bp);
-      }
-    } else
-      safe_dbref(-1, buff, bp);
-  }
-}
 
 #ifdef WIN32
 #pragma warning(disable : 4761) /* Disable bogus conversion warning */
