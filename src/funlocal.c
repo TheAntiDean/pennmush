@@ -87,13 +87,6 @@ FUNCTION(local_fun_nameformat)
   ap = argval;
 
   if (GoodObject(it)) {
-    /* You must either be see_all, control it, or be inside it */
-    // if (!(controls(executor, it) || See_All(executor) ||
-    //       (Location(executor) == it))) {
-    //   safe_str(T(e_perm), buff, bp);
-    //   return;
-    // }
-
     if (flaglist_check_long("FLAG", executor, it, "HALT", 1) == 1)
       safe_str(accented_name(it), buff, bp);
     else if (nameformat(executor, it, tbuf1,
@@ -101,29 +94,34 @@ FUNCTION(local_fun_nameformat)
                         1, pe_info)) {
       DESC *match = lookup_desc(caller, Name(caller));
 
-      if (((Location(caller) == Location(it)) || Hasprivs(caller)) &&
-          (match->conn_flags & CONN_HTML) && nargs == 2 && parse_number(args[1])) {
-        if (IsExit(it)) {
-          safe_str("\"go ", argval, &ap);
+      //if (caller != it) {
+        if (IsRoom(caller) || (Can_Locate(caller, it) && (match->conn_flags & CONN_HTML) &&
+            nargs == 2 && parse_number(args[1]))) {
+          if (IsExit(it)) {
+            safe_str("\"go ", argval, &ap);
+          } else {
+            safe_str("\"look ", argval, &ap);
+          }
+          if (!Hasprivs(caller)) {
+            safe_str(Name(it), argval, &ap);
+          } else {
+            safe_str(unparse_dbref(it), argval, &ap);
+          }
+          safe_str("\"", argval, &ap);
+          safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
+          *ap = '\0';
         } else {
-          safe_str("\"look ", argval, &ap);
+          safe_str(tbuf1, buff, bp);
         }
-
-        safe_str(unparse_dbref(it), argval, &ap);
-        safe_str("\"", argval, &ap);
-        safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
-        *ap = '\0';
+      } else if (IsExit(it)) {
+        safe_str(shortname(it), buff, bp);
       } else {
-        safe_str(tbuf1, buff, bp);
+        safe_str(accented_name(it), buff, bp);
       }
-
-    }
-
-    else if (IsExit(it)) {
-      safe_str(shortname(it), buff, bp);
-    } else {
-      safe_str(accented_name(it), buff, bp);
-    }
+     
+    //else {
+    //   safe_str(tbuf1, buff, bp);
+    // }
 
   } else
     safe_str(T(e_notvis), buff, bp);
