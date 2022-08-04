@@ -2209,7 +2209,7 @@ FUNCTION(fun_speak)
   if (nargs > 2 && *args[2] != '\0' && *args[2] != ' ')
     say_string = args[2];
   else
-    say_string = (char *) "says,";
+    say_string = (char *) "says";
 
   if (nargs > 3) {
     if (args[3]) {
