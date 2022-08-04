@@ -1,0 +1,242 @@
+&desc_header room parent=[ifelse(words(v(pong)),[ansi(g,\[)][ansi(hr,v(pong))][ansi(g,\])][ansi(g,repeat(=,sub(78,add(2,strlen(v(pong))))))],ansi(g,repeat(=,78)))]
+&desc_footer room parent=[ansi(g,[repeat(=,24)]\[)][ansi(switch(bk(space,alert,zone(me)),1,Gh,2,Yh,3,Rh,4,C,5,Bh,6,Mh,w),repeat(%b,28))][ansi(g,\][repeat(=,24)])]
+&ROOM_CONTENTSSTART room parent=35
+@name here=Control Center - Deck 0
+@set here=Room_Desc:%tA large, low-roofed control room extends in front of you. Viewports run around the entire circumference of the Control Center, providing an uninterupted view of the ships docked at the starbase as well as the Homeworld below and the panorama of space. In the dim red glow of the overhead lights, you can see that, below the ports, duty stations for Space Traffic Control, Flight Control, Operations Management, Tactical and Weapons, Life Support, Environment and Communications are arranged in a circle around the walls. In the center of the room is a low pedestal on which sits the impressive Command Console built to the design specifications of the Base Commander. meH beq move purposefully, checking the status of the starbase's systems.
+@set here=pong:botlh SeH
+@setroomtype here=10
+say Digging access shaft.
+@dig Access Shaft=Down;D;ladder;shaft,Up;U;bridge
+@set me=shaft:[loc(down)]
+say Digging Turbolift.
+@dig Turbolift=Turbolift;TL;Out;O,Out;O
+@set me=turbolift:[loc(turbolift)]
+plinstall
+plinstall
+patch install waynelook on parent
+rost/add captain=chos
+rost/add captain=nah
+rost/add captain=maz
+rost/create visitor
+rost/change admin visitor=captain,command
+rost/change maint visitor=captain,command,crew
+change access here=captain,command,crew,!prisoner
+change access tl=captain,command,crew,!prisoner
+change access down=captain,command,crew,!prisoner
+tl
+@set here=Room_desc:%tThe very latest in turbolift technology from 'otIS. The decor is muted greys, meant mostly not to be noticed as you travel between destinations. A small control panel is embedded in the wall to the left of the door.
+@set here=pong:qu'vatlh
+@setroomtype here=6
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+out
+down
+@set here=room_desc:%tThis is a cramped shaft that runs parallel to the turbolift from a hatch on the bridge down to an opening below. There is barely enough room for one Klingon to fit and still have room to move limbs to climb.
+say Digging balcony.
+@set here=pong:naw'pa'
+@setroomtype here=7
+@dig Dome Balcony - Deck 1=Down;D,Ladder;U;up;shaft;bridge
+plinstall
+change access here=captain,command,crew,!prisoner
+change access up=captain,command,crew,!prisoner
+change access down=captain,command,crew,!prisoner
+down
+@set here=Room_Desc:%tA wide metal balcony sweeps around the dome here, fully 15 feet above the main floor. Looking over the balcony railing, you see the great Imperial Symbol spread across the deck. Many rooms and conference facilities open onto this walkway, including the medical facilites and security offices.
+@set here=pong:botlh qach DungDaq
+@setroomtype here=28
+say Digging all adjacent rooms.
+@dig Dome Promenade - Deck 2=Down;D;promenade;prom;stairs;Out;O,Up;U;stairs;bal;balcony
+@tel num(up)=here
+@dig Base Security=Starboard;S;star;sec;bs,Port;P;Out;O
+@dig Medical Center=Port;P;med;medic;mc,Starboard;S;Out;O
+@dig Ambassador Suites=Aft;A;amb;ambassador;dip;diplo,Forward;F;Out;O
+@dig Sector General's Office=Forward;F;for;fore,Aft;A;Out;O
+@set port=transparent
+@set down=transparent
+plinstall
+change access here=captain,command,crew,visitor,vip,!prisoner
+change access f=captain,command,crew,!prisoner
+change access a=captain,command,crew,vip,!prisoner
+change access p=captain,command,crew,vip,visitor,!prisoner
+change access s=captain,command,crew,vip,visitor,!prisoner
+change access u=captain,command,crew,!prisoner
+change access d=captain,command,crew,vip,visitor,!prisoner
+f
+@set here=Room_Desc:%tA bare, functional desk sits in the middle of the darkened room. A Klingon trefoil is etched on the wall behind it, opposite the door. Red lights play across the three swooping arms, creating the illusion of a rotating image. Most of the room is cast in deep shadows, though the central area has large lights overhead that can, if desired, provide great illumination. A computer console, food replicator, and communications console are all here, as are banks of monitors for surveying the station. A small corridor leads off into what you can only assume are private quarters.
+@set here=pong:Sa'yoSpa'
+@setroomtype here=21
+plinstall
+change access here=captain,command,crew,!prisoner
+change access out=captain,command,crew,!prisoner
+out
+port
+@set here=room_Desc:%t'Prompt Medical Attention' for a Klingon can usually be translated to mean 'Don't let him die a lingering death.' Thus, the furnishings here include only one bio-bed and a cabinet containing very few surgical tools. This sickbay was designed into the starbase mainly to provide for the healthcare needs of the non-Klingons that occasionaly visit here. The symbol of the Klingon Medical Services is emblazoned across the transparent aluminum doors where they part in the center.
+@set here=pong:ropyaH
+@set out=transparent
+@setroomtype here=17
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+starboard
+@set here=room_desc:%tAs your eyes adjust to the darkness, you see a heavily armed and armored guard standing by the door. To your right is the desk where the base Security Chief usually sits, its various monitors blinking, displaying multiple-band EM sensor readings from the holding cells across the room. To the left is the weapon locker with everything a security team may need for an uprising in the dome. The far wall displays many bladed weapons, not all tlhIngan in nature, someone's private collection. A chair, with strong restraints, sits in front of the desk, ready for any "interviews".
+@set here=pong:'ejyo'waw' Hung
+@setroomtype here=18
+@set out=transparent
+say Digging two cells.
+@dig Cell 2=Cell 2;2;cell2;c2,Out;O
+@dig Cell 1=Cell 1;1;cell1;c1,Out;O
+plinstall
+change access here=captain,command,crew,vip,visitor,prisoner
+change access 1=prisoner
+change access 2=prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+@set cell1=transparent
+@set cell2=transparent
+1
+@set here=room_desc:%tThis room is only two meters cubed, with a solid bed plank jutting from the wall and a toilet receptacle in one corner.
+@set here=pong:mo' wa'
+@setroomtype here=11
+@set out=transparent
+plinstall
+change access here=prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+2
+@set here=room_desc:%tThis room is only two meters cubed, with a solid bed plank jutting from the wall and a toilet receptacle in one corner.
+@set here=pong:mo' cha'
+@setroomtype here=11
+@set out=transparent
+plinstall
+change access here=prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+out
+aft
+@set here=room_desc:%tThis is the one room on the entire starbase that does not have the appearance of a military installation. To the contrary, it is remarkably well lit and the furnishings are designed for physical comfort as this is the place where ambassadors from other empires conduct diplomatic negotiations with the Klingon Empire. The walls are covered in soft colors; the floor is plushly carpeted. A large, round, dark-wood table is in the center of the room, decorated with the symbols of various other worlds and allies of the Klingon Empire, and surrounded by chairs that are rather comfortable looking. The symbol of the Klingon Diplomatic Corps is emblazoned across the duranium doors where they part in the center.
+@set here=pong:Duy pa''a'
+@setroomtype here=19
+plinstall
+change access here=captain,command,crew,vip,!prisoner
+change access out=captain,command,crew,vip,!prisoner
+out
+down
+@set here=room_desc:%tThere is no mistaking the fact that this huge, domed room is the central nexus of a large military installation. Massive steel beams rise from the edge of the circular room to disappear into the darkness of the ceiling, 30 meters above. Only a small ring of lights, hidden into recesses in the walls, dimly illuminate the apex of the room. The floor stretches out like a vast plascreete field under the expanse of the cavernous dome.%r%tDominating the center of the room, demanding your attention, is the Imperial Klingon Symbol, etched in the floor. At ten meters across, it is the largest feature of the room. A flight of metal stairs, set to one side, spirals up to a wide balcony that circles the perimeter of the dome. Set in an alcove opposite the stairs is a second set that leads down into the transporter area. The darkened doors of a bar occupy the only other wall of this dome. From this nexus, three equally spaced corridors lead to the docking bays of the starbase.
+@set here=pong:botlh bID moQ qach
+@setroomtype here=40
+say Opening exit to the Turbolift.
+@open Turbolift;TL;Out;O=v(turbolift)
+say Digging all adjacent rooms.
+@dig Transporter Room=Transporter;TR;trans,Out;O
+@dig Residential Corridor - Deck 3=Down;D;ladder,Up;U;dome
+@tel num(up)=here
+@dig Bar=Aft;A;bar;b,Forward;F;Out;O
+@dig Docking Bay 3=Docking Bay 3;3;d3;db3;b3,Out;O
+@dig Docking Bay 2=Docking Bay 2;2;d2;db2;b2,Out;O
+@dig Docking Bay 1=Docking Bay 1;1;f;forward;for;d1;db1;b1,Out;O
+@set 1=transparent
+@set 2=transparent
+@set 3=transparent
+@set up=transparent
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access 1=captain,command,crew,vip,visitor,!prisoner
+change access 2=captain,command,crew,vip,visitor,!prisoner
+change access 3=captain,command,crew,vip,visitor,!prisoner
+change access a=captain,command,crew,vip,visitor,!prisoner
+change access u=captain,command,crew,vip,visitor,!prisoner
+change access d=captain,command,crew,vip,visitor,!prisoner
+change access tr=captain,command,crew,vip,visitor,!prisoner
+change access tl=captain,command,crew,vip,visitor,!prisoner
+1
+@set here=room_desc:%tYou see a small domed room extending from one great arm of the starbase its heavy titanium supports rising from the edges of the room to form an apex above you, some 15 feet high. Heavy transparent aluminum panels are bolted between the struts to form the walls of this observation dome. Looking out from here, you see the great ships of the Imperial Navy, each held in place by giant cradles dwarfing the docked ships. Each vessel rides close to its mother ship tethered to the station by umbilical cords supplying power, light and air to its supporting platforms below. From the airlocks and access ways that line the walls, airlock corridors connect to these platforms, providing access from here to the ships docked at this part of the starbase.
+@set here=pong:verghDaq wa'
+@setroomtype here=33
+@set out=transparent
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+2
+@set here=room_desc:%tYou see a small domed room extending from one great arm of the starbase its heavy titanium supports rising from the edges of the room to form an apex above you, some 15 feet high. Heavy transparent aluminum panels are bolted between the struts to form the walls of this observation dome. Looking out from here, you see the great ships of the Imperial Navy, each held in place by giant cradles dwarfing the docked ships. Each vessel rides close to its mother ship tethered to the station by umbilical cords supplying power, light and air to its supporting platforms below. From the airlocks and access ways that line the walls, airlock corridors connect to these platforms, providing access from here to the ships docked at this part of the starbase.
+@set here=pong:verghDaq cha'
+@setroomtype here=33
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+3
+@set here=room_desc:%tYou see a small domed room extending from one great arm of the starbase its heavy titanium supports rising from the edges of the room to form an apex above you, some 15 feet high. Heavy transparent aluminum panels are bolted between the struts to form the walls of this observation dome. Looking out from here, you see the great ships of the Imperial Navy, each held in place by giant cradles dwarfing the docked ships. Each vessel rides close to its mother ship tethered to the station by umbilical cords supplying power, light and air to its supporting platforms below. From the airlocks and access ways that line the walls, airlock corridors connect to these platforms, providing access from here to the ships docked at this part of the starbase.
+@set here=pong:verghDaq wej
+@setroomtype here=33
+@set out=transparent
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+aft
+@set here=room_desc:%tThe darkness here is almost overwhelming, punctuated only occasionally by the doors to the Main Dome opening as another patron enters. You hear the other patrons more than see them; this is a popular place, filled with Klingons and a few aliens. In the center of the room is a large circular pit, 4 meters across, enclosed by a black marble bar where patrons can order a drink and watch the main attraction of this place - the Ternaj'a' pit. Along the walls are several small booths where one can sit in seclusion if desired.
+@set here=pong:tach
+@setroomtype here=52
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+tr
+@set here=room_desc:%tThis large transporter room is continually cleaned and monitored. Several large transporter pads are situated along the back wall, and an impressive transporter console is stationed near the door. Security cameras sweep the room constantly, and a guard is always within shouting distance.%r%tThe typically dim Klingon lighting makes it hard to see the corners of the room, but you can make out a few things here and there.
+@set here=pong:jolpa'
+@setroomtype here=24
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+down
+@set here=room_desc:%tThis fore-aft corridor divides the deck in half, to the port side is a standard Klingon bunk room that can easily hold the entire base crew at once, in typical spartan comfort.  On the starboard side is a more luxurious crew quarters, adapted for alien ship crews visiting the station.  A ladder is welded to the side of the turbolift shaft, going through hatches in the floor and ceiling.
+@set here=pong:
+@setroomtype here=3
+@open Turbolift;TL;Out;O=v(turbolift)
+@dig Engineering - Deck 4=Down;D;eng,Up;U;ladder
+@tel num(up)=here
+@dig Guest Quarters=Starboard;S;star;guest;gq,Port;P;Out;O
+@dig Crew Quarters=Port;P;crew;cq,Starboard;S;Out;O
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access port=captain,command,crew,!prisoner
+change access s=captain,command,crew,vip,visitor,!prisoner
+change access u=captain,command,crew,vip,visitor,!prisoner
+change access d=captain,command,crew,!prisoner
+port
+@set here=room_desc:%tThis large bunk room is filled with tri-level bed planks, each with its own footlocker and small terminal.  The entire crew of the starbase could fit in here in traditional spartan comfort.
+@set here=pong:beqpa'
+@setroomtype here=31
+plinstall
+change access here=captain,command,crew,!prisoner
+change access out=captain,command,crew,!prisoner
+out
+starboard
+@set here=room_desc:%tThis large bunk room is filled with bi-level bunks with matresses, footlockers, and small computer terminals. It was modified from a standard Klingon bunkroom, and now Klingons avoid it unless all other options are gone.
+@set here=pong:mebpa'
+@setroomtype here=31
+plinstall
+change access here=captain,command,crew,vip,visitor,!prisoner
+change access out=captain,command,crew,vip,visitor,!prisoner
+out
+down
+@set here=room_desc:%tThis entire deck is one large room devoted to providing power for the starbase. In the center of the room, the matter-antimatter fusion reactor pulses rythmically, its vibrations shuddering faintly throughout the entire structure. Encircling the core, a multitude of control consoles monitor the complex systems required to keep the engine functioning. jonwI' beq move about constantly, checking the status of the engineering systems.
+@set here=pong:jonwI'Daq
+@setroomtype here=14
+@open Turbolift;TL;Out;O=v(turbolift)
+plinstall
+change access here=captain,command,crew,!prisoner
+change access up=captain,command,crew,!prisoner
+change access tl=captain,command,crew,!prisoner
+tl
+@create Control Panel
+drop control panel
+@parent control panel=#9219
+@set control panel=core:[v(room_parent)]
+@set control panel=!no_command
+tlinstall
+
+
+
