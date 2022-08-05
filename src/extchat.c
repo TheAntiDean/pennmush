@@ -3779,10 +3779,6 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
     snprintf(playername, BUFFER_LEN, "%s", someone);
   }
 
-  
-  if(nameformat(player, player, playerFormat, playername,false, NULL))
-        snprintf(playername, BUFFER_LEN, "%s", playerFormat);
-
   if (flags & CB_PRESENCE) {
     ctype = ":";
   } else if (flags & CB_POSE) {
@@ -3802,7 +3798,6 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
   if (GoodObject(ChanMogrifier(channel))) {
     if (eval_lock(player, ChanMogrifier(channel), Use_Lock)) {
       mogrifier = ChanMogrifier(channel);
-
 
       argv[0] = ctype;
       argv[1] = ChanName(channel);
@@ -3908,10 +3903,10 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
      */
     int ignoreme __attribute__((__unused__));
     ignoreme = snprintf(title, BUFFER_LEN, "%s", message);
-    if((flags & CB_SEMIPOSE))
-    ignoreme = snprintf(message, BUFFER_LEN, "%s%s", playername, title);
+    if ((flags & CB_SEMIPOSE))
+      ignoreme = snprintf(message, BUFFER_LEN, "%s%s", playername, title);
     else
-    ignoreme = snprintf(message, BUFFER_LEN, "%s %s", playername, title);
+      ignoreme = snprintf(message, BUFFER_LEN, "%s %s", playername, title);
     title[0] = '\0';
   }
 
@@ -3928,64 +3923,69 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
     } else {
       argv[7] = "noisy";
     }
-    if (((flags & CB_TYPE) == CB_POSE) || ((flags & CB_TYPE) == CB_SEMIPOSE)) { 
+    if (((flags & CB_TYPE) == CB_POSE) || ((flags & CB_TYPE) == CB_SEMIPOSE)) {
       argv[0] = ChanName(channel);
-      snprintf(
-        channame, BUFFER_LEN, "%s",
-        mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv, ChanName(channel)));
-        argv[0] = message;
+      snprintf(channame, BUFFER_LEN, "%s",
+               mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv,
+                       ChanName(channel)));
+      argv[0] = message;
       snprintf(
         message, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, message));
-       snprintf(
-        buff, BUFFER_LEN, "%s %s", channame, message);
+      snprintf(buff, BUFFER_LEN, "%s %s", channame, message);
     } else if (((flags & CB_TYPE) == CB_SPEECH)) {
       *bp = '\0';
-      static char newName[BUFFER_LEN];
-      static char message1[BUFFER_LEN];
-      static char message2[BUFFER_LEN];
-      static char message3[BUFFER_LEN];
-      static char message4[BUFFER_LEN];
-  
+      char newName[BUFFER_LEN];
+      char message1[BUFFER_LEN];
+      char message2[BUFFER_LEN];
+      char message3[BUFFER_LEN];
+      char message4[BUFFER_LEN];
+
       argv[0] = ChanName(channel);
 
-      
-      snprintf(
-        channame, BUFFER_LEN, "%s",
-        mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv, ChanName(channel)));
+      snprintf(channame, BUFFER_LEN, "%s",
+               mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv,
+                       ChanName(channel)));
 
+      
+      playerFormat[0] = '\0';
+      if (nameformat(player, player, playerFormat, playername, false, NULL)) {
+        newName[0] = '\0';
+        snprintf(newName, BUFFER_LEN, "%s", playerFormat);
+      } else {
       argv[0] = playername;
       snprintf(
         newName, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, playername));
+      }
       argv[0] = speechtext;
       snprintf(
-        speechtext, BUFFER_LEN, "%s",      
+        speechtext, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, speechtext));
       snprintf(
         message1, BUFFER_LEN, " %s ",
         mogrify(mogrifier, "MOGRIFY`SPEECHTEXT", player, 8, argv, speechtext));
       argv[0] = "\"";
       snprintf(
-        message2, BUFFER_LEN, "%s",      
+        message2, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, "\""));
-      //mush_strncpy(message2, message, BUFFER_LEN);
+      // mush_strncpy(message2, message, BUFFER_LEN);
       argv[0] = message;
       snprintf(
         message3, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`SPEECH", player, 8, argv, message));
-      //mush_strncpy(message3, message, BUFFER_LEN);
+      // mush_strncpy(message3, message, BUFFER_LEN);
       argv[0] = "\"";
       snprintf(
-        message4, BUFFER_LEN, "%s",      
+        message4, BUFFER_LEN, "%s",
         mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, "\""));
-    
-        snprintf(buff, BUFFER_LEN, "%s %s%s%s%s%s",channame,newName,message1,message2,message3,message4);
-    } else{
+
+      snprintf(buff, BUFFER_LEN, "%s %s%s%s%s%s", channame, newName, message1,
+               message2, message3, message4);
+    } else {
       snprintf(buff, BUFFER_LEN, "%s",
                mogrify(mogrifier, "MOGRIFY`FORMAT", player, 8, argv, buff));
     }
-    
   }
 
   if (Channel_Interact(channel)) {
@@ -4029,7 +4029,6 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
                       NULL, AMBIGUOUS, (override_chatformat ? NULL : &format));
     }
   }
-  
 
   if (ChanBufferQ(channel) && !skip_buffer)
     add_to_bufferq(ChanBufferQ(channel),

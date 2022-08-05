@@ -57,6 +57,7 @@ FUNCTION(local_fun_rgbcolor)
   char argval[BUFFER_LEN];
   char *ap;
   ap = argval;
+  //buff = NULL;
 
   int res = list2arr(list, BUFFER_LEN / 2, args[0], ' ', 1);
   if (res == 2) {
@@ -75,6 +76,7 @@ FUNCTION(local_fun_rgbcolor)
 
   safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
   *ap = '\0';
+  memset(list, 0, sizeof(list));
   // mush_free(list,"ptarray");
 }
 
