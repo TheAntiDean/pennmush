@@ -3988,7 +3988,7 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
       argv[0] = message;
       snprintf(
         message3, BUFFER_LEN, "%s",
-        mogrify(mogrifier, "MOGRIFY`FORMAT`SPEECH", player, 8, argv, message));
+        mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, message));
       // mush_strncpy(message3, message, BUFFER_LEN);
       argv[0] = "\"";
       snprintf(
