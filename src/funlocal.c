@@ -56,25 +56,20 @@ FUNCTION(local_fun_rgbcolor)
   char *list[BUFFER_LEN / 2];
   char argval[BUFFER_LEN];
   char *ap;
+  char value[BUFFER_LEN];
   ap = argval;
-  //buff = NULL;
-
+  strcpy(value, args[1]);
   int res = list2arr(list, BUFFER_LEN / 2, args[0], ' ', 1);
   if (res == 2) {
-    safe_str("font color=", argval, &ap);
-    safe_str((char *) list[0], argval, &ap);
-    safe_str(" bgcolor=", argval, &ap);
-    safe_str((char *) list[1], argval, &ap);
+    safe_format(argval, &ap, "color=%s bgcolor=%s", list[0], list[1]);
   } else if (res == 1) {
-    safe_str("font color=", argval, &ap);
-    safe_str((char *) list[0], argval, &ap);
-    safe_str(" bgcolor=#000000", argval, &ap);
+    safe_format(argval, &ap, "color=%s bgcolor=%s", list[0], "#000000");
   } else {
     safe_str("#-1", buff, bp);
     return;
   }
 
-  safe_tag_wrap(argval, NULL, args[1], buff, bp, executor);
+  safe_tag_wrap("font", argval, value, buff, bp, executor);
   *ap = '\0';
   memset(list, 0, sizeof(list));
   // mush_free(list,"ptarray");
@@ -132,7 +127,7 @@ void
 local_functions(void)
 {
   function_add("NAMEFORMAT", local_fun_nameformat, 1, 2, FN_REG | FN_STRIPANSI);
-  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
+  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG | FN_LOCALIZE);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif

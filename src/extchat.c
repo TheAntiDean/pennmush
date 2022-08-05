@@ -3901,6 +3901,28 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
      *
      * So this is ugly. 'title' is used a temp buffer for redoing message.
      */
+    if (GoodObject(mogrifier)) {
+      playerFormat[0] = '\0';
+      if (nameformat(player, player, playerFormat, playername, false, NULL)) {
+        
+        mush_strncpy(playername, playerFormat,sizeof(playerFormat));
+      }
+      argv[0] = ChanName(channel);
+      snprintf(channame, BUFFER_LEN, "%s",
+               mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv,
+                       ChanName(channel)));
+      argv[0] = message;
+      snprintf(
+        title, BUFFER_LEN, "%s",
+        mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, message));
+      if((flags & CB_SEMIPOSE))
+        snprintf(buff, BUFFER_LEN, "%s %s%s", channame, playername, title);
+        else
+        snprintf(buff, BUFFER_LEN, "%s %s %s", channame, playername, title);
+      
+    }
+
+
     int ignoreme __attribute__((__unused__));
     ignoreme = snprintf(title, BUFFER_LEN, "%s", message);
     if ((flags & CB_SEMIPOSE))
@@ -3923,17 +3945,7 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
     } else {
       argv[7] = "noisy";
     }
-    if (((flags & CB_TYPE) == CB_POSE) || ((flags & CB_TYPE) == CB_SEMIPOSE)) {
-      argv[0] = ChanName(channel);
-      snprintf(channame, BUFFER_LEN, "%s",
-               mogrify(mogrifier, "MOGRIFY`CHANNAME", player, 8, argv,
-                       ChanName(channel)));
-      argv[0] = message;
-      snprintf(
-        message, BUFFER_LEN, "%s",
-        mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, message));
-      snprintf(buff, BUFFER_LEN, "%s %s", channame, message);
-    } else if (((flags & CB_TYPE) == CB_SPEECH)) {
+    if (((flags & CB_TYPE) == CB_SPEECH)) {
       *bp = '\0';
       char newName[BUFFER_LEN];
       char message1[BUFFER_LEN];
@@ -3951,7 +3963,7 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
       playerFormat[0] = '\0';
       if (nameformat(player, player, playerFormat, playername, false, NULL)) {
         newName[0] = '\0';
-        snprintf(newName, BUFFER_LEN, "%s", playerFormat);
+        mush_strncpy(newName, playerFormat,sizeof(playerFormat));
       } else {
       argv[0] = playername;
       snprintf(
