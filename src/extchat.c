@@ -3972,11 +3972,13 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
       }
       argv[0] = speechtext;
       snprintf(
-        speechtext, BUFFER_LEN, "%s",
-        mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, speechtext));
-      snprintf(
-        message1, BUFFER_LEN, " %s ",
+        speechtext, BUFFER_LEN, " %s ",
         mogrify(mogrifier, "MOGRIFY`SPEECHTEXT", player, 8, argv, speechtext));
+      argv[0] = speechtext;
+      snprintf(
+        message1, BUFFER_LEN, "%s",
+        mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv, speechtext));
+
       argv[0] = "\"";
       snprintf(
         message2, BUFFER_LEN, "%s",
