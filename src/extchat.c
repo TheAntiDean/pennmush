@@ -3960,6 +3960,10 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
       playerFormat[0] = '\0';
       if (nameformat(player, player, playerFormat, playername, false, NULL)) {
         newName[0] = '\0';
+        argv[0] = playerFormat;
+      snprintf(playerFormat, BUFFER_LEN, "%s",
+                 mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv,
+                         playername));
         mush_strncpy(newName, playerFormat, sizeof(playerFormat));
       } else {
         argv[0] = playername;
