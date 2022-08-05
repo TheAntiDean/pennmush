@@ -3904,8 +3904,11 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
     if (GoodObject(mogrifier)) {
       playerFormat[0] = '\0';
       if (nameformat(player, player, playerFormat, playername, false, NULL)) {
-
-        mush_strncpy(playername, playerFormat, sizeof(playerFormat));
+        
+        argv[0] = playerFormat;
+      snprintf(playername, BUFFER_LEN, "%s",
+                 mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv,
+                         playerFormat));
       }
       argv[0] = ChanName(channel);
       snprintf(channame, BUFFER_LEN, "%s",
@@ -3961,10 +3964,9 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
       if (nameformat(player, player, playerFormat, playername, false, NULL)) {
         newName[0] = '\0';
         argv[0] = playerFormat;
-      snprintf(playerFormat, BUFFER_LEN, "%s",
+      snprintf(playername, BUFFER_LEN, "%s",
                  mogrify(mogrifier, "MOGRIFY`FORMAT`POSE", player, 8, argv,
-                         playername));
-        mush_strncpy(newName, playerFormat, sizeof(playerFormat));
+                         playerFormat));
       } else {
         argv[0] = playername;
         snprintf(newName, BUFFER_LEN, "%s",
