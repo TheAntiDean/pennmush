@@ -310,7 +310,10 @@ struct spaceconfig {
 	double cochrane_rate;
 };
 
- #if __GNUC_PREREQ(10,0)
+#if __GNUC__ > 10 || \
+    (__GNUC__ == 10 && (__GNUC_MINOR__ > 0 || \
+                       (__GNUC_MINOR__ == 0 && \
+                        __GNUC_PATCHLEVEL__ > 0)))
 extern intmap *border_map;
 
 extern HASHTAB aspace_consoles;
