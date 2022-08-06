@@ -3732,35 +3732,31 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
   /* These are static only to prevent them from chewing up
    * time to malloc/free, and chewing up space.
    */
-  static char channame[BUFFER_LEN];
-  static char title[BUFFER_LEN];
-  static char playername[BUFFER_LEN];
-  static char message[BUFFER_LEN];
-  static char buff[BUFFER_LEN];
-  static char *bp;
-  static char speechtext[BUFFER_LEN];
-  static char playerFormat[BUFFER_LEN];
-  static char speechQuote[BUFFER_LEN];
-
-  
-
+  char channame[BUFFER_LEN];
+  char title[BUFFER_LEN];
+  char playername[BUFFER_LEN];
+  char message[BUFFER_LEN];
+  char buff[BUFFER_LEN];
+  char *bp;
+  char speechtext[BUFFER_LEN];
+  char playerFormat[BUFFER_LEN];
+  char speechQuote[BUFFER_LEN];
+  memset(buff, 0, sizeof(buff));
   CHANUSER *u;
   CHANUSER *speaker;
   dbref current;
   int na_flags = NA_INTER_LOCK;
   static const char someone[] = "Someone";
-  
-  
+
   int skip_buffer = format_chat_nobuffer(player, channel);
 
   /* Make sure we can write to the channel before doing anything */
   if (Channel_Disabled(channel))
     return;
 
-   speaker = onchannel(player, channel);
-   snprintf(speechQuote, BUFFER_LEN, "\"");
-   snprintf(channame, BUFFER_LEN, "%s", ChanName(channel));
-
+  speaker = onchannel(player, channel);
+  snprintf(speechQuote, BUFFER_LEN, "\"");
+  snprintf(channame, BUFFER_LEN, "%s", ChanName(channel));
 
   if (!Channel_NoTitles(channel) && speaker && CUtitle(speaker) &&
       *CUtitle(speaker)) {
@@ -3771,23 +3767,20 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
 
   if (Channel_NoNames(channel)) {
     playername[0] = '\0';
-  } else if (nameformat(player, player, playerFormat, playername, false, NULL)) {
-    snprintf(playername,BUFFER_LEN, "%s",playerFormat);
-  } else
-  {
+  } else if (nameformat(player, player, playerFormat, playername, false,
+                        NULL)) {
+    snprintf(playername, BUFFER_LEN, "%s", playerFormat);
+  } else {
     snprintf(playername, BUFFER_LEN, "%s", AaName(player, AN_CHAT, NULL));
   }
 
   if (!title[0] && !playername[0]) {
     snprintf(playername, BUFFER_LEN, "%s", someone);
-  } else 
+  } else
 
-  snprintf(speechtext, BUFFER_LEN,"%s", T("says"));
+    snprintf(speechtext, BUFFER_LEN, "%s", T("says"));
 
   snprintf(message, BUFFER_LEN, "%s", origmessage);
-
-
-
 
   if (Channel_Interact(channel)) {
     na_flags |= (flags & CB_PRESENCE) ? NA_INTER_PRESENCE : NA_INTER_HEAR;
@@ -3800,26 +3793,28 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
 
   *bp = '\0';
 
-  snprintf(channame, BUFFER_LEN,"%s",format_chan_name(player, channel, channame));
+  snprintf(channame, BUFFER_LEN, "%s",
+           format_chan_name(player, channel, channame));
   if (((flags & CB_TYPE) == CB_SPEECH)) {
-    
+
     safe_format(buff, &bp, "%s %s %s %s%s%s",
-             format_chan_name(player,channel,channame),
-             format_chat_pose(player,channel, playername),
-             format_chat_pose(player,channel, speechtext),
-             format_chat_pose(player, channel, speechQuote),
-             format_chat_speech(player, channel, message),
-             format_chat_pose(player, channel, speechQuote));
+                format_chan_name(player, channel, channame),
+                format_chat_pose(player, channel, playername),
+                format_chat_pose(player, channel, speechtext),
+                format_chat_pose(player, channel, speechQuote),
+                format_chat_speech(player, channel, message),
+                format_chat_pose(player, channel, speechQuote));
   } else if ((flags & CB_SEMIPOSE)) {
-    snprintf(buff, BUFFER_LEN, "%s %s%s", format_chan_name(player, channel, channame),
+    snprintf(buff, BUFFER_LEN, "%s %s%s",
+             format_chan_name(player, channel, channame),
              format_chat_pose(player, channel, playername),
              format_chat_pose(player, channel, message));
   } else {
-    snprintf(buff, BUFFER_LEN, "%s %s %s", format_chan_name(player, channel, channame),
+    snprintf(buff, BUFFER_LEN, "%s %s %s",
+             format_chan_name(player, channel, channame),
              format_chat_pose(player, channel, playername),
              format_chat_pose(player, channel, message));
   }
-
 
   for (u = ChanUsers(channel); u; u = u->next) {
     current = CUdbref(u);
@@ -3863,17 +3858,19 @@ format_chat_speechtext(dbref player, CHAN *channel)
     if (!atr_get_noparent(mog, "MOGRIFY`CHANNAME")) {
       if (!atr_get_noparent(ancestor_mog, "MOGRIFY`CHANNAME")) {
         // Exit, nothing to do.
-          snprintf(buff, BUFFER_LEN, "%s", "says");
-          return buff;
+        snprintf(buff, BUFFER_LEN, "%s", "says");
+        return buff;
         return buff;
       } else {
-          snprintf(buff, BUFFER_LEN, "%s", mogrify(ancestor_mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
+        snprintf(
+          buff, BUFFER_LEN, "%s",
+          mogrify(ancestor_mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
         return buff;
       }
-    } else 
-    {
-      snprintf(buff, BUFFER_LEN, "%s", mogrify(mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
-        return buff;
+    } else {
+      snprintf(buff, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
+      return buff;
     }
   }
   return "says";
@@ -3892,17 +3889,16 @@ format_chat_nobuffer(dbref player, CHAN *channel)
 
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`CHANNAME")) {
-        ret = parse_integer(
-          mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
+      ret = parse_integer(
+        mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
     } else if (atr_get(ancestor_mog, "MOGRIFY`CHANNAME")) {
-        // Exit, nothing to do.
-        ret = parse_integer(
-          mogrify(mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
+      // Exit, nothing to do.
+      ret =
+        parse_integer(mogrify(mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
 
-      } else {
-        ret = 0;
-
-      }
+    } else {
+      ret = 0;
+    }
   }
   return ret;
 }
@@ -3918,28 +3914,27 @@ format_chat_pose(dbref player, CHAN *channel, char *msg)
     return msg;
   }
 
-  if (GoodObject(mog) || GoodObject(ancestor_mog))
-  {
+  if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`FORMAT`POSE")) {
-      snprintf(msg, BUFFER_LEN, "%s", mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
+      snprintf(msg, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
       return msg;
     } else if (atr_get(ancestor_mog, "MOGRIFY`FORMAT`POSE")) {
-        // Exit, nothing to do.
-        snprintf(msg, BUFFER_LEN, "%s", mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
-        return msg;
+      // Exit, nothing to do.
+      snprintf(msg, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
+      return msg;
 
-      } else {
-        snprintf(msg, BUFFER_LEN, "%s", msg);
-        return msg;
-      }
+    } else {
+      snprintf(msg, BUFFER_LEN, "%s", msg);
+      return msg;
     }
-    return msg;
-
   }
-
+  return msg;
+}
 
 char *
-format_chan_name(dbref player, CHAN *channel,char *msg)
+format_chan_name(dbref player, CHAN *channel, char *msg)
 {
   dbref mog = channel->mogrifier;
   dbref ancestor_mog = options.ancestor_channel;
@@ -3949,25 +3944,24 @@ format_chan_name(dbref player, CHAN *channel,char *msg)
     return msg;
   }
 
-  if (GoodObject(mog) || GoodObject(ancestor_mog))
-  {
+  if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`CHANNAME")) {
-      snprintf(msg, BUFFER_LEN, "%s", mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
+      snprintf(msg, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
       return msg;
     } else if (atr_get(ancestor_mog, "MOGRIFY`CHANNAME")) {
-        // Exit, nothing to do.
-        snprintf(msg, BUFFER_LEN, "%s", mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
-        return msg;
+      // Exit, nothing to do.
+      snprintf(msg, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
+      return msg;
 
-      } else {
-        snprintf(msg, BUFFER_LEN, "%s", msg);
-        return msg;
-      }
-      
+    } else {
+      snprintf(msg, BUFFER_LEN, "%s", msg);
+      return msg;
     }
-    return msg;
+  }
+  return msg;
 }
-
 
 char *
 format_chat_speech(dbref player, CHAN *channel, char *msg)
@@ -3979,21 +3973,20 @@ format_chat_speech(dbref player, CHAN *channel, char *msg)
 
   argv[0] = msg;
   argv[7] = "noisy";
-  if (GoodObject(mog) || GoodObject(ancestor_mog))
-  {
+  if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`FORMAT`SPEECH")) {
-        snprintf(msg, BUFFER_LEN, "%s",
-           mogrify(mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
+      snprintf(msg, BUFFER_LEN, "%s",
+               mogrify(mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
     } else if (atr_get(ancestor_mog, "MOGRIFY`FORMAT`SPEECH")) {
-          snprintf(msg, BUFFER_LEN, "%s",
-           mogrify(ancestor_mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
-      } else {
-        snprintf(msg, BUFFER_LEN, "%s", format_chat_pose(player,channel,msg));
-        return msg;
-      }
+      snprintf(
+        msg, BUFFER_LEN, "%s",
+        mogrify(ancestor_mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
+    } else {
+      snprintf(msg, BUFFER_LEN, "%s", format_chat_pose(player, channel, msg));
+      return msg;
+    }
   }
   return msg;
-
 }
 
 /** Recall past lines from the channel's buffer.
