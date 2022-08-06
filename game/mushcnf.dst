@@ -137,6 +137,8 @@ ancestor_exit -1
 # all things that aren't set ORPHAN. Set to -1 to disable.
 ancestor_thing -1
 
+ancestor_channel 79
+
 # The ancestor player. This dbref serves as an 'ultimate parent' to
 # all players that aren't set ORPHAN. Set to -1 to disable.
 ancestor_player -1

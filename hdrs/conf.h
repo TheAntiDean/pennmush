@@ -172,6 +172,7 @@ struct options_table {
   dbref ancestor_room;    /**< The ultimate parent room (help ancestors) */
   dbref ancestor_exit;    /**< The ultimate parent exit (help ancestors) */
   dbref ancestor_thing;   /**< The ultimate parent thing (help ancestors) */
+  dbref ancestor_channel; /**< The ultimate parent mogrifier (help ancestors) */
   dbref ancestor_player;  /**< The ultimate parent player (help ancestors) */
   dbref event_handler;    /**< The Event Handler (help events). */
   dbref http_handler;     /**< The HTTP Handler (GET, POST, etc) */
@@ -432,6 +433,7 @@ int can_view_config_option(dbref player, PENNCONF *opt);
 #define ANCESTOR_EXIT (options.ancestor_exit)
 #define ANCESTOR_THING (options.ancestor_thing)
 #define ANCESTOR_PLAYER (options.ancestor_player)
+#define ANCESTOR_CHANNEL (options.ancestor_channel)
 #define EVENT_HANDLER (options.event_handler)
 #define HTTP_HANDLER (options.http_handler)
 #define HTTP_SECOND_LIMIT (options.http_per_second)

@@ -265,6 +265,11 @@ int do_chat_by_name(dbref player, const char *name, const char *msg,
 void do_chan_decompile(dbref player, const char *name, int brief);
 void do_chan_chown(dbref player, const char *name, const char *newowner);
 const char *channel_description(dbref player);
+char *format_chat_pose(dbref player, CHAN *channel, char *msg);
+char *format_chat_speech(dbref player, CHAN *channel, char *msg);
+char *format_chan_name(dbref player, CHAN *channel, char *msg);
+int format_chat_nobuffer(dbref player, CHAN *channel);
+
 
 enum ok_chan_name { NAME_OK = 0, NAME_INVALID, NAME_TOO_LONG, NAME_NOT_UNIQUE };
 

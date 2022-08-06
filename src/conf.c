@@ -134,6 +134,7 @@ PENNCONF conftable[] = {
   {"ancestor_room", cf_dbref, &options.ancestor_room, 100000, 0, "db"},
   {"ancestor_exit", cf_dbref, &options.ancestor_exit, 100000, 0, "db"},
   {"ancestor_thing", cf_dbref, &options.ancestor_thing, 100000, 0, "db"},
+  {"ancestor_channel", cf_dbref, &options.ancestor_channel, 100000, 0, "db"},
   {"ancestor_player", cf_dbref, &options.ancestor_player, 100000, 0, "db"},
   {"event_handler", cf_dbref, &options.event_handler, 100000, 0, "db"},
   {"http_handler", cf_dbref, &options.http_handler, 100000, 0, "db"},
@@ -770,6 +771,7 @@ validate_config(void)
   VALIDATE(ANCESTOR_THING);
   VALIDATE(ANCESTOR_PLAYER);
   VALIDATE(ANCESTOR_EXIT);
+  VALIDATE(ANCESTOR_CHANNEL);
 
 #undef VALIDATE
 }
@@ -1192,6 +1194,7 @@ conf_default_set(void)
   options.ancestor_exit = -1;
   options.ancestor_thing = -1;
   options.ancestor_player = -1;
+  options.ancestor_channel = -1;
   options.event_handler = -1;
   options.http_handler = -1;
   options.combat_config = -1;
