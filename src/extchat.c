@@ -3802,16 +3802,27 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
              format_chat_pose(player, channel, playername),
              format_chat_pose(player, channel, message));
   } else {
-    if((hidden(player) || Dark(player)) && (flags & CB_PRESENCE))
+    if((hidden(player) || Dark(player)) && (flags & CB_PRESENCE) && !(flags & CB_EMIT))
     {
 
       flags |= CB_SEEALL;
       strcat(message, " (Dark)");
     }
+  if(!(flags & CB_EMIT))
+  {
     snprintf(buff, BUFFER_LEN, "%s %s %s",
              format_chan_name(player, channel, channame),
              format_chat_pose(player, channel, playername),
              format_chat_pose(player, channel, message));
+  } else if ((flags & CB_QUIET) && (flags & CB_EMIT)) {
+          snprintf(buff, BUFFER_LEN, "%s",
+             format_chat_pose(player, channel, message));
+  } else {
+          snprintf(buff, BUFFER_LEN, "%s %s",
+             format_chan_name(player, channel, channame),
+             format_chat_pose(player, channel, message));
+  }
+  
   }
 
   for (u = ChanUsers(channel); u; u = u->next) {
