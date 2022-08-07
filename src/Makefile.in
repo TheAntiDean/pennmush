@@ -37,8 +37,8 @@ C_FILES=access.c atr_tab.c attrib.c boolexp.c bsd.c bufferq.c		\
 	space_iterate.c space_log.c space_main.c space_misc.c		\
 	space_nebula.c space_notify.c space_output.c space_put.c 	\
 	space_read.c space_report.c space_set.c space_status.c 		\
-	space_unparse.c space_utils.c space_variables.c space_write.c \
-	./kren/kchat.c
+	space_unparse.c space_utils.c space_variables.c space_write.c 
+	
 
 
 # .o versions of above - these are used in the build
@@ -56,14 +56,14 @@ O_FILES=access.o atr_tab.o attrib.o boolexp.o bsd.o bufferq.o		\
 	speech.o spellfix.o sql.o sqlite3.o ssl_master.o strdup.o	\
 	strtree.o strutil.o tables.o testframework.o timer.o tz.o	\
 	uint.o unparse.o utf_impl.o utils.o version.o wait.o		\
-	warnings.o websock.o wild.o wiz.o ./kren/combat.o space_alert.o 	\
+	warnings.o websock.o wild.o wiz.o combat.o space_alert.o 	\
 	space_ansi.o space_balance.o space_border.o space_conf.o 	\
 	space_crypt.o space_error.o space_format.o space_get.o 		\
 	space_iterate.o space_log.o space_main.o space_misc.o 		\
 	space_nebula.o space_notify.o space_output.o space_put.o 	\
 	space_read.o space_report.o space_set.o space_status.o 		\
-	space_unparse.o space_utils.o space_variables.o space_write.o \
-	./kren/kchat.o
+	space_unparse.o space_utils.o space_variables.o space_write.o 
+	
 
 # This is a dummy target, in case you type 'make' in the source
 # directory (likely for emacs users who M-x compile.)
@@ -2538,7 +2538,7 @@ ssl_slave.o: ../hdrs/mysocket.h
 ssl_slave.o: ../hdrs/myssl.h
 ssl_slave.o: ../hdrs/ssl_slave.h
 ssl_slave.o: ../hdrs/wait.h
-./kren/combat.o: ../hdrs/kren/combat.h
+combat.o: ../hdrs/combat.h
 space_alert.o: ../hdrs/space.h
 space_ansi.o: ../hdrs/space.h
 space_balance.o: ../hdrs/space.h
@@ -2589,4 +2589,3 @@ space_unparse.o: ../hdrs/externs.h
 space_utils.o: ../hdrs/externs.h
 space_variables.o: ../hdrs/externs.h
 space_write.o: ../hdrs/externs.h
-./kren/kchat.o: ../hdrs/kren/kchat.h
