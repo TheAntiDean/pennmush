@@ -3824,9 +3824,11 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
   }
   
   }
-
+  if(!(flags & CB_QUIET) && !(flags & CB_EMIT))
+  {
   snprintf(message, BUFFER_LEN, "%s",format_chat_pose(player, channel, buff));
   snprintf(buff, BUFFER_LEN, "%s", message);
+  }
 
   for (u = ChanUsers(channel); u; u = u->next) {
     current = CUdbref(u);
