@@ -148,7 +148,7 @@ void
 local_functions(void)
 {
   function_add("NAMEFORMAT", local_fun_nameformat, 1, 2, FN_REG | FN_STRIPANSI);
-  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
+  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG | FN_LOCALIZE);
 #ifdef EXAMPLE
   function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif
