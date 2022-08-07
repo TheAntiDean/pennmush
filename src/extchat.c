@@ -3816,7 +3816,7 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
              format_chat_pose(player, channel, message));
   } else if ((flags & CB_QUIET) && (flags & CB_EMIT)) {
           snprintf(buff, BUFFER_LEN, "%s",
-             format_chat_pose(player, channel, message));
+             message);
   } else {
           snprintf(buff, BUFFER_LEN, "%s %s",
              format_chan_name(player, channel, channame),
