@@ -88,22 +88,22 @@ struct COLORMAP_16 {
 struct COLORMAP_16 colormap_16[] = {
   /* normal colors */
   {0, 'x', 0, 0x000000},
-  {1, 'r', 0, 0xcd0000},
-  {2, 'g', 0, 0x00cd00},
-  {3, 'y', 0, 0xcdcd00},
-  {4, 'b', 0, 0x0000ee},
-  {5, 'm', 0, 0xcd00cd},
-  {6, 'c', 0, 0x00cdcd},
-  {7, 'w', 0, 0xe5e5e5},
+  {1, 'r', 0, 0xaa0000},
+  {2, 'g', 0, 0x00aa00},
+  {3, 'y', 0, 0xaaaa00},
+  {4, 'b', 0, 0x0000aa},
+  {5, 'm', 0, 0xaa00aa},
+  {6, 'c', 0, 0x00aaaa},
+  {7, 'w', 0, 0xaaaaaa},
 
   /* Hilite colors */
-  {0, 'x', 1, 0x7f7f7f},
-  {1, 'r', 1, 0xff0000},
-  {2, 'g', 1, 0x00ff00},
-  {3, 'y', 1, 0xffff00},
-  {4, 'b', 1, 0x5c5cff},
-  {5, 'm', 1, 0xff00ff},
-  {6, 'c', 1, 0x00ffff},
+  {0, 'x', 1, 0xffffff},
+  {1, 'r', 1, 0xff5555},
+  {2, 'g', 1, 0x55ff55},
+  {3, 'y', 1, 0xffff55},
+  {4, 'b', 1, 0x5555ff},
+  {5, 'm', 1, 0xff55ff},
+  {6, 'c', 1, 0x55ffff},
   {7, 'w', 1, 0xffffff},
 
   {-1, 0, 0, 0}};
