@@ -56,13 +56,16 @@ FUNCTION(local_fun_rgbcolor)
   char *list[BUFFER_LEN / 2];
   char argval[BUFFER_LEN];
   char *ap;
+  memset(list,0,sizeof(list));
+  memset(argval,0,sizeof(argval));
+  ap = argval;
  
   ansi_data colors;
   int hex = -1;
   char value[BUFFER_LEN];
   char aColor[COLOR_NAME_LEN];
-  ap = argval;
-
+  
+  
   if (!define_ansi_data(&colors, remove_markup(args[0], NULL)))
   {
   if (HAS_ANSI(colors)) 
