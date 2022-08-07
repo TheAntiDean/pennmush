@@ -1,6 +1,0 @@
-#!/bin/sh
-PIDFile="./netmush.pid"
-pid=$(cat $PIDFile)
-
-
-gdbserver :4201 --attach $pid
