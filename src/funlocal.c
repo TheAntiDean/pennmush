@@ -114,7 +114,7 @@ FUNCTION(local_fun_nameformat)
 
       // if (caller != it) {
       if (IsRoom(caller) ||
-          (Can_Locate(caller, it) && (match->conn_flags & CONN_HTML) &&
+          (Can_Locate(caller, it) &&
            nargs == 2 && parse_number(args[1]))) {
         if (IsExit(it)) {
           safe_str("\"go ", argval, &ap);
@@ -127,7 +127,13 @@ FUNCTION(local_fun_nameformat)
           safe_str(unparse_dbref(it), argval, &ap);
         }
         safe_str("\"", argval, &ap);
+        if(IsPlayer(caller) && (match->conn_flags & CONN_HTML))
+        {
         safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
+        } else 
+        {
+          safe_str(tbuf1, buff, bp);
+        }
         *ap = '\0';
       } else {
         safe_str(tbuf1, buff, bp);

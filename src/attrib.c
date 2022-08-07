@@ -2079,7 +2079,7 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
 
       if (match_found) {
         // Check the command lock
-        if(!cmdatr_lock_check(player, thing,ptr->name,str,from_queue))
+        if(type == '$' && !cmdatr_lock_check(player, thing,ptr->name,str,from_queue))
         {
           match--;
           continue;
