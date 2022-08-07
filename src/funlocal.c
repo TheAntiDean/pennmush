@@ -56,14 +56,32 @@ FUNCTION(local_fun_rgbcolor)
   char *list[BUFFER_LEN / 2];
   char argval[BUFFER_LEN];
   char *ap;
+ 
+  ansi_data colors;
+  int hex = -1;
   char value[BUFFER_LEN];
+  char aColor[COLOR_NAME_LEN];
   ap = argval;
-  strcpy(value, args[1]);
+
+  if (!define_ansi_data(&colors, remove_markup(args[0], NULL)))
+  {
+  if (HAS_ANSI(colors)) 
+    {
+      hex = color_to_hex(colors.fg, (colors.bits & 1));
+      snprintf(aColor, COLOR_NAME_LEN, "#%06x", hex);
+    } 
+  }
+
+    strcpy(value, args[1]);
+
+
+  
+
   int res = list2arr(list, BUFFER_LEN / 2, args[0], ' ', 1);
   if (res == 2) {
     safe_format(argval, &ap, "color=%s bgcolor=%s", list[0], list[1]);
   } else if (res == 1) {
-    safe_format(argval, &ap, "color=%s bgcolor=%s", list[0], "#000000");
+    safe_format(argval, &ap, "color=%s bgcolor=%s", (hex > 0? aColor : list[0]), "#000000");
   } else {
     safe_str("#-1", buff, bp);
     return;
