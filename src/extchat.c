@@ -3818,13 +3818,13 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
           snprintf(buff, BUFFER_LEN, "%s",
              message);
   } else {
-          snprintf(buff, BUFFER_LEN, "%s %s",
-             channame,
-             player, channel, message);
+          snprintf(buff, BUFFER_LEN, "%s %s ",
+             format_chan_name(player, channel, channame),
+             message);
   }
   
   }
-  if(!(flags & CB_QUIET) && !(flags & CB_EMIT))
+  if(!(flags & CB_QUIET))
   {
   snprintf(message, BUFFER_LEN, "%s",format_chat_pose(player, channel, buff));
   snprintf(buff, BUFFER_LEN, "%s", message);
