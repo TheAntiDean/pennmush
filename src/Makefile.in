@@ -31,7 +31,7 @@ C_FILES=access.c atr_tab.c attrib.c boolexp.c bsd.c bufferq.c		\
 	speech.c spellfix.c sql.c sqlite3.c ssl_master.c strdup.c	\
 	strtree.c strutil.c tables.c testframework.c timer.c tz.c	\
 	uint.c unparse.c utf_impl.c utils.c version.c wait.c		\
-	warnings.c websock.c wild.c wiz.c ./kren/combat.c space_alert.c    \
+	warnings.c websock.c wild.c wiz.c combat.c space_alert.c    \
 	space_ansi.c space_balance.c space_border.c space_conf.c 	\
 	space_crypt.c space_error.c space_format.c space_get.c 		\
 	space_iterate.c space_log.c space_main.c space_misc.c		\
