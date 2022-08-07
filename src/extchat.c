@@ -3750,7 +3750,6 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
   CHANUSER *speaker;
   dbref current;
   int na_flags = NA_INTER_LOCK;
-  static const char someone[] = "Someone";
 
   int skip_buffer = format_chat_nobuffer(player, channel);
 
@@ -3785,6 +3784,7 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
   }
 
 
+
   // snprintf(channame, BUFFER_LEN, "%s",
   //          format_chan_name(player, channel, channame));
   if (((flags & CB_TYPE) == CB_SPEECH)) {
@@ -3802,6 +3802,12 @@ channel_send(CHAN *channel, dbref player, int flags, const char *origmessage)
              format_chat_pose(player, channel, playername),
              format_chat_pose(player, channel, message));
   } else {
+    if((hidden(player) || Dark(player)) && (flags & CB_PRESENCE))
+    {
+
+      flags |= CB_SEEALL;
+      strcat(message, " (Dark)");
+    }
     snprintf(buff, BUFFER_LEN, "%s %s %s",
              format_chan_name(player, channel, channame),
              format_chat_pose(player, channel, playername),
