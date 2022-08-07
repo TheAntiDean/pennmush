@@ -101,6 +101,7 @@ int atr_comm_match(dbref thing, dbref player, int type, int end,
                    char const *str, int just_match, int check_locks,
                    char *atrname, char **abp, int show_child, dbref *errobj,
                    MQUE *from_queue, int queue_type, PE_REGS *pe_regs_parent);
+int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str, MQUE *from_queue);
 int one_comm_match(dbref thing, dbref player, const char *atr, const char *str,
                    MQUE *from_queue, int queue_type, PE_REGS *pe_regs_parent);
 int do_set_atr(dbref thing, char const *RESTRICT atr, char const *RESTRICT s,

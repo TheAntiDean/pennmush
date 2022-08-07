@@ -1825,6 +1825,64 @@ atr_single_match_r(ATTR *ptr, int flag_mask, int end, const char *input,
   return match_found;
 }
 
+
+int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str, MQUE *from_queue)
+{
+  NEW_PE_INFO *pe_info;
+  PE_REGS *pe_regs = NULL;
+  
+  ATTR *lockAtr;
+  char lockAtrName[BUFFER_LEN];
+  char *lp;
+  char buff[BUFFER_LEN];
+  memset(lockAtrName,0,sizeof(lockAtrName));
+  memset(buff,0,sizeof(buff));
+  char *bp;
+  char *atrVal;
+  char *ap;
+  bp = buff;
+  
+
+ snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
+ // If there isn't an attribute
+ lockAtr = atr_get(thing, lockAtrName);
+  
+  if(!lockAtr)
+    return 1;
+
+
+  pe_regs = pe_regs_create(PE_REGS_ARG, "find_var_dest");
+  pe_info = make_pe_info("pe_info-atr_comm_match");
+
+  if (from_queue && from_queue->pe_info && *from_queue->pe_info->cmd_raw) {
+    pe_info->cmd_raw = mush_strdup(from_queue->pe_info->cmd_raw, "string");
+  } else {
+    pe_info->cmd_raw = mush_strdup(str, "string");
+  }
+
+  if (from_queue && from_queue->pe_info && *from_queue->pe_info->cmd_evaled) {
+    pe_info->cmd_evaled =
+      mush_strdup(from_queue->pe_info->cmd_evaled, "string");
+  } else {
+    pe_info->cmd_evaled = mush_strdup(str, "string");
+  }
+  ap = atrVal = safe_atr_value(lockAtr,"fun_eval.attr_value");
+
+  process_expression(buff, &bp, &ap, thing, player, player, PE_DEFAULT, PT_DEFAULT,
+                       pe_info);
+  mush_free(atrVal, "fun_eval.attr_value");
+
+  if(parse_number(buff) == 1)
+    return 1;
+  else
+    return 0;
+
+  return parse_number(buff);
+  
+
+}
+
+
 /** Match input against a $command or ^listen attribute.
  * This function attempts to match a string against either the $commands
  * or ^listens on an object. Matches may be glob or regex matches,
@@ -2020,12 +2078,20 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
         match++;
 
       if (match_found) {
+        // Check the command lock
+        if(!cmdatr_lock_check(player, thing,ptr->name,str,from_queue))
+        {
+          match--;
+          continue;
+        }
+
         /* We only want to do the lock check once, so that any side
          * effects in the lock are only performed once per utterance.
          * Thus, '$foo *r:' and '$foo b*:' on the same object will only
          * run the lock once for 'foo bar'. Locks are always checked on
          * the child, even when the attr is inherited.
          */
+        
         if (!lock_checked) {
           lock_checked = 1;
           if ((type == '$' &&
@@ -2089,7 +2155,7 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
                                      tmp);
           } else {
             /* Normal queue */
-            parse_que_attr(
+                      parse_que_attr(
               thing, player, cmd_buff, pe_regs, ptr,
               (queue_type & QUEUE_DEBUG_PRIVS ? can_debug(player, thing) : 0));
           }
