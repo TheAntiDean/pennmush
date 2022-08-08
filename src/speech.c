@@ -204,7 +204,7 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   
   
   /* notify everybody */
-  notify_format(player, T("%sYou say \"%s%s%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,message,ANSI_NORMAL, ANSI_CYAN,  ANSI_END);
+  notify_format(player, T("%sYou say \"%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,message,ANSI_NORMAL, ANSI_CYAN,  ANSI_END);
   sp = says;
   safe_format(says, &sp, T("%s%s says \"%s%s%s%s\"%s"), 
   ANSI_CYAN, spname(player), ANSI_HIWHITE, message, ANSI_NORMAL, ANSI_CYAN, ANSI_END);

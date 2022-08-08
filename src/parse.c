@@ -2500,6 +2500,35 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
         case 'c': /* command line */
           safe_str(pe_info->cmd_raw, buff, bp);
           break;
+        case 'e':
+        nextc = **str;
+        char atrName[BUFFER_LEN];
+        char tmpBuff[BUFFER_LEN];
+        memset(tmpBuff,0,sizeof(tmpBuff));
+        memset(atrName,0,sizeof(atrName));
+            char *nbp = atrName;
+          if (!nextc)
+            goto exit_sequence;
+          (*str)++;
+          if (nextc == '<') {
+            
+            if (process_expression(atrName, &nbp, str, executor, caller,
+                                   enactor, eflags & ~PE_STRIP_BRACES, PT_GT,
+                                   pe_info)) {
+              retval = 1;
+              break;
+            }
+            //*nbp = '\0';
+            
+            
+              
+              if(call_attrib(executor, remove_markup(upcasestr(atrName), NULL), tmpBuff, executor, pe_info, NULL))
+                  safe_str(tmpBuff,buff,bp);
+            
+            if (**str == '>')
+              (*str)++;
+          } 
+          break;
         case 'I':
         case 'i':
           nextc = **str;

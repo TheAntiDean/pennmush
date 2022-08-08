@@ -1870,6 +1870,9 @@ int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str,
 
   process_expression(buff, &bp, &ap, thing, player, player, PE_DEFAULT, PT_DEFAULT,
                        pe_info);
+
+  free_pe_info(pe_info);
+  
   mush_free(atrVal, "fun_eval.attr_value");
 
   if(parse_number(buff) == 1)
