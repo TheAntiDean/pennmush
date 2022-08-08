@@ -15,7 +15,7 @@ do_space_read_attr(dbref ship, char *baseName, char *atrName)
   snprintf(buff, BUFFER_LEN, "%s`%s", baseName, atrName);
   a = atr_get(ship, buff);
   if (a) {
-    return parse_number(buff);
+    return parse_number(atr_value(a));
   }
 
   return 1;
@@ -387,7 +387,7 @@ do_space_db_read(dbref ship, dbref executor)
   if (sdb[x].missile.tubes > 0) {
 
     for (i = 0; i < sdb[x].missile.tubes; ++i) {
-      snprintf(buffer, sizeof(buffer), "ACTIVE`%d", i);
+      snprintf(buffer, sizeof(buffer), "RECYCLE`%d", i);
       sdb[x].mlist.recycle[i] =
         do_space_read_attr(ship, MISSILE_ATTR_NAME, buffer);
     }
