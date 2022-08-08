@@ -1829,7 +1829,6 @@ atr_single_match_r(ATTR *ptr, int flag_mask, int end, const char *input,
 int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str, MQUE *from_queue)
 {
   NEW_PE_INFO *pe_info;
-  PE_REGS *pe_regs = NULL;
   
   ATTR *lockAtr;
   char lockAtrName[BUFFER_LEN];
@@ -1851,7 +1850,7 @@ int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str,
     return 1;
 
 
-  pe_regs = pe_regs_create(PE_REGS_ARG, "find_var_dest");
+  
   pe_info = make_pe_info("pe_info-atr_comm_match");
 
   if (from_queue && from_queue->pe_info && *from_queue->pe_info->cmd_raw) {
@@ -1866,11 +1865,13 @@ int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str,
   } else {
     pe_info->cmd_evaled = mush_strdup(str, "string");
   }
+  pe_info->attrname =  lockAtr->name;
+  
   ap = atrVal = safe_atr_value(lockAtr,"fun_eval.attr_value");
 
   process_expression(buff, &bp, &ap, thing, player, player, PE_DEFAULT, PT_DEFAULT,
                        pe_info);
-
+  
   free_pe_info(pe_info);
   
   mush_free(atrVal, "fun_eval.attr_value");
