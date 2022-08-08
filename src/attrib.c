@@ -1826,7 +1826,7 @@ atr_single_match_r(ATTR *ptr, int flag_mask, int end, const char *input,
 }
 
 
-int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str, MQUE *from_queue)
+int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char const *str, MQUE *from_queue)
 {
   NEW_PE_INFO *pe_info;
   
@@ -1865,7 +1865,11 @@ int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char *str,
   } else {
     pe_info->cmd_evaled = mush_strdup(str, "string");
   }
-  pe_info->attrname =  lockAtr->name;
+
+  char tmpBuff[BUFFER_LEN];
+  memset(tmpBuff,0,sizeof(tmpBuff));
+  snprintf(tmpBuff, BUFFER_LEN, "%s/%s", unparse_dbref(thing), lockAtrName);
+  pe_info->attrname = mush_strdup(tmpBuff, "string");;
   
   ap = atrVal = safe_atr_value(lockAtr,"fun_eval.attr_value");
 
