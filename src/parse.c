@@ -2066,6 +2066,7 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
   PE_REGS *pe_regs;
   const char *stmp;
   int itmp;
+  int tags = 0;
   /* Part of r1628's deprecation of unescaped commas as the final arg of a
    * function,
    * added 17 Sep 2012. Remove when this behaviour is removed. */
@@ -2655,14 +2656,53 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           nextc = **str;
           if (!nextc)
             goto exit_sequence;
-          (*str)++;
+          
           temp[0] = UPCASE(savec);
           temp[1] = UPCASE(nextc);
           temp[2] = '\0';
           attrib = atr_get(executor, temp);
           if (attrib)
             safe_str(atr_value(attrib), buff, bp);
+     
           break;
+        case 'z':
+          nextc = **str;
+          if(!nextc)
+            goto exit_sequence;
+          qv[0] = UPCASE(nextc);
+          (*str)++;
+          char tmpBuf[BUFFER_LEN];
+          memset(tmpBuf,0,sizeof(tmpBuf));
+          snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+          attrib = atr_get(MASTER_ROOM, tmpBuf);
+          if(attrib)
+          {
+            safe_str(atr_value(attrib), buff, bp);
+            
+          }
+          break;
+        case 'Z':
+        nextc = **str;
+          if(!nextc)
+            goto exit_sequence;
+          qv[0] = UPCASE(nextc);
+          (*str)++;
+          memset(tmpBuf,0,sizeof(tmpBuf));
+          snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+          attrib = atr_get(MASTER_ROOM, tmpBuf);
+          if(attrib)
+          {
+            if(tags > 0)
+            {
+              safe_str(close_tag("font"), buff, bp);
+              tags--;
+            }
+            snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=#000000", atr_value(attrib));
+            safe_str(open_tag(tmpBuf), buff, bp);
+            tags++;           
+          }
+          break;
+        
         default: /* just copy */
           safe_chr(savec, buff, bp);
         }
@@ -3175,6 +3215,14 @@ exit_sequence:
         }
       }
       mush_free(debugstr, "process_expression.debug_source");
+    }
+    if(tags > 0)
+    {
+      while(tags > 0)
+      {
+        safe_str(close_tag("font"), buff, bp);
+        tags--;
+      }
     }
     if (realbuff) {
       size_t blen = *bp - buff;
