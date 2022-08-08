@@ -2685,6 +2685,15 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
         nextc = **str;
           if(!nextc)
             goto exit_sequence;
+          if(UPCASE(nextc) == 'N')
+              {
+                while(tags > 0)
+                {
+                  safe_str(close_tag("font"),buff,bp);
+                  tags--;
+                  break;
+                }
+              }
           qv[0] = UPCASE(nextc);
           (*str)++;
           memset(tmpBuf,0,sizeof(tmpBuf));
