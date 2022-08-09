@@ -2703,7 +2703,15 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           (*str)++;
           char tmpBuf[BUFFER_LEN];
           memset(tmpBuf, 0, sizeof(tmpBuf));
+<<<<<<< HEAD
           snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+=======
+          if (nextc == UPCASE(nextc)) {
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
+          } else {
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+          }
+>>>>>>> 1191ae3d (Added case for uppercase letters to %%z eg. %%zA to refer to color`a`hi instead of color`a)
           attrib = atr_get(MASTER_ROOM, tmpBuf);
           if (attrib) {
             safe_str(atr_value(attrib), buff, bp);
@@ -2726,7 +2734,11 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           if (nextc == UPCASE(nextc)) {
             snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
           } else {
+<<<<<<< HEAD
             snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
+=======
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+>>>>>>> 1191ae3d (Added case for uppercase letters to %%z eg. %%zA to refer to color`a`hi instead of color`a)
           }
           attrib = atr_get(MASTER_ROOM, tmpBuf);
           if (attrib) {
