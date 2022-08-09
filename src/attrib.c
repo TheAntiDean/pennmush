@@ -1825,32 +1825,34 @@ atr_single_match_r(ATTR *ptr, int flag_mask, int end, const char *input,
   return match_found;
 }
 
-
-int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char const *str, MQUE *from_queue)
+int
+cmdatr_lock_check(dbref player, dbref thing, const char *atrname,
+                  char const *str, MQUE *from_queue)
 {
   NEW_PE_INFO *pe_info;
-  
+
   ATTR *lockAtr;
   char lockAtrName[BUFFER_LEN];
   char *lp;
   char buff[BUFFER_LEN];
-  memset(lockAtrName,0,sizeof(lockAtrName));
-  memset(buff,0,sizeof(buff));
+  memset(lockAtrName, 0, sizeof(lockAtrName));
+  memset(buff, 0, sizeof(buff));
   char *bp;
   char *atrVal;
   char *ap;
   bp = buff;
-  
 
- snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
- // If there isn't an attribute
- lockAtr = atr_get(thing, lockAtrName);
-  
-  if(!lockAtr)
+  if (!eval_lock_with(player, thing, "CMD", pe_info))
+    return 0;
+
+  snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
+  // If there isn't an attribute
+  lockAtr = atr_get(thing, lockAtrName);
+  lock_type *ltype;
+
+  if (!lockAtr)
     return 1;
 
-
-  
   pe_info = make_pe_info("pe_info-atr_comm_match");
 
   if (from_queue && from_queue->pe_info && *from_queue->pe_info->cmd_raw) {
@@ -1867,29 +1869,27 @@ int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char const
   }
 
   char tmpBuff[BUFFER_LEN];
-  memset(tmpBuff,0,sizeof(tmpBuff));
+  memset(tmpBuff, 0, sizeof(tmpBuff));
   snprintf(tmpBuff, BUFFER_LEN, "%s/%s", unparse_dbref(thing), lockAtrName);
-  pe_info->attrname = mush_strdup(tmpBuff, "string");;
-  
-  ap = atrVal = safe_atr_value(lockAtr,"fun_eval.attr_value");
+  pe_info->attrname = mush_strdup(tmpBuff, "string");
+  ;
 
-  process_expression(buff, &bp, &ap, thing, player, player, PE_DEFAULT, PT_DEFAULT,
-                       pe_info);
-  
+  ap = atrVal = safe_atr_value(lockAtr, "fun_eval.attr_value");
+
+  process_expression(buff, &bp, &ap, thing, player, player, PE_DEFAULT,
+                     PT_DEFAULT, pe_info);
+
   free_pe_info(pe_info);
-  
+
   mush_free(atrVal, "fun_eval.attr_value");
 
-  if(parse_number(buff) == 1)
+  if (parse_number(buff) == 1)
     return 1;
   else
     return 0;
 
   return parse_number(buff);
-  
-
 }
-
 
 /** Match input against a $command or ^listen attribute.
  * This function attempts to match a string against either the $commands
@@ -2087,8 +2087,7 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
 
       if (match_found) {
         // Check the command lock
-        if(!cmdatr_lock_check(player, thing,ptr->name,str,from_queue))
-        {
+        if (!cmdatr_lock_check(player, thing, ptr->name, str, from_queue)) {
           match--;
           continue;
         }
@@ -2099,7 +2098,7 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
          * run the lock once for 'foo bar'. Locks are always checked on
          * the child, even when the attr is inherited.
          */
-        
+
         if (!lock_checked) {
           lock_checked = 1;
           if ((type == '$' &&
@@ -2163,7 +2162,7 @@ atr_comm_match(dbref thing, dbref player, int type, int end, char const *str,
                                      tmp);
           } else {
             /* Normal queue */
-                      parse_que_attr(
+            parse_que_attr(
               thing, player, cmd_buff, pe_regs, ptr,
               (queue_type & QUEUE_DEBUG_PRIVS ? can_debug(player, thing) : 0));
           }
