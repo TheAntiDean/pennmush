@@ -2717,6 +2717,8 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           nextc = **str;
           if (!nextc)
             goto exit_sequence;
+
+          // %zn returns the string to neutral by closing all tags
           if (UPCASE(nextc) == 'N') {
             while (tags > 0) {
               safe_str(close_tag("font"), buff, bp);
@@ -2724,20 +2726,74 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
               break;
             }
           }
-          qv[0] = UPCASE(nextc);
+          qv[0] = nextc;
+
           (*str)++;
           memset(tmpBuf, 0, sizeof(tmpBuf));
+          char *fgAtr;
+          char *bgAtr;
+          // Looking for the character to denote fg/bg set
+          if (nextc == '*') {
+            char tmpBuf2[BUFFER_LEN];
+            memset(tmpBuf2,0,sizeof(tmpBuf2));
+            // move the pointer forward
+
+            // reallocate to the next character, check if its upper or lower
+            // case
+            //(*str)++;
+            qv[0] = **str;
+            if (qv[0] == UPCASE(qv[0])) {
+              snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", upcasestr(qv));
+            } else {
+              snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", upcasestr(qv));
+            }
+            // Foreground should be done, same again for the background
+
+            // Get the appropriate fg attribute
+            attrib = atr_get(MASTER_ROOM, tmpBuf);
+
+            (*str)++;
+            temp[0] = **str;
+            if (temp[0] == UPCASE(temp[0])) {
+              snprintf(tmpBuf2, BUFFER_LEN, "COLOR`%s`HI", upcasestr(temp));
+            } else {
+              snprintf(tmpBuf2, BUFFER_LEN, "COLOR`%s", upcasestr(temp));
+            }
+            // advance the pointer, we don't want that char any more.
+            (*str)++;
+
+
+            if (attrib) {
+              fgAtr = safe_atr_value(attrib, "parse_atr");
+              // Get the appropriate bg attribute
+              ATTR *bgAttrib = atr_get(MASTER_ROOM, tmpBuf2);
+              if (bgAttrib) {
+                bgAtr = safe_atr_value(bgAttrib, "parse_atr");
+                snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=%s",
+                         fgAtr, bgAtr);
+                mush_free(bgAtr, "parse_atr");
+              } else {
+                // If we don't find anything, we want to default.
+                snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=#000000",
+                         atr_value(attrib));
+                
+                
+              }
+              tags++;
+              safe_str(open_tag(tmpBuf), buff, bp);
+              mush_free(fgAtr, "parse_atr");
+              break;
+            }          
+          }
+          // Same as above but for single foreground colour.
           if (nextc == UPCASE(nextc)) {
-            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", upcasestr(qv));
           } else {
-            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", upcasestr(qv));
           }
           attrib = atr_get(MASTER_ROOM, tmpBuf);
           if (attrib) {
-            if (tags > 0) {
-              safe_str(close_tag("font"), buff, bp);
-              tags--;
-            }
+
             snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=#000000",
                      atr_value(attrib));
             safe_str(open_tag(tmpBuf), buff, bp);

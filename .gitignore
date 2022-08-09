@@ -62,3 +62,5 @@ pcre2
 pcre2-10.*
 .vscode/
 *.out
+
+*.pid
