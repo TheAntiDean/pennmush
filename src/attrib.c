@@ -1841,19 +1841,15 @@ cmdatr_lock_check(dbref player, dbref thing, const char *atrname,
   char *atrVal;
   char *ap;
   bp = buff;
-
-  if (!eval_lock_with(player, thing, "CMD", pe_info))
-    return 0;
-
-  snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
-  // If there isn't an attribute
-  lockAtr = atr_get(thing, lockAtrName);
-  lock_type *ltype;
-
-  if (!lockAtr)
-    return 1;
-
   pe_info = make_pe_info("pe_info-atr_comm_match");
+
+  // Prepare function registers. %= for obj/ATTRB
+  // %c for command
+  char tmpBuff[BUFFER_LEN];
+  memset(tmpBuff, 0, sizeof(tmpBuff));
+  snprintf(tmpBuff, BUFFER_LEN, "%s/%s", unparse_dbref(thing), lockAtrName);
+  pe_info->attrname = mush_strdup(tmpBuff, "string");
+  ;
 
   if (from_queue && from_queue->pe_info && *from_queue->pe_info->cmd_raw) {
     pe_info->cmd_raw = mush_strdup(from_queue->pe_info->cmd_raw, "string");
@@ -1868,11 +1864,20 @@ cmdatr_lock_check(dbref player, dbref thing, const char *atrname,
     pe_info->cmd_evaled = mush_strdup(str, "string");
   }
 
-  char tmpBuff[BUFFER_LEN];
-  memset(tmpBuff, 0, sizeof(tmpBuff));
-  snprintf(tmpBuff, BUFFER_LEN, "%s/%s", unparse_dbref(thing), lockAtrName);
-  pe_info->attrname = mush_strdup(tmpBuff, "string");
-  ;
+  if (!eval_lock_with(player, thing, "CMD", pe_info))
+    return 0;
+
+  snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
+  // If there isn't an attribute
+  lockAtr = atr_get(thing, lockAtrName);
+  lock_type *ltype;
+
+  if (!lockAtr)
+    return 1;
+
+
+
+
 
   ap = atrVal = safe_atr_value(lockAtr, "fun_eval.attr_value");
 
