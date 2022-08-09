@@ -2218,9 +2218,9 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
         *str += 16;
       }
 
-// fprintf(stderr, "Skipped over '%.*s' to '%c'\n", (int)(*str - pos),
-// pos,
-// **str);
+      // fprintf(stderr, "Skipped over '%.*s' to '%c'\n", (int)(*str - pos),
+      // pos,
+      // **str);
 
 #else
       /* Inlined strcspn() equivalent, to save on overhead and portability */
@@ -2262,13 +2262,15 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
        * added 17 Sep 2012. Remove when this behaviour is removed. */
       else if (tflags & PT_NOT_COMMA) {
         if (pe_info && pe_info->attrname)
-          notify_format(Owner(executor), "Unescaped comma in final arg of %s "
-                                         "by #%d in %s. This behavior is "
-                                         "deprecated.",
+          notify_format(Owner(executor),
+                        "Unescaped comma in final arg of %s "
+                        "by #%d in %s. This behavior is "
+                        "deprecated.",
                         lca_func_name, executor, pe_info->attrname);
         else
-          notify_format(Owner(executor), "Unescaped comma in final arg of %s "
-                                         "by #%d. This behavior is deprecated.",
+          notify_format(Owner(executor),
+                        "Unescaped comma in final arg of %s "
+                        "by #%d. This behavior is deprecated.",
                         lca_func_name, executor);
         tflags &= ~PT_NOT_COMMA;
       }
@@ -2501,17 +2503,17 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           safe_str(pe_info->cmd_raw, buff, bp);
           break;
         case 'e':
-        nextc = **str;
-        char atrName[BUFFER_LEN];
-        char tmpBuff[BUFFER_LEN];
-        memset(tmpBuff,0,sizeof(tmpBuff));
-        memset(atrName,0,sizeof(atrName));
-            char *nbp = atrName;
+          nextc = **str;
+          char atrName[BUFFER_LEN];
+          char tmpBuff[BUFFER_LEN];
+          memset(tmpBuff, 0, sizeof(tmpBuff));
+          memset(atrName, 0, sizeof(atrName));
+          char *nbp = atrName;
           if (!nextc)
             goto exit_sequence;
           (*str)++;
           if (nextc == '<') {
-            
+
             if (process_expression(atrName, &nbp, str, executor, caller,
                                    enactor, eflags & ~PE_STRIP_BRACES, PT_GT,
                                    pe_info)) {
@@ -2519,15 +2521,14 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
               break;
             }
             //*nbp = '\0';
-            
-            
-              
-              if(call_attrib(executor, remove_markup(upcasestr(atrName), NULL), tmpBuff, executor, pe_info, NULL))
-                  safe_str(tmpBuff,buff,bp);
-            
+
+            if (call_attrib(executor, remove_markup(upcasestr(atrName), NULL),
+                            tmpBuff, executor, pe_info, NULL))
+              safe_str(tmpBuff, buff, bp);
+
             if (**str == '>')
               (*str)++;
-          } 
+          }
           break;
         case 'I':
         case 'i':
@@ -2685,62 +2686,61 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
           nextc = **str;
           if (!nextc)
             goto exit_sequence;
-          
+
           temp[0] = UPCASE(savec);
           temp[1] = UPCASE(nextc);
           temp[2] = '\0';
           attrib = atr_get(executor, temp);
           if (attrib)
             safe_str(atr_value(attrib), buff, bp);
-     
+
           break;
         case 'Z':
           nextc = **str;
-          if(!nextc)
+          if (!nextc)
             goto exit_sequence;
           qv[0] = UPCASE(nextc);
           (*str)++;
           char tmpBuf[BUFFER_LEN];
-          memset(tmpBuf,0,sizeof(tmpBuf));
+          memset(tmpBuf, 0, sizeof(tmpBuf));
           snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
           attrib = atr_get(MASTER_ROOM, tmpBuf);
-          if(attrib)
-          {
+          if (attrib) {
             safe_str(atr_value(attrib), buff, bp);
-            
           }
           break;
         case 'z':
-        nextc = **str;
-          if(!nextc)
+          nextc = **str;
+          if (!nextc)
             goto exit_sequence;
-          if(UPCASE(nextc) == 'N')
-              {
-                while(tags > 0)
-                {
-                  safe_str(close_tag("font"),buff,bp);
-                  tags--;
-                  break;
-                }
-              }
+          if (UPCASE(nextc) == 'N') {
+            while (tags > 0) {
+              safe_str(close_tag("font"), buff, bp);
+              tags--;
+              break;
+            }
+          }
           qv[0] = UPCASE(nextc);
           (*str)++;
-          memset(tmpBuf,0,sizeof(tmpBuf));
-          snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s", qv);
+          memset(tmpBuf, 0, sizeof(tmpBuf));
+          if (nextc == UPCASE(nextc)) {
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
+          } else {
+            snprintf(tmpBuf, BUFFER_LEN, "COLOR`%s`HI", qv);
+          }
           attrib = atr_get(MASTER_ROOM, tmpBuf);
-          if(attrib)
-          {
-            if(tags > 0)
-            {
+          if (attrib) {
+            if (tags > 0) {
               safe_str(close_tag("font"), buff, bp);
               tags--;
             }
-            snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=#000000", atr_value(attrib));
+            snprintf(tmpBuf, BUFFER_LEN, "font color=%s bgcolor=#000000",
+                     atr_value(attrib));
             safe_str(open_tag(tmpBuf), buff, bp);
-            tags++;           
+            tags++;
           }
           break;
-        
+
         default: /* just copy */
           safe_chr(savec, buff, bp);
         }
@@ -3254,10 +3254,8 @@ exit_sequence:
       }
       mush_free(debugstr, "process_expression.debug_source");
     }
-    if(tags > 0)
-    {
-      while(tags > 0)
-      {
+    if (tags > 0) {
+      while (tags > 0) {
         safe_str(close_tag("font"), buff, bp);
         tags--;
       }
