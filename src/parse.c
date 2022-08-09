@@ -2694,7 +2694,7 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
             safe_str(atr_value(attrib), buff, bp);
      
           break;
-        case 'z':
+        case 'Z':
           nextc = **str;
           if(!nextc)
             goto exit_sequence;
@@ -2710,7 +2710,7 @@ process_expression(char *buff, char **bp, char const **str, dbref executor,
             
           }
           break;
-        case 'Z':
+        case 'z':
         nextc = **str;
           if(!nextc)
             goto exit_sequence;
