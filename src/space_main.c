@@ -17,6 +17,10 @@ struct pennmush_flag_info
 	int negate_perms;
 };
 
+FUNCTION(aspace)
+{
+	
+}
 struct pennmush_flag_info aspace_power_table[] =
 {
      {"SDB-READ", '\0', NOTYPE, F_WIZARD | F_LOG, F_WIZARD},

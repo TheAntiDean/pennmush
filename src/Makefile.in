@@ -37,7 +37,8 @@ C_FILES=access.c atr_tab.c attrib.c boolexp.c bsd.c bufferq.c		\
 	space_iterate.c space_log.c space_main.c space_misc.c		\
 	space_nebula.c space_notify.c space_output.c space_put.c 	\
 	space_read.c space_report.c space_set.c space_status.c 		\
-	space_unparse.c space_utils.c space_variables.c space_write.c 
+	space_unparse.c space_utils.c space_variables.c space_write.c \
+	space_json.c
 	
 
 
@@ -62,7 +63,8 @@ O_FILES=access.o atr_tab.o attrib.o boolexp.o bsd.o bufferq.o		\
 	space_iterate.o space_log.o space_main.o space_misc.o 		\
 	space_nebula.o space_notify.o space_output.o space_put.o 	\
 	space_read.o space_report.o space_set.o space_status.o 		\
-	space_unparse.o space_utils.o space_variables.o space_write.o 
+	space_unparse.o space_utils.o space_variables.o space_write.o \
+	space_json.o
 	
 
 # This is a dummy target, in case you type 'make' in the source
@@ -2564,6 +2566,7 @@ space_unparse.o: ../hdrs/space.h
 space_utils.o: ../hdrs/space.h
 space_variables.o: ../hdrs/space.h
 space_write.o: ../hdrs/space.h
+space_json.o: ../hdrs/space.h
 space_alert.o: ../hdrs/externs.h
 space_ansi.o: ../hdrs/externs.h
 space_balance.o: ../hdrs/externs.h
@@ -2589,3 +2592,4 @@ space_unparse.o: ../hdrs/externs.h
 space_utils.o: ../hdrs/externs.h
 space_variables.o: ../hdrs/externs.h
 space_write.o: ../hdrs/externs.h
+space_json.o: ../hdrs/externs.h

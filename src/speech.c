@@ -36,6 +36,21 @@ static void do_one_remit(dbref executor, dbref speaker, const char *target,
                          NEW_PE_INFO *pe_info);
 dbref na_zemit(dbref current, void *data);
 
+
+const char *say_mogrify(dbref player, char* attr, char *msg)
+{
+  char *temp = "";
+  
+  
+  static char *regs[10];
+  regs[0]= msg;
+  regs[2] = unparse_dbref(player);
+
+  return mogrify(ANCESTOR_PLAYER, attr, ANCESTOR_PLAYER,2,regs, msg);
+
+
+}
+
 const char *
 spname_int(dbref thing, bool ansi)
 {
@@ -172,6 +187,7 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   dbref loc;
   PE_REGS *pe_regs;
   char modmsg[BUFFER_LEN];
+  char mog[BUFFER_LEN];
   char says[BUFFER_LEN];
   char *sp;
   int mod = 0;
@@ -200,17 +216,28 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   message = remove_markup(message, NULL);
   
   pe_regs_free(pe_regs);
-  
-  
+    
+  const char *argv[10] = {NULL};
+  memset(mog, 0, sizeof(mog));
+  char *tmpMsg = mush_malloc(BUFFER_LEN, "string");
+  snprintf(mog, BUFFER_LEN, "%s",say_mogrify(player, MOG_SPEECH,strdup(message)));
+                 
   
   /* notify everybody */
-  notify_format(player, T("%sYou say \"%s%s\"%s"), ANSI_CYAN, ANSI_HIWHITE,message,ANSI_NORMAL, ANSI_CYAN,  ANSI_END);
+  
   sp = says;
-  safe_format(says, &sp, T("%s%s says \"%s%s%s%s\"%s"), 
-  ANSI_CYAN, spname(player), ANSI_HIWHITE, message, ANSI_NORMAL, ANSI_CYAN, ANSI_END);
+  snprintf(says, BUFFER_LEN, T("You say \"%s\""), mog);
+  notify_format(player, say_mogrify(player, MOG_POSE ,says));
+
+
+  snprintf(says, BUFFER_LEN, T("%s says \"%s\""),spname(player), mog);
+  
+  notify_except(player, loc, player, say_mogrify(player, MOG_POSE,says), NA_INTER_HEAR);
+  mush_free(tmpMsg, "string");
   *sp = '\0';
-  notify_except(player, loc, player, says, NA_INTER_HEAR);
 }
+
+
 
 /** The oemit(/list) command.
  * \verbatim
@@ -651,7 +678,7 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
   *mp = '\0';
 
   notify_anything(player, player, na_loc, &loc, NULL,
-                  NA_INTER_HEAR | NA_PROPAGATE, message, NULL, loc, NULL);
+                  NA_INTER_HEAR | NA_PROPAGATE, say_mogrify(player, MOG_POSE, message), NULL, loc, NULL);
 }
 
 /** The *wall commands.

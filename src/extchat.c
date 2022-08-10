@@ -82,8 +82,7 @@ static void channel_send(CHAN *channel, dbref player, int flags,
 static void list_partial_matches(dbref player, const char *name,
                                  enum chan_match_type type);
 void do_chan_set_mogrifier(dbref player, const char *name, const char *newobj);
-char *mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
-              const char *argv[], const char *orig);
+
 
 static const char chan_speak_lock[] =
   "ChanSpeakLock";                                   /**< Name of speak lock */
@@ -3670,49 +3669,6 @@ COMMAND(cmd_clock)
     notify(executor, T("You must specify a type of lock!"));
 }
 
-/**
- * \verbatim
- * Mogrify a value using u(<mogrifier>/<attrname>,<value>)
- * \endverbatim
- *
- * \param mogrifier The object doing the mogrification
- * \param attrname The attribute on mogrifier to call.
- * \param player the enactor
- * \param numargs the number of args in argv
- * \param argv array of args
- * \param orig the original string to mogrify
- * \retval Mogrified text.
- */
-char *
-mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
-        const char *argv[], const char *orig)
-{
-  static char buff[BUFFER_LEN];
-  int i;
-  PE_REGS *pe_regs;
-  buff[0] = '\0';
-
-  pe_regs = pe_regs_create(PE_REGS_ARG, "mogrify");
-  for (i = 0; i < numargs; i++) {
-    if (argv[i]) {
-      pe_regs_setenv_nocopy(pe_regs, i, argv[i]);
-    }
-  }
-
-  i = call_attrib(mogrifier, attrname, buff, player, NULL, pe_regs);
-
-  pe_regs_free(pe_regs);
-
-  if (i) {
-    if (buff[0]) {
-      return buff;
-    }
-  }
-
-  snprintf(buff, BUFFER_LEN, "%s", orig);
-
-  return buff;
-}
 
 /** Broadcast a message to a channel, using @chatformat if it's
  *  available, and mogrifying.

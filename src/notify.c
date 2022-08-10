@@ -1621,6 +1621,50 @@ notify_internal(dbref target, dbref executor, dbref speaker, dbref *skips,
     mush_free(formatmsg, "notify_str");
 }
 
+/**
+ * \verbatim
+ * Mogrify a value using u(<mogrifier>/<attrname>,<value>)
+ * \endverbatim
+ *
+ * \param mogrifier The object doing the mogrification
+ * \param attrname The attribute on mogrifier to call.
+ * \param player the enactor
+ * \param numargs the number of args in argv
+ * \param argv array of args
+ * \param orig the original string to mogrify
+ * \retval Mogrified text.
+ */
+char *
+mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
+        const char *argv[], const char *orig)
+{
+  static char buff[BUFFER_LEN];
+  int i;
+  PE_REGS *pe_regs;
+  buff[0] = '\0';
+
+  pe_regs = pe_regs_create(PE_REGS_ARG, "mogrify");
+  for (i = 0; i < numargs; i++) {
+    if (argv[i]) {
+      pe_regs_setenv_nocopy(pe_regs, i, argv[i]);
+    }
+  }
+
+  i = call_attrib(mogrifier, attrname, buff, player, NULL, pe_regs);
+
+  pe_regs_free(pe_regs);
+
+  if (i) {
+    if (buff[0]) {
+      return buff;
+    }
+  }
+
+  snprintf(buff, BUFFER_LEN, "%s", orig);
+
+  return buff;
+}
+
 /** Notify a player with a formatted string, easy version.
  * This is a safer replacement for notify(player, tprintf(fmt, ...))
  * \param player the player to notify

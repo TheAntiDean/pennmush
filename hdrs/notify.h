@@ -93,6 +93,10 @@ char *WIN32_CDECL tprintf(const char *fmt, ...)
 #define MSG_ALL_PLAYER                                                         \
   (MSG_PLAYER | MSG_PLAYER_COLORS | MSG_PUEBLO | MSG_TELNET | MSG_STRIPACCENTS)
 
+#define MOG_SPEECH "MOGRIFY`FORMAT`SPEECH"
+#define MOG_POSE "MOGRIFY`FORMAT`POSE"
+#define MOG_SPEECHTEXT "MOGRIFY`SPEECHTEXT"
+
 /** A notify_anything lookup function type definition */
 typedef dbref (*na_lookup)(dbref, void *);
 
@@ -166,6 +170,9 @@ dbref na_channel(dbref current, void *data);
 /* Notify with a printf-style format */
 void notify_format(dbref player, const char *fmt, ...)
   __attribute__((__format__(__printf__, 2, 3)));
+
+char *mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
+              const char *argv[], const char *orig);
 
 int queue_newwrite(DESC *d, const char *b, int n);
 
