@@ -46,7 +46,7 @@ const char *say_mogrify(dbref player, char* attr, char *msg)
   regs[0]= msg;
   regs[2] = unparse_dbref(player);
 
-  return mogrify(ANCESTOR_PLAYER, attr, ANCESTOR_PLAYER,2,regs, msg);
+  return mogrify(ANCESTOR_PLAYER, attr, player,2,regs, msg);
 
 
 }
