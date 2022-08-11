@@ -564,15 +564,15 @@ do_space_db_read(dbref ship, dbref executor)
 
   /* COORDS */
 
-  sdb[x].coords.x = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`X");
-  sdb[x].coords.y = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`Y");
-  sdb[x].coords.z = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`Z");
-  sdb[x].coords.xo = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`XO");
-  sdb[x].coords.yo = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`YO");
-  sdb[x].coords.zo = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`ZO");
-  sdb[x].coords.xd = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`XD");
-  sdb[x].coords.yd = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`YD");
-  sdb[x].coords.zd = do_space_read_attr(ship, COORDS_ATTR_NAME, "COORDS`ZD");
+  sdb[x].coords.x = do_space_read_attr(ship, COORDS_ATTR_NAME, "X");
+  sdb[x].coords.y = do_space_read_attr(ship, COORDS_ATTR_NAME, "Y");
+  sdb[x].coords.z = do_space_read_attr(ship, COORDS_ATTR_NAME, "Z");
+  sdb[x].coords.xo = do_space_read_attr(ship, COORDS_ATTR_NAME, "XO");
+  sdb[x].coords.yo = do_space_read_attr(ship, COORDS_ATTR_NAME, "YO");
+  sdb[x].coords.zo = do_space_read_attr(ship, COORDS_ATTR_NAME, "ZO");
+  sdb[x].coords.xd = do_space_read_attr(ship, COORDS_ATTR_NAME, "XD");
+  sdb[x].coords.yd = do_space_read_attr(ship, COORDS_ATTR_NAME, "YD");
+  sdb[x].coords.zd = do_space_read_attr(ship, COORDS_ATTR_NAME, "ZD");
 
   /* COURSE */
 

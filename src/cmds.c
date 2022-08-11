@@ -1817,16 +1817,19 @@ COMMAND(cmd_session)
 
 COMMAND(cmd_who)
 {
+  char *list[BUFFER_LEN / 2];
+  int res = list2arr(list, BUFFER_LEN / 2, mush_strdup(options.who_file[0],"opt.file_who"), '/', 1);
   if (Priv_Who(executor))
   {
-    if (options.wiz_who_file)
+    
+    if (res == 2)
       do_whofile_admin(executor);
     else
       do_who_admin(executor, arg_left);
   }
   else
   {
-    if (options.wiz_who_file)
+    if (res == 2)
     {
       do_whofile_mortal(executor);
     }
