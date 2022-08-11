@@ -673,8 +673,8 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
   pe_regs_free(pe_regs);
 
   mp = message;
-  safe_format(message, &mp, (nospace ? "%s%s%s%s" : "%s%s %s%s"), 
-              ANSI_CYAN, spname(player), tbuf1, ANSI_END);
+  safe_format(message, &mp, (nospace ? "%s%s" : "%s %s"), 
+              spname(player), tbuf1);
   *mp = '\0';
 
   notify_anything(player, player, na_loc, &loc, NULL,
