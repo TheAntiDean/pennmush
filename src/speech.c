@@ -37,7 +37,7 @@ static void do_one_remit(dbref executor, dbref speaker, const char *target,
 dbref na_zemit(dbref current, void *data);
 
 
-const char *say_mogrify(dbref player, char* attr, char *msg)
+const *say_mogrify(dbref player, char* attr, char *msg)
 {
   char *temp = "";
   

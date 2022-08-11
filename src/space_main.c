@@ -1394,6 +1394,7 @@ void setupAspaceFunctions()
 	function_add("SU2LY", local_fun_su2ly, 1, 1, FN_REG);
 	function_add("SU2PC", local_fun_su2pc, 1, 1, FN_REG);
 	function_add("XYZ2SPH", local_fun_xyz2sph, 3, 3, FN_REG);
+	function_add("SPACEDATA", fun_aspace_jsondata, 2,2, FN_REG);
 }
 
 void setupAspaceFlags()
