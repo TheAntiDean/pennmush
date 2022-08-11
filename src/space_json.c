@@ -149,6 +149,8 @@ get_ship_power(int shipSDB)
 
       cJSON_AddNumberToObject(helmPower, "Movement",
                               sdb[shipSDB].alloc.movement);
+      if(sdb[shipSDB].shield.exist)
+      {
       cJSON_AddNumberToObject(helmPower, "Shields", sdb[shipSDB].alloc.shields);
 
       // Iterate shields
@@ -163,7 +165,7 @@ get_ship_power(int shipSDB)
         }
         cJSON_AddItemToObject(helmPower, "ShieldAlloc", shields);
       }
-
+      }
       // Cloak or "Other"
       cJSON_AddNumberToObject(helmPower, cloak_name[sdb[n].cloak.exist],
                               sdb[shipSDB].alloc.cloak);
