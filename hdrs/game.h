@@ -197,7 +197,7 @@ extern void do_oemit_list(dbref executor, dbref speaker, char *list,
                           struct format_msg *format, NEW_PE_INFO *pe_info);
 extern void do_teach(dbref player, const char *tbuf1, int list,
                      MQUE *parent_queue);
-extern const *say_mogrify(dbref player, char* attr, char *msg);
+extern const char*say_mogrify(dbref player, char* attr, char *msg);
 
 /* From wiz.c */
 extern void do_debug_examine(dbref player, const char *name);

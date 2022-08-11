@@ -37,7 +37,7 @@ static void do_one_remit(dbref executor, dbref speaker, const char *target,
 dbref na_zemit(dbref current, void *data);
 
 
-const *say_mogrify(dbref player, char* attr, char *msg)
+const char*say_mogrify(dbref player, char* attr, char *msg)
 {
   char *temp = "";
   
@@ -679,6 +679,7 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
 
   notify_anything(player, player, na_loc, &loc, NULL,
                   NA_INTER_HEAR | NA_PROPAGATE, say_mogrify(player, MOG_POSE, message), NULL, loc, NULL);
+
 }
 
 /** The *wall commands.
