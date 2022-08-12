@@ -57,7 +57,7 @@ get_sensor_report(int shipSDB)
       int contSDB = sdb[shipSDB].slist.sdb[contID];
       cJSON_AddNumberToObject(contact, "SDB", contSDB);
       cJSON_AddNumberToObject(contact, "dbref", sdb[contSDB].object);
-      cJSON_AddNumberToObject(contact, "Num", sdb[n].slist.num[contSDB]+1);
+      cJSON_AddNumberToObject(contact, "Num", sdb[n].slist.num[contID]+1);
       cJSON_AddStringToObject(contact, "Type", unparse_type(contSDB));
 
       double resolution = sdb[shipSDB].slist.lev[contID] * 100.0;
