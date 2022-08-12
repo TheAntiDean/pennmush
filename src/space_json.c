@@ -21,6 +21,7 @@ void
 get_space_status(char *system, char *subsystem, int shipSDB, char *buff,
                  char **bp)
 {
+  
 
   cJSON *ship = NULL;
 
@@ -34,8 +35,8 @@ get_space_status(char *system, char *subsystem, int shipSDB, char *buff,
     } else if (strcmp(system, "senrep") == 0) {
       cJSON_AddItemToObject(ship, "Contacts", get_sensor_report(shipSDB));
     }
-
-    safe_format(buff, bp,"%s", cJSON_Print(ship));
+  
+    safe_format(buff, bp,"%s", remove_markup(cJSON_PrintUnformatted(ship),NULL));
 
   } else {
     safe_format(buff, bp, "#-1 Error parsing SDB information");
