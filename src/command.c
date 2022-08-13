@@ -365,10 +365,10 @@ COMLIST commands[] = {
 
   {"PAGE", "LIST NOEVAL PORT OVERRIDE", cmd_page,
    CMD_T_ANY | CMD_T_EQSPLIT | CMD_T_NOGAGGED, 0, 0},
-  {"POSE", "NOEVAL NOSPACE", cmd_pose, CMD_T_ANY | CMD_T_NOGAGGED, 0, 0},
+  {"POSE", "NOEVAL NOSPACE", cmd_pose, CMD_T_ANY | CMD_T_NOGAGGED | CMD_T_NOPARSE, 0, 0},
   {"SCORE", NULL, cmd_score, CMD_T_ANY, 0, 0},
-  {"SAY", "NOEVAL", cmd_say, CMD_T_ANY | CMD_T_NOGAGGED, 0, 0},
-  {"SEMIPOSE", "NOEVAL", cmd_semipose, CMD_T_ANY | CMD_T_NOGAGGED, 0, 0},
+  {"SAY", "NOEVAL", cmd_say, CMD_T_ANY | CMD_T_NOGAGGED | CMD_T_NOPARSE, 0, 0},
+  {"SEMIPOSE", "NOEVAL", cmd_semipose, CMD_T_ANY | CMD_T_NOGAGGED | CMD_T_NOPARSE, 0, 0},
 
   {"TEACH", "LIST", cmd_teach, CMD_T_ANY | CMD_T_NOPARSE, 0, 0},
   {"THINK", "NOEVAL", cmd_think, CMD_T_ANY | CMD_T_NOGAGGED, 0, 0},
