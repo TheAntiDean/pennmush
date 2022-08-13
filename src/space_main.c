@@ -31,6 +31,7 @@ struct pennmush_flag_info aspace_power_table[] =
 struct pennmush_flag_info aspace_flag_table[] = 
 {
 	{"SPACE-OBJECT", '+', TYPE_THING | TYPE_PLAYER, F_WIZARD, F_WIZARD},
+	{"SPACE-JSON", '\0', TYPE_PLAYER, F_ANY, F_ANY},
 	{NULL,'0',0,0,0}
 };
 

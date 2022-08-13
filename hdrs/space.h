@@ -1102,6 +1102,12 @@ extern char *format_s_Shield (int x);
 extern char *format_s_Beam (int x, int a);
 extern char *format_s_Missile (int x, int a);
 
+extern cJSON *get_ship_power(int shipSDB);
+extern cJSON *get_sensor_report(int shipSDB);
+extern void get_space_status(char *system, char *subsystem, int shipSDB, char *buff,
+                        char **bp);
+extern bool build_number(cJSON *json_element, int data);
+
 /* ------------------------------------------------------------------------ */
 
 #endif    /* _SPACE_H_ */

@@ -137,6 +137,12 @@ local_timer(void *data __attribute__((__unused__)))
   do_combat_iterate();
   (void) do_space_db_iterate(); /**< ASpace Related */
   /* The callback has to be set back up or it'll only run once. */
+  space_json_iterate();
+
+  if(((now_msecs() - 1) / 10) % 2 == 1)
+  {
+    space_json_iterate();
+  }
   return false;
 }
 

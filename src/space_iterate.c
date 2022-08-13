@@ -1066,6 +1066,7 @@ int do_space_db_iterate (void)
 	
 	for (n = MIN_SPACE_OBJECTS; n <= max_space_objects; ++n)
 		if (sdb[n].status.active && sdb[n].structure.type) {
+			if(sdb[n].status.time > 1)
 				++count;
 				sdb[n].move.dt = now - sdb[n].move.time;
 				sdb[n].move.time = now;
