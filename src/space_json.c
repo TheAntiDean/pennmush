@@ -17,53 +17,58 @@ space_json_iterate()
     smp = show_message;
     dbref console, user;
     memset(show_message, 0, sizeof(show_message));
-    get_space_status("ship", NULL, x, NULL, NULL);
+    if (!sdb[x].status.active)
+        continue;
+      
+      get_space_status("ship", NULL, x, NULL, NULL);
 
-    a = atr_get(sdb[x].object, CONSOLE_ATTR_NAME);
+      a = atr_get(sdb[x].object, CONSOLE_ATTR_NAME);
 
-    if (a && *AL_STR(a)) { // Attribute exists AND isn't empty
+      if (a && *AL_STR(a)) { // Attribute exists AND isn't empty
 
-      q = safe_atr_value(a, "space.consoles.all");
-      pq = trim_space_sep(q, ' ');
-      while (pq) {
-        console = parse_dbref(split_token(&pq, ' '));
+        q = safe_atr_value(a, "space.consoles.all");
+        pq = trim_space_sep(q, ' ');
+        while (pq) {
+          console = parse_dbref(split_token(&pq, ' '));
 
-        if (console != NOTHING) {
-          b = atr_get(console, CONSOLE_USER_ATTR_NAME);
-          if (b != NULL) {
-            user = parse_dbref(atr_value(b));
-            if (GoodObject(user) &&
-                has_flag_by_name(user, "SPACE-JSON", TYPE_PLAYER)) {
-              DESC *match = lookup_desc(user, Name(user));
-              if (match) {
-                if (match->conn_flags & CONN_WEBSOCKETS) {
-                  send_websocket_object(
-                    match, "ship",
-                    get_space_status("ship", NULL, x, NULL, NULL));
-                }
-                if (match->conn_flags & CONN_GMCP) {
-                  send_oob(match, "ship",
-                           get_space_status("ship", NULL, x, NULL, NULL));
+          if (console != NOTHING) {
+            b = atr_get(console, CONSOLE_USER_ATTR_NAME);
+            if (b != NULL) {
+              user = parse_dbref(atr_value(b));
+              if (GoodObject(user) &&
+                  has_flag_by_name(user, "SPACE-JSON", TYPE_PLAYER)) {
+                DESC *match = lookup_desc(user, Name(user));
+                if (match) {
+                  if (match->conn_flags & CONN_WEBSOCKETS) {
+                    send_websocket_object(
+                      match, "ship",
+                      get_space_status("ship", NULL, x, NULL, NULL));
+                  }
+                  if (match->conn_flags & CONN_GMCP) {
+                    send_oob(match, "ship",
+                             get_space_status("ship", NULL, x, NULL, NULL));
+                  }
                 }
               }
             }
           }
         }
+        mush_free(q, "space.consoles.all");
+        // mush_free(show_message, "console_message");
+      } else {
+        write_spacelog(
+          GOD, sdb[x].object,
+          tprintf(
+            "CONSOLE_NOTIFY_ALL: Missing or Empty %s ATTRIBUTE on #%d (%d)",
+            CONSOLE_ATTR_NAME, sdb[x].object, x));
+        return;
       }
-      mush_free(q, "space.consoles.all");
+      // mush_free(q, "space.consoles.some");
       // mush_free(show_message, "console_message");
-    } else {
-      write_spacelog(
-        GOD, sdb[x].object,
-        tprintf("CONSOLE_NOTIFY_ALL: Missing or Empty %s ATTRIBUTE on #%d (%d)",
-                CONSOLE_ATTR_NAME, sdb[x].object, x));
       return;
-    }
-    // mush_free(q, "space.consoles.some");
-    // mush_free(show_message, "console_message");
+    
   }
 }
-
 FUNCTION(fun_aspace_jsondata)
 {
   int shipSDB = parse_number(args[0]);
