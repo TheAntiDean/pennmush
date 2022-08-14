@@ -1101,6 +1101,7 @@ extern char *format_s_EW (int x);
 extern char *format_s_Shield (int x);
 extern char *format_s_Beam (int x, int a);
 extern char *format_s_Missile (int x, int a);
+extern DESC *lookup_desc(dbref executor, const char *name);
 
 extern cJSON *get_ship_power(int shipSDB);
 extern cJSON *get_sensor_report(int shipSDB);

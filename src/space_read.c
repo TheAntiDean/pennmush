@@ -299,8 +299,8 @@ do_space_db_read(dbref ship, dbref executor)
   if (sdb[x].missile.tubes > 0) {
 
     for (i = 0; i < sdb[x].missile.tubes; ++i) {
-      snprintf(buffer, sizeof(buffer), "ACTIVE`%d", i);
-      sdb[x].mlist.active[i] =
+      snprintf(buffer, sizeof(buffer), "NAME`%d", i);
+      sdb[x].mlist.name[i] =
         do_space_read_attr(ship, MISSILE_ATTR_NAME, buffer);
     }
   }

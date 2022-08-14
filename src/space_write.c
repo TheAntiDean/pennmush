@@ -125,12 +125,14 @@ do_space_db_write(dbref ship, dbref executor)
 
   for (i = 0; i < 6; ++i) {
 
-    snprintf(buffer, sizeof(buffer), "SHIELD`%d", i);
+    snprintf(buffer, sizeof(buffer), "SHIELDS`%d", i);
     do_space_write_attr(ship, ALLOCATE_ATTR_NAME, buffer,
                         sdb[x].alloc.shield[i]);
   }
 
   do_space_write_attr(ship, ALLOCATE_ATTR_NAME, "CLOAK", sdb[x].alloc.cloak);
+    do_space_write_attr(ship, ALLOCATE_ATTR_NAME, "BEAMS",
+                      sdb[x].alloc.beams);
   do_space_write_attr(ship, ALLOCATE_ATTR_NAME, "MISSILES",
                       sdb[x].alloc.missiles);
   do_space_write_attr(ship, ALLOCATE_ATTR_NAME, "SENSORS",
@@ -384,36 +386,36 @@ do_space_db_write(dbref ship, dbref executor)
   do_space_write_attr(ship, ENGINE_ATTR_NAME, "IMPULSE`DAMAGE",
                       sdb[x].engine.impulse_damage);
   do_space_write_attr(ship, ENGINE_ATTR_NAME, "IMPULSE`MAX",
-                      sdb[x].engine.impulse_damage);
+                      sdb[x].engine.impulse_max);
   do_space_write_attr(ship, ENGINE_ATTR_NAME, "IMPULSE`CRUISE",
-                      sdb[x].engine.impulse_damage);
+                      sdb[x].engine.impulse_cruise);
   do_space_write_attr(ship, ENGINE_ATTR_NAME, "IMPULSE`EXIST",
-                      sdb[x].engine.impulse_damage);
+                      sdb[x].engine.impulse_exist);
 
   /* STRUCTURE */
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "TYPE", sdb[x].structure.type);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "DISPLACEMENT",
-                      sdb[x].structure.type);
+                      sdb[x].structure.displacement);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "CARGO`HOLD",
-                      sdb[x].structure.type);
+                      sdb[x].structure.cargo_hold);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "CARGO`MASS",
-                      sdb[x].structure.type);
+                      sdb[x].structure.cargo_mass);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "SUPERSTRUCTURE",
-                      sdb[x].structure.type);
+                      sdb[x].structure.superstructure);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "SUPERSTRUCTURE`MAX",
-                      sdb[x].structure.type);
+                      sdb[x].structure.max_structure);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "LANDINGBAY`EXISTS",
-                      sdb[x].structure.type);
+                      sdb[x].structure.has_landing_pad);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "DOCKINGBAY`EXISTS",
-                      sdb[x].structure.type);
+                      sdb[x].structure.has_docking_bay);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "CANLAND",
-                      sdb[x].structure.type);
+                      sdb[x].structure.can_land);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "CANDOCK",
-                      sdb[x].structure.type);
+                      sdb[x].structure.can_dock);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "REPAIR",
-                      sdb[x].structure.type);
+                      sdb[x].structure.repair);
   do_space_write_attr(ship, STRUCTURE_ATTR_NAME, "REPAIR`MAX",
-                      sdb[x].structure.type);
+                      sdb[x].structure.max_repair);
 
   /* POWER */
   do_space_write_attr(ship, POWER_ATTR_NAME, "VERSION", sdb[x].power.version);
