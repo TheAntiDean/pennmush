@@ -172,7 +172,7 @@ dbref na_channel(dbref current, void *data);
 void notify_format(dbref player, const char *fmt, ...)
   __attribute__((__format__(__printf__, 2, 3)));
 
-char *mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
+char *chat_mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
               const char *argv[], const char *orig);
 
 int queue_newwrite(DESC *d, const char *b, int n);

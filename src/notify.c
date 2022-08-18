@@ -1631,11 +1631,11 @@ notify_internal(dbref target, dbref executor, dbref speaker, dbref *skips,
  * \param player the enactor
  * \param numargs the number of args in argv
  * \param argv array of args
- * \param orig the original string to mogrify
+ * \param orig the original string to chat_mogrify
  * \retval Mogrified text.
  */
 char *
-mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
+chat_mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
         const char *argv[], const char *orig)
 {
   static char buff[BUFFER_LEN];
@@ -1643,7 +1643,7 @@ mogrify(dbref mogrifier, const char *attrname, dbref player, int numargs,
   PE_REGS *pe_regs;
   buff[0] = '\0';
 
-  pe_regs = pe_regs_create(PE_REGS_ARG, "mogrify");
+  pe_regs = pe_regs_create(PE_REGS_ARG, "chat_mogrify");
   for (i = 0; i < numargs; i++) {
     if (argv[i]) {
       pe_regs_setenv_nocopy(pe_regs, i, argv[i]);

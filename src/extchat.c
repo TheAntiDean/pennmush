@@ -3827,11 +3827,11 @@ format_chat_speechtext(dbref player, CHAN *channel)
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`SPEECHTEXT")) {
       snprintf(buff, BUFFER_LEN, "%s",
-               mogrify(mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
+               chat_mogrify(mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
 
     } else if (atr_get(ancestor_mog, "MOGRIFY`SPEECHTEXT")) {
       snprintf(buff, BUFFER_LEN, "%s",
-        mogrify(ancestor_mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
+        chat_mogrify(ancestor_mog, "MOGRIFY`SPEECHTEXT", player, 5, argv, "says"));
     } else {
       snprintf(buff, BUFFER_LEN, "%s", "says");
     }
@@ -3853,10 +3853,10 @@ format_chat_nobuffer(dbref player, CHAN *channel)
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`CHANNAME")) {
       ret = parse_integer(
-        mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
+        chat_mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
     } else if (atr_get(ancestor_mog, "MOGRIFY`CHANNAME")) {
       ret = parse_integer(
-        mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
+        chat_mogrify(ancestor_mog, "MOGRIFY`NOBUFFER", player, 5, argv, ""));
 
     } else {
       ret = 0;
@@ -3878,13 +3878,13 @@ format_chat_pose(dbref player, CHAN *channel, char *msg)
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`FORMAT`POSE")) {
       snprintf(msg, BUFFER_LEN, "%s",
-               mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
+               chat_mogrify(mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
 
     } else if (atr_get(ancestor_mog, "MOGRIFY`FORMAT`POSE")) {
       // Exit, nothing to do.
       snprintf(
         msg, BUFFER_LEN, "%s",
-        mogrify(ancestor_mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
+        chat_mogrify(ancestor_mog, "MOGRIFY`FORMAT`POSE", player, 1, argv, msg));
 
     } 
   } 
@@ -3906,11 +3906,11 @@ format_chan_name(dbref player, CHAN *channel, char *msg)
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`CHANNAME")) {
       snprintf(msg, BUFFER_LEN, "%s",
-               mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
+               chat_mogrify(mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
 
     } else if (atr_get(ancestor_mog, "MOGRIFY`CHANNAME")) {
       snprintf(msg, BUFFER_LEN, "%s",
-               mogrify(ancestor_mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
+               chat_mogrify(ancestor_mog, "MOGRIFY`CHANNAME", player, 1, argv, msg));
 
     }
   }
@@ -3932,11 +3932,11 @@ format_chat_speech(dbref player, CHAN *channel, char *msg)
   if (GoodObject(mog) || GoodObject(ancestor_mog)) {
     if (atr_get(mog, "MOGRIFY`FORMAT`SPEECH")) { // @chan/mog has it
       snprintf(msg, BUFFER_LEN, "%s",
-               mogrify(mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
+               chat_mogrify(mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
     } else if (atr_get(ancestor_mog, "MOGRIFY`FORMAT`SPEECH")) { // ancestor has it
       snprintf(
         msg, BUFFER_LEN, "%s",
-        mogrify(ancestor_mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
+        chat_mogrify(ancestor_mog, "MOGRIFY`FORMAT`SPEECH", player, 1, argv, msg));
     }
   }
 
