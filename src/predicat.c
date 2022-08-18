@@ -222,10 +222,13 @@ real_did_it(dbref player, dbref thing, const char *what, const char *def,
             PE_REGS *pe_regs, int flags, int an_flags)
 {
 
+  
   char buff[BUFFER_LEN], *bp;
+  char *message = mush_malloc(BUFFER_LEN, "did_it_string");
   int attribs_used = 0;
   NEW_PE_INFO *pe_info = NULL;
   ufun_attrib ufun;
+
 
   if (!pe_info) {
     pe_info = make_pe_info("pe_info-real_did_it2");
@@ -256,12 +259,14 @@ real_did_it(dbref player, dbref thing, const char *what, const char *def,
         if (!call_ufun_int(&ufun, buff, thing, player, pe_info, pe_regs,
                            (void *) AName(player, an_flags, NULL)) &&
             buff[0])
-          notify_except2(player, loc, player, thing, buff, flags);
+          snprintf(message, "%s", player_mogrify(player, MOG_POSE, buff));
+          notify_except2(player, loc, player, thing, message, flags);
       } else if (odef && *odef) {
         bp = buff;
         safe_format(buff, &bp, "%s %s", AName(player, an_flags, NULL), odef);
         *bp = '\0';
-        notify_except2(player, loc, player, thing, buff, flags);
+        snprintf(message, "%s", player_mogrify(player, MOG_POSE, buff));
+        notify_except2(player, loc, player, thing, message, flags);
       }
     }
   }
@@ -272,6 +277,7 @@ real_did_it(dbref player, dbref thing, const char *what, const char *def,
   if (awhat && *awhat)
     attribs_used =
       queue_attribute_base(thing, awhat, player, 0, pe_regs, 0) || attribs_used;
+  mush_free(message, "did_it_string");
 
   return attribs_used;
 }

@@ -565,12 +565,13 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
   dbref loc = Location(player);
   dbref thing;
   char tbuf1[BUFFER_LEN], tbuf2[BUFFER_LEN], *tp;
+  char *message = malloc(BUFFER_LEN);
   long match_flags = MAT_NEIGHBOR | MAT_CHECK_KEYS | MAT_NEAR | MAT_ENGLISH;
 
   if (!Mobile(player))
     return;
   if (!IsRoom(loc) && !EnterOk(loc) && !controls(player, loc)) {
-    notify(player, T("Permission denied."));
+    notify(player, Mogrify(player, MOG_ACTION_ERROR, T("Permission denied.")));
     return;
   }
   if (Long_Fingers(player))
@@ -586,27 +587,27 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
       /* take care of possessive get (stealing) */
       box = parse_match_possessor(player, &objname, 0);
       if (box == NOTHING) {
-        notify(player, T("I don't see that here."));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR, T("I don't see that here.")));
         return;
       } else if (box == AMBIGUOUS) {
-        notify_format(player, T("I can't tell which %s."), boxname);
+        notify_format(player, Mogrify(player, MOG_ACTION_ERROR, T("I can't tell which %s.")), boxname);
         return;
       }
       thing =
         match_result_relative(player, box, objname, NOTYPE, MAT_OBJ_CONTENTS);
       if (thing == NOTHING) {
-        notify(player, T("I don't see that here."));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR, T("I don't see that here.")));
         return;
       } else if (thing == AMBIGUOUS) {
-        notify_format(player, T("I can't tell which %s."), what);
+        notify_format(player, Mogrify(player, MOG_ACTION_ERROR, T("I can't tell which %s.")), what);
         return;
       }
       if (box == player) {
-        notify(player, T("You already have that!"));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR, T("You already have that!")));
         return;
       }
       if (thing == player) {
-        notify(player, T("You cannot get yourself!"));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR, T("You cannot get yourself!")));
         return;
       }
       /* to steal something, you have to be able to get it, and the
@@ -623,13 +624,13 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
         strcpy(sourcename, AName(box, AN_MOVE, NULL));
         strcpy(stolen, AName(thing, AN_MOVE, NULL));
         strcpy(thief, AName(player, AN_MOVE, NULL));
-        notify_format(box, T("%s was taken from you."), stolen);
+        notify_format(box, Mogrify(player, MOG_POSE, T("%s was taken from you.")), stolen);
         notify_format(thing, T("%s took you."), thief);
         tp = tbuf1;
-        safe_format(tbuf1, &tp, T("You take %s from %s."), stolen, sourcename);
+        safe_format(tbuf1, &tp, Mogrify(player, MOG_POSE, T("You take %s from %s.")), stolen, sourcename);
         *tp = '\0';
         tp = tbuf2;
-        safe_format(tbuf2, &tp, T("takes %s from %s."), stolen, sourcename);
+        safe_format(tbuf2, &tp, Mogrify(player, MOG_POSE, T("takes %s from %s.")), stolen, sourcename);
         *tp = '\0';
         moveto(thing, player, player, "get");
         did_it_with(player, thing, "SUCCESS", tbuf1, "OSUCCESS", tbuf2,
@@ -639,9 +640,9 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
                     AN_MOVE);
       } else
         fail_lock(player, thing, Basic_Lock,
-                  T("You can't take that from there."), NOTHING);
+                  Mogrify(player, MOG_ACTION_ERROR, T("You can't take that from there.")), NOTHING);
     } else {
-      notify(player, T("I don't see that here."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("I don't see that here.")));
     }
     return;
   } else {
@@ -649,38 +650,38 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
         NOTHING) {
       dbref oldloc = Location(thing);
       if (oldloc == player) {
-        notify(player, T("You already have that!"));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You already have that!")));
         return;
       }
       if (Location(player) == thing) {
-        notify(player, T("It's all around you!"));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR,T("It's all around you!")));
         return;
       }
       if (recursive_member(player, thing, 0)) {
-        notify(player, T("Bad destination."));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR,T("Bad destination.")));
         return;
       }
       switch (Typeof(thing)) {
       case TYPE_PLAYER:
       case TYPE_THING:
         if (thing == player) {
-          notify(player, T("You cannot get yourself!"));
+          notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You cannot get yourself!")));
           return;
         }
         if (!eval_lock_with(player, oldloc, Take_Lock, pe_info)) {
           fail_lock(player, oldloc, Take_Lock,
-                    T("You can't take that from there."), NOTHING);
+                    Mogrify(player, MOG_ACTION_ERROR,T("You can't take that from there.")), NOTHING);
           return;
         }
         if (could_doit(player, thing, pe_info)) {
           moveto(thing, player, player, "get");
-          notify_format(thing, T("%s took you."), AName(player, AN_MOVE, NULL));
+          notify_format(thing, Mogrify(player, MOG_POSE,T("%s took you.")), AName(player, AN_MOVE, NULL));
           tp = tbuf1;
-          safe_format(tbuf1, &tp, T("You take %s."),
+          safe_format(tbuf1, &tp, Mogrify(player, MOG_POSE,T("You take %s.")),
                       AName(thing, AN_MOVE, NULL));
           *tp = '\0';
           tp = tbuf2;
-          safe_format(tbuf2, &tp, T("takes %s."), AName(thing, AN_MOVE, NULL));
+          safe_format(tbuf2, &tp, Mogrify(player, MOG_POSE,T("takes %s.")), AName(thing, AN_MOVE, NULL));
           *tp = '\0';
           did_it_with(player, thing, "SUCCESS", tbuf1, "OSUCCESS", tbuf2,
                       "ASUCCESS", NOTHING, oldloc, NOTHING, 0, AN_MOVE);
@@ -688,14 +689,14 @@ do_get(dbref player, const char *what, NEW_PE_INFO *pe_info)
                       "ARECEIVE", NOTHING, thing, NOTHING, NA_INTER_HEAR,
                       AN_MOVE);
         } else
-          fail_lock(player, thing, Basic_Lock, T("You can't pick that up."),
+          fail_lock(player, thing, Basic_Lock, Mogrify(player, MOG_ACTION_ERROR,T("You can't pick that up.")),
                     NOTHING);
         break;
       case TYPE_EXIT:
-        notify(player, T("You can't pick up exits."));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You can't pick up exits.")));
         return;
       default:
-        notify(player, T("You can't take that!"));
+        notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You can't take that!")));
         break;
       }
     }
@@ -720,50 +721,50 @@ do_drop(dbref player, const char *name, NEW_PE_INFO *pe_info)
   switch (thing = match_result(player, name, TYPE_THING | TYPE_PLAYER,
                                MAT_POSSESSION | MAT_ENGLISH | MAT_TYPE)) {
   case NOTHING:
-    notify(player, T("You don't have that!"));
+    notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You don't have that!")));
     return;
   case AMBIGUOUS:
-    notify(player, T("I don't know which you mean!"));
+    notify(player, Mogrify(player, MOG_ACTION_ERROR,T("I don't know which you mean!")));
     return;
   default:
     if (Location(thing) != player) {
       /* Shouldn't ever happen. */
-      notify(player, T("You can't drop that."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You can't drop that.")));
       return;
     } else if (IsExit(thing)) {
-      notify(player, T("Sorry, you can't drop exits."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("Sorry, you can't drop exits.")));
       return;
     } else if (!eval_lock_with(player, thing, Drop_Lock, pe_info)) {
       fail_lock(player, thing, Drop_Lock,
-                T("You can't seem to get rid of that."), NOTHING);
+                Mogrify(player, MOG_ACTION_ERROR,T("You can't seem to get rid of that.")), NOTHING);
       return;
     } else if (IsRoom(loc) &&
                !eval_lock_with(player, loc, Drop_Lock, pe_info)) {
       fail_lock(player, loc, Drop_Lock,
-                T("You can't seem to drop things here."), NOTHING);
+                Mogrify(player, MOG_ACTION_ERROR,T("You can't seem to drop things here.")), NOTHING);
       return;
     } else if (!eval_lock_with(player, loc, DropIn_Lock, pe_info)) {
       fail_lock(player, loc, DropIn_Lock,
-                T("You can't seem to drop things here."), NOTHING);
+                Mogrify(player, MOG_ACTION_ERROR,T("You can't seem to drop things here.")), NOTHING);
     } else if (Sticky(thing) && !Fixed(thing)) {
-      notify(thing, T("Dropped."));
+      notify(thing, Mogrify(player, MOG_POSE,T("Dropped.")));
       safe_tel(thing, HOME, 0, player, "drop");
     } else if ((Location(loc) != NOTHING) && IsRoom(loc) && !Sticky(loc) &&
                eval_lock_with(thing, loc, Dropto_Lock, pe_info)) {
       /* location has immediate dropto */
-      notify_format(thing, T("%s drops you."), AName(player, AN_MOVE, NULL));
+      notify_format(thing, Mogrify(player, MOG_POSE,T("%s drops you.")), AName(player, AN_MOVE, NULL));
       moveto(thing, Location(loc), player, "drop");
     } else {
-      notify_format(thing, T("%s drops you."), AName(player, AN_MOVE, NULL));
+      notify_format(thing, Mogrify(player, MOG_POSE,T("%s drops you.")), AName(player, AN_MOVE, NULL));
       moveto(thing, loc, player, "drop");
     }
     break;
   }
   tp = tbuf1;
-  safe_format(tbuf1, &tp, T("You drop %s."), AName(thing, AN_MOVE, NULL));
+  safe_format(tbuf1, &tp, Mogrify(player, MOG_POSE,T("You drop %s.")), AName(thing, AN_MOVE, NULL));
   *tp = '\0';
   tp = tbuf2;
-  safe_format(tbuf2, &tp, T("drops %s."), AName(thing, AN_MOVE, NULL));
+  safe_format(tbuf2, &tp, Mogrify(player, MOG_POSE,T("drops %s.")), AName(thing, AN_MOVE, NULL));
   *tp = '\0';
   did_it(player, thing, "DROP", tbuf1, "ODROP", tbuf2, "ADROP", NOTHING,
          AN_MOVE);
@@ -814,7 +815,7 @@ do_empty(dbref player, const char *what, NEW_PE_INFO *pe_info)
 
   /* Object to empty must be in player's inventory or location */
   if ((thing_loc != player) && (thing_loc != player_loc)) {
-    notify(player, T("You can't empty that from here."));
+    notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You can't empty that from here.")));
     return;
   }
   for (item = first_visible(player, Contents(thing)); GoodObject(item);
@@ -863,13 +864,13 @@ do_empty(dbref player, const char *what, NEW_PE_INFO *pe_info)
       count++;
       /* Get messages */
       if (thing != player) {
-        notify_format(thing, T("%s was taken from you."), itemname);
-        notify_format(item, T("%s took you."), playername);
+        notify_format(thing, Mogrify(player, MOG_POSE,T("%s was taken from you.")), itemname);
+        notify_format(item, Mogrify(player, MOG_POSE,T("%s took you.")), playername);
         tp = tbuf1;
-        safe_format(tbuf1, &tp, T("You take %s from %s."), itemname, thingname);
+        safe_format(tbuf1, &tp, Mogrify(player, MOG_POSE,T("You take %s from %s.")), itemname, thingname);
         *tp = '\0';
         tp = tbuf2;
-        safe_format(tbuf2, &tp, T("takes %s from %s."), itemname, thingname);
+        safe_format(tbuf2, &tp, Mogrify(player, MOG_POSE,T("takes %s from %s.")), itemname, thingname);
         *tp = '\0';
         moveto(item, player, player, "empty");
         did_it_with(player, item, "SUCCESS", tbuf1, "OSUCCESS", tbuf2,
@@ -886,17 +887,17 @@ do_empty(dbref player, const char *what, NEW_PE_INFO *pe_info)
                    !Sticky(thing_loc) &&
                    eval_lock_with(item, thing_loc, Dropto_Lock, pe_info)) {
           /* location has immediate dropto */
-          notify_format(item, T("%s drops you."), AName(player, AN_MOVE, NULL));
+          notify_format(item, Mogrify(player, MOG_POSE,T("%s drops you.")), AName(player, AN_MOVE, NULL));
           moveto(item, Location(thing_loc), player, "empty");
         } else {
-          notify_format(item, T("%s drops you."), AName(player, AN_MOVE, NULL));
+          notify_format(item, Mogrify(player, MOG_POSE,T("%s drops you.")), AName(player, AN_MOVE, NULL));
           moveto(item, thing_loc, player, "empty");
         }
         tp = tbuf1;
-        safe_format(tbuf1, &tp, T("You drop %s."), AName(item, AN_MOVE, NULL));
+        safe_format(tbuf1, &tp, Mogrify(player, MOG_POSE,T("You drop %s.")), AName(item, AN_MOVE, NULL));
         *tp = '\0';
         tp = tbuf2;
-        safe_format(tbuf2, &tp, T("drops %s."), AName(item, AN_MOVE, NULL));
+        safe_format(tbuf2, &tp, Mogrify(player, MOG_POSE,T("drops %s.")), AName(item, AN_MOVE, NULL));
         *tp = '\0';
         did_it(player, item, "DROP", tbuf1, "ODROP", tbuf2, "ADROP", NOTHING,
                AN_MOVE);
@@ -904,10 +905,10 @@ do_empty(dbref player, const char *what, NEW_PE_INFO *pe_info)
     }
   }
   if (count == 1)
-    notify_format(player, T("You remove 1 object from %s."),
+    notify_format(player, Mogrify(player, MOG_POSE,T("You remove 1 object from %s.")),
                   AName(thing, AN_MOVE, NULL));
   else
-    notify_format(player, T("You remove %d objects from %s."), count,
+    notify_format(player, Mogrify(player, MOG_POSE,T("You remove %d objects from %s.")), count,
                   AName(thing, AN_MOVE, NULL));
 
   return;
@@ -934,7 +935,7 @@ do_enter(dbref player, const char *what, NEW_PE_INFO *pe_info)
     return;
   switch (Typeof(thing)) {
   case TYPE_ROOM:
-    notify(player, T("Permission denied."));
+    notify(player, Mogrify(player, MOG_ACTION_ERROR,T("Permission denied.")));
     return;
   case TYPE_EXIT:
     do_move(player, what, MOVE_NORMAL, pe_info);
@@ -944,18 +945,18 @@ do_enter(dbref player, const char *what, NEW_PE_INFO *pe_info)
     loc = Location(player);
     /* Only privileged players may enter something remotely */
     if ((Location(thing) != loc) && !Hasprivs(player)) {
-      notify(player, T("I don't see that here."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("I don't see that here.")));
       return;
     }
     /* the object must pass the lock. Also, the thing being entered */
     /* has to be controlled, or must be enter_ok */
     if (!((EnterOk(thing) || controls(player, thing)) &&
           (eval_lock_with(player, thing, Enter_Lock, pe_info)))) {
-      fail_lock(player, thing, Enter_Lock, T("Permission denied."), NOTHING);
+      fail_lock(player, thing, Enter_Lock, Mogrify(player, MOG_ACTION_ERROR,T("Permission denied.")), NOTHING);
       return;
     }
     if (thing == player) {
-      notify(player, T("Sorry, you must remain beside yourself!"));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("Sorry, you must remain beside yourself!")));
       return;
     }
     /* Move the leader */
@@ -980,7 +981,7 @@ do_leave(dbref player, NEW_PE_INFO *pe_info)
     return;
   if (IsRoom(loc) || IsGarbage(loc) || IsGarbage(Location(loc)) ||
       NoLeave(loc) || !eval_lock_with(player, loc, Leave_Lock, pe_info)) {
-    fail_lock(player, loc, Leave_Lock, T("You can't leave."), NOTHING);
+    fail_lock(player, loc, Leave_Lock, Mogrify(player, MOG_ACTION_ERROR,T("You can't leave.")), NOTHING);
     return;
   }
   enter_room(player, Location(loc), 0, player, "leave");
@@ -1057,33 +1058,33 @@ do_follow(dbref player, const char *arg, NEW_PE_INFO *pe_info)
     /* Who do we want to follow? */
     leader = match_result(player, arg, NOTYPE, MAT_NEARBY);
     if (leader == AMBIGUOUS) {
-      notify(player, T("I can't tell which one to follow."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("I can't tell which one to follow.")));
       return;
     }
     if (!GoodObject(leader) || !GoodObject(Location(player)) ||
         (IsPlayer(leader) && !Connected(leader)) ||
         ((DarkLegal(leader) || (Dark(Location(player)) && !Light(leader))) &&
          !See_All(player))) {
-      notify(player, T("You don't see that here."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You don't see that here.")));
       return;
     }
     if (!Mobile(leader)) {
-      notify(player, T("You can only follow players and things."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You can only follow players and things.")));
       return;
     }
     if (leader == player) {
-      notify(player, T("You chase your tail for a while and feel silly."));
+      notify(player, Mogrify(player, MOG_ACTION_ERROR,T("You chase your tail for a while and feel silly.")));
       return;
     }
     /* Are we already following them? */
     if (is_following(player, leader)) {
-      notify_format(player, T("You're already following %s."),
+      notify_format(player, Mogrify(player, MOG_ACTION_ERROR,T("You're already following %s.")),
                     AName(leader, AN_SYS, NULL));
       return;
     }
     /* Ok, are we allowed to follow them? */
     if (!eval_lock_with(player, leader, Follow_Lock, pe_info)) {
-      fail_lock(player, leader, Follow_Lock, T("You're not allowed to follow."),
+      fail_lock(player, leader, Follow_Lock, Mogrify(player, MOG_ACTION_ERROR,T("You're not allowed to follow.")),
                 Location(player));
       return;
     }
@@ -1091,8 +1092,8 @@ do_follow(dbref player, const char *arg, NEW_PE_INFO *pe_info)
     add_follow(leader, player, 1);
   } else {
     /* List followers */
-    notify_format(player, T("You are following: %s"), list_following(player));
-    notify_format(player, T("You are followed by: %s"), list_followers(player));
+    notify_format(player, Mogrify(player, MOG_POSE,T("You are following: %s")), list_following(player));
+    notify_format(player, Mogrify(player, MOG_POSE,T("You are followed by: %s")), list_followers(player));
   }
 }
 
@@ -1112,16 +1113,16 @@ do_unfollow(dbref player, const char *arg)
     /* Who do we want to stop following? */
     leader = match_result(player, arg, NOTYPE, MAT_OBJECTS);
     if (leader == AMBIGUOUS) {
-      notify(player, T("I can't tell which one to stop following."));
+      notify(player,  Mogrify(player, MOG_ACTION_ERROR,T("I can't tell which one to stop following.")));
       return;
     }
     if (!GoodObject(leader)) {
-      notify(player, T("I don't see that here."));
+      notify(player,  Mogrify(player, MOG_ACTION_ERROR,T("I don't see that here.")));
       return;
     }
     /* Are we following them? */
     if (!is_following(player, leader)) {
-      notify_format(player, T("You're not following %s."),
+      notify_format(player,  Mogrify(player, MOG_ACTION_ERROR,T("You're not following %s.")),
                     AName(leader, AN_SYS, NULL));
       return;
     }
@@ -1130,7 +1131,7 @@ do_unfollow(dbref player, const char *arg)
   } else {
     /* Stop following everyone */
     clear_following(player, 1);
-    notify(player, T("You stop following anyone."));
+    notify(player, Mogrify(player, MOG_POSE, T("You stop following anyone.")));
   }
 }
 
@@ -1150,12 +1151,12 @@ do_dismiss(dbref player, const char *arg)
     /* Who do we want to stop leading? */
     follower = match_result(player, arg, NOTYPE, MAT_OBJECTS);
     if (!GoodObject(follower)) {
-      notify(player, T("I don't recognize who you want to dismiss."));
+      notify(player,  Mogrify(player, MOG_ACTION_ERROR,T("I don't recognize who you want to dismiss.")));
       return;
     }
     /* Are we leading them? */
     if (!is_following(follower, player)) {
-      notify_format(player, T("%s isn't following you."),
+      notify_format(player,  Mogrify(player, MOG_ACTION_ERROR,T("%s isn't following you.")),
                     AName(follower, AN_SYS, NULL));
       return;
     }
@@ -1164,7 +1165,7 @@ do_dismiss(dbref player, const char *arg)
   } else {
     /* Stop leading everyone */
     clear_followers(player, 1);
-    notify(player, T("You dismiss all your followers."));
+    notify(player,  Mogrify(player, MOG_POSE,T("You dismiss all your followers.")));
   }
 }
 
@@ -1184,12 +1185,12 @@ do_desert(dbref player, const char *arg)
     /* Who do we want to stop leading? */
     who = match_result(player, arg, NOTYPE, MAT_OBJECTS);
     if (!GoodObject(who)) {
-      notify(player, T("I don't recognize who you want to desert."));
+      notify(player,  Mogrify(player, MOG_ACTION_ERROR,T("I don't recognize who you want to desert.")));
       return;
     }
     /* Are we following or leading them? */
     if (!is_following(who, player) && !is_following(player, who)) {
-      notify_format(player, T("%s isn't following you, nor vice versa."),
+      notify_format(player,  Mogrify(player, MOG_ACTION_ERROR,T("%s isn't following you, nor vice versa.")),
                     AName(who, AN_SYS, NULL));
       return;
     }
@@ -1200,7 +1201,7 @@ do_desert(dbref player, const char *arg)
     /* Stop leading everyone */
     clear_followers(player, 1);
     clear_following(player, 1);
-    notify(player, T("You desert everyone you're leading or following."));
+    notify(player,  Mogrify(player, MOG_POSE,T("You desert everyone you're leading or following.")));
   }
 }
 
@@ -1251,7 +1252,7 @@ add_follow(dbref leader, dbref follower, int noisy)
   add_follower(leader, follower);
   add_following(follower, leader);
   if (noisy) {
-    snprintf(msg, sizeof msg, T("You begin following %s."),
+    snprintf(msg, sizeof msg,  Mogrify(leader, MOG_POSE,T("You begin following %s.")),
              AName(leader, AN_SYS, NULL));
     notify_format(leader, T("%s begins following you."),
                   AName(follower, AN_SYS, NULL));
@@ -1299,9 +1300,9 @@ del_follow(dbref leader, dbref follower, int noisy)
   del_follower(leader, follower);
   del_following(follower, leader);
   if (noisy) {
-    snprintf(msg, sizeof msg, T("You stop following %s."),
+    snprintf(msg, sizeof msg, Mogrify(leader, MOG_POSE,T("You stop following %s.")),
              AName(leader, AN_SYS, NULL));
-    notify_format(leader, T("%s stops following you."),
+    notify_format(leader, Mogrify(leader, MOG_POSE,T("%s stops following you.")),
                   AName(follower, AN_SYS, NULL));
     did_it(follower, leader, "UNFOLLOW", msg, "OUNFOLLOW", NULL, "AUNFOLLOW",
            NOTHING, AN_SYS);
@@ -1415,7 +1416,7 @@ clear_followers(dbref leader, int noisy)
     if (GoodObject(flwr)) {
       del_following(flwr, leader);
       if (noisy)
-        notify_format(flwr, T("You stop following %s."),
+        notify_format(flwr, Mogrify(leader, MOG_POSE,T("You stop following %s.")),
                       AName(leader, AN_SYS, NULL));
     }
   }
@@ -1444,7 +1445,7 @@ clear_following(dbref follower, int noisy)
     if (GoodObject(ldr)) {
       del_follower(ldr, follower);
       if (noisy)
-        notify_format(ldr, T("%s stops following you."),
+        notify_format(ldr, Mogrify(follower, MOG_POSE,T("%s stops following you.")),
                       AName(follower, AN_SYS, NULL));
     }
   }
@@ -1482,7 +1483,7 @@ follower_command(dbref leader, dbref loc, const char *com, dbref toward)
         (!(DarkLegal(leader) || (Dark(Location(follower)) && !Light(leader))) ||
          See_All(follower))) {
       /* This is a follower who was in the room with the leader. Follow. */
-      notify_format(follower, T("You follow %s."), AName(leader, AN_SYS, NULL));
+      notify_format(follower, Mogrify(leader, MOG_POSE,T("You follow %s.")), AName(leader, AN_SYS, NULL));
       parse_que(follower, leader, combuf, NULL);
     }
   }

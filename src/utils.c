@@ -731,6 +731,18 @@ shortname(dbref it)
   return n;
 }
 
+char * format_name(dbref thing)
+{
+  static char name[BUFFER_LEN], *np;
+  char *namef = mush_malloc(BUFFER_LEN, "string_fname");
+  memset(name,0, sizeof(name));
+  nameformat(thing, thing, namef, Name(thing),1, NULL);
+  snprintf(name, BUFFER_LEN, "%s", namef);
+  mush_free(namef, "string_fname");
+  return name;
+}
+
+
 #define set_mp(x)                                                              \
   if (had_moniker)                                                             \
   *had_moniker = x

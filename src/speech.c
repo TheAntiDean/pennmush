@@ -37,16 +37,31 @@ static void do_one_remit(dbref executor, dbref speaker, const char *target,
 dbref na_zemit(dbref current, void *data);
 
 
-const char*say_mogrify(dbref player, char* attr, char *msg)
+char* player_mogrify(dbref player, char* attr, char *msg)
 {
-  char *temp = "";
-  
-  
-  static char *regs[10];
-  regs[0]= msg;
-  regs[2] = unparse_dbref(player);
+  static char buff[BUFFER_LEN];
+  int i;
+  PE_REGS *pe_regs;
+  buff[0] = '\0';
 
-  return mogrify(ANCESTOR_PLAYER, attr, player,2,regs, msg);
+  pe_regs = pe_regs_create(PE_REGS_ARG, "mogrify");
+
+  pe_regs_setenv_nocopy(pe_regs, 0, msg);
+  pe_regs_setenv_nocopy(pe_regs, 1, unparse_dbref);
+
+
+  i = call_attrib(ANCESTOR_PLAYER, attr, buff, player, NULL, pe_regs);
+
+  pe_regs_free(pe_regs);
+
+  if (i) {
+    if (buff[0]) {
+      return buff;
+    }
+  }
+  snprintf(buff, BUFFER_LEN, "%s", msg);
+
+  return buff;
 
 
 }
@@ -187,9 +202,8 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   dbref loc;
   PE_REGS *pe_regs;
   char modmsg[BUFFER_LEN];
-  char mog[BUFFER_LEN];
-  char says[BUFFER_LEN];
-  char *sp;
+  char *mog = mush_malloc(BUFFER_LEN, "say_string");
+  char *says = mush_malloc(BUFFER_LEN, "say_string");
   int mod = 0;
   loc = speech_loc(player);
   if (!GoodObject(loc))
@@ -219,22 +233,23 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
     
   const char *argv[10] = {NULL};
   memset(mog, 0, sizeof(mog));
-  char *tmpMsg = mush_malloc(BUFFER_LEN, "string");
-  snprintf(mog, BUFFER_LEN, "%s",say_mogrify(player, MOG_SPEECH,strdup(message)));
+
+  snprintf(mog, BUFFER_LEN, "%s",player_mogrify(player, MOG_SPEECH,strdup(message)));
                  
   
   /* notify everybody */
   
-  sp = says;
+
   snprintf(says, BUFFER_LEN, T("You say \"%s\""), mog);
-  notify_format(player, say_mogrify(player, MOG_POSE ,says));
+  notify_format(player, player_mogrify(player, MOG_POSE ,says));
 
 
   snprintf(says, BUFFER_LEN, T("%s says \"%s\""),spname(player), mog);
   
-  notify_except(player, loc, player, say_mogrify(player, MOG_POSE,says), NA_INTER_HEAR);
-  mush_free(tmpMsg, "string");
-  *sp = '\0';
+  notify_except(player, loc, player, player_mogrify(player, MOG_POSE,says), NA_INTER_HEAR);
+  mush_free(says, "say_string");
+  mush_free(mog, "say_string");
+
 }
 
 
@@ -648,7 +663,8 @@ void
 do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
 {
   dbref loc;
-  char tbuf2[BUFFER_LEN], message[BUFFER_LEN], *mp;
+  char tbuf2[BUFFER_LEN];
+  char *message = mush_malloc(BUFFER_LEN, "pose_string");
   PE_REGS *pe_regs;
   int mod = 0;
 
@@ -672,13 +688,14 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
   tbuf1 = remove_markup(tbuf1, NULL);
   pe_regs_free(pe_regs);
 
-  mp = message;
-  safe_format(message, &mp, (nospace ? "%s%s" : "%s %s"), 
+  snprintf(message, BUFFER_LEN, (nospace ? "%s%s" : "%s %s"), 
               spname(player), tbuf1);
-  *mp = '\0';
+  
 
   notify_anything(player, player, na_loc, &loc, NULL,
-                  NA_INTER_HEAR | NA_PROPAGATE, say_mogrify(player, MOG_POSE, message), NULL, loc, NULL);
+                  NA_INTER_HEAR | NA_PROPAGATE, player_mogrify(player, MOG_POSE, message), NULL, loc, NULL);
+
+  mush_free(message, "pose_string");
 
 }
 

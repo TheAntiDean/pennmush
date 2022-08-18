@@ -28,6 +28,8 @@ extern dbref first_free; /* pointer to free list */
 #define REFDB(x) &db[x]
 
 #define Name(x) (db[(x)].name)
+#define CName(x) format_name(x)
+#define Mogrify(player,type,message) player_mogrify(player, type, message)
 #define Flags(x) (db[(x)].flags)
 #define Owner(x) (db[(x)].owner)
 
@@ -375,7 +377,7 @@ extern const char EOD[];
 #define AnsiNameWrapper(x, accents, level, p, len)                             \
   ((moniker_type(x) && (options.monikers & level))                             \
      ? ansi_name(x, accents, p, len)                                           \
-     : (accents ? accented_name(x) : Name(x)))
+     : (accents ? accented_name(x) : CName(x)))
 #define AName(x, level, p) AnsiNameWrapper(x, 0, level, p, 0)
 #define AaName(x, level, p) AnsiNameWrapper(x, 1, level, p, 0)
 

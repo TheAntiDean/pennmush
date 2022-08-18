@@ -5954,7 +5954,7 @@ do_whofile_mortal(dbref player)
   static void announce_connect(DESC * d, int isnew, int num)
   {
     dbref loc;
-    char tbuf1[BUFFER_LEN];
+    char * tbuf1 = mush_malloc(BUFFER_LEN, "string_connected");
     char *message;
     PE_REGS *pe_regs;
     dbref zone;
@@ -5977,12 +5977,13 @@ do_whofile_mortal(dbref player)
     /* Redundant, but better for translators */
     if (Hidden(d)) {
       message =
-        (num > 1) ? T("has HIDDEN-reconnected.") : T("has HIDDEN-connected.");
+        (num > 1) ? T("has reconnected. (Dark)") : T("has connected. (Dark)");
     } else {
       message = (num > 1) ? T("has reconnected.") : T("has connected.");
     }
-    snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN,
-             AName(player, AN_ANNOUNCE, NULL), message, ANSI_HIWHITE);
+    snprintf(tbuf1, BUFFER_LEN, "%s %s",
+             AName(player, AN_ANNOUNCE, NULL), message);
+    
 
     /* send out messages */
     if (Suspect(player))
@@ -5993,6 +5994,8 @@ do_whofile_mortal(dbref player)
                      tbuf1);
     } else
       flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
+
+      snprintf(tbuf1, BUFFER_LEN, "%s", player_mogrify(player, MOG_POSE, tbuf1));
 
     if (ANNOUNCE_CONNECTS)
       chat_player_announce(d, message, 0);
@@ -6061,6 +6064,7 @@ do_whofile_mortal(dbref player)
       (void) queue_attribute_base(obj, "ACONNECT", player, 0, pe_regs, 0);
     }
     pe_regs_free(pe_regs);
+    mush_free(tbuf1, "string_connected");
   }
 
   static void announce_disconnect(DESC * saved, const char *reason,
@@ -6069,7 +6073,7 @@ do_whofile_mortal(dbref player)
     dbref loc;
     int numleft = 0;
     DESC *d;
-    char tbuf1[BUFFER_LEN];
+    char *tbuf1 = mush_malloc(BUFFER_LEN, "string_disconnect");
     char *message;
     dbref zone, obj;
     dbref player;
@@ -6179,14 +6183,15 @@ do_whofile_mortal(dbref player)
 
     /* Redundant, but better for translators */
     if (Hidden(saved)) {
-      message = (numleft) ? T("has partially HIDDEN-disconnected.")
-                          : T("has HIDDEN-disconnected.");
+      message = (numleft) ? T("has partially disconnected. (Dark)")
+                          : T("has disconnected. (Dark)");
     } else {
       message =
         (numleft) ? T("has partially disconnected.") : T("has disconnected.");
     }
-    snprintf(tbuf1, BUFFER_LEN, "%s%s %s%s", ANSI_CYAN,
-             AName(player, AN_ANNOUNCE, NULL), message, ANSI_ENDALL);
+    snprintf(tbuf1, BUFFER_LEN, "%s %s",
+             AName(player, AN_ANNOUNCE, NULL), message);
+    snprintf(tbuf1, BUFFER_LEN, "%s", player_mogrify(player, MOG_POSE, tbuf1));
 
     if (ANNOUNCE_CONNECTS) {
       if (!Dark(player))
@@ -6196,7 +6201,7 @@ do_whofile_mortal(dbref player)
       /* notify channels */
       chat_player_announce(saved, message, !numleft);
     }
-
+    
     /* Monitor broadcasts */
     if (Suspect(player))
       flag_broadcast("WIZARD", 0, T("GAME: Suspect %s"), tbuf1);
@@ -6211,8 +6216,10 @@ do_whofile_mortal(dbref player)
       (void) atr_add(player, "LASTLOGOUT", show_time(mudtime, 0), GOD, 0);
     }
 
+
     /* local_disconnect expects num to include logged out sock, for backwards
      * compat. */
+    mush_free(tbuf1, "string_disconnect");
     local_disconnect(player, numleft + 1);
   }
 

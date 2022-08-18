@@ -96,6 +96,7 @@ char *WIN32_CDECL tprintf(const char *fmt, ...)
 #define MOG_SPEECH "MOGRIFY`FORMAT`SPEECH"
 #define MOG_POSE "MOGRIFY`FORMAT`POSE"
 #define MOG_SPEECHTEXT "MOGRIFY`SPEECHTEXT"
+#define MOG_ACTION_ERROR "MOGRIFY`FORMAT`ACTION`ERROR"
 
 /** A notify_anything lookup function type definition */
 typedef dbref (*na_lookup)(dbref, void *);
