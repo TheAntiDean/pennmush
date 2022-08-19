@@ -582,7 +582,7 @@ PACKAGE_STRING=
 PACKAGE_BUGREPORT=
 PACKAGE_URL=
 
-ac_unique_file="configure.in"
+ac_unique_file="configure.ac"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -648,6 +648,8 @@ PKG_CONFIG
 CURL_LIBS
 CURL_CFLAGS
 CURL_CONFIG
+PYTHON_LIB
+PYTHON_INCLUDE_DIR
 PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC

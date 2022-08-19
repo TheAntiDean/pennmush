@@ -4,7 +4,8 @@
 ### The actual tests used are in ./aclocal.m4. DO NOT AUTO-GENERATE
 ### that file with aclocal.
 
-AC_INIT(configure.in)
+AC_INIT
+AC_CONFIG_SRCDIR([configure.in])
 AC_CONFIG_HEADERS(config.h)
 AC_CANONICAL_BUILD
 
@@ -20,7 +21,7 @@ AC_LANG(C)
 
 AC_PATH_PROG(CAT, cat)
 AC_PROG_CC([gcc clang])
-AC_PROG_CC_C99([gcc clang])
+AC_REQUIRE(AC_PROG_CC)
 AC_PATH_PROG(CHMOD, chmod)
 AC_PATH_PROG(CP, cp)
 AC_PATH_PROG(ECHO, echo)
@@ -31,9 +32,14 @@ AC_PATH_PROG(PERL, perl)
 if test -z "${PERL}"; then
    AC_MSG_ERROR([perl is required to build and run PennMUSH])
 fi
+
+
 # In case anbody's still using a truely ancient version of perl that doesn't
 # support things we use.
 AX_PROG_PERL_VERSION([5.10.0])
+AX_PROG_PYTHON_VERSION([3.0])
+AX_PYTHON
+
 
 AC_PATH_PROG(TEST, test)
 AC_PATH_PROG(TOUCH, touch)
@@ -137,10 +143,14 @@ AC_DEFINE_UNQUOTED([SQLITE_DEFAULT_WORKER_THREADS], $CPU_COUNT)
 # Usually there's no need to check for standard C89 headers.
 
 # <stdint.h> is checked by this.
-AC_HEADER_STDC
+#AC_CHECK_INCLUDES_DEFAULT
+#AC_PROG_EGREP
+
 AC_HEADER_STDBOOL
 AC_HEADER_SYS_WAIT
-AC_HEADER_TIME
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+
+
 AC_CHECK_HEADERS([sys/stat.h sys/time.h sys/types.h sys/eventfd.h])
 AC_CHECK_HEADERS([sys/socket.h arpa/inet.h libintl.h netdb.h netinet/tcp.h])
 AC_CHECK_HEADERS([netinet/in.h sys/un.h sys/resource.h sys/event.h sys/uio.h])
@@ -374,14 +384,12 @@ AC_CHECK_TYPES([struct sockaddr_in6, struct xucred], [], [], [
 
 # Will toupper()ing an already uppercase character be a problem?
 AC_MSG_CHECKING([if it is safe to toupper uppers])
-AC_TRY_COMPILE(
-[#include <ctype.h>],
-[
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <ctype.h>]], [[
 if (toupper('A') == 'A')
 	return 0;
 else
 	return 1;
-], ac_safe_toupper=yes, ac_safe_toupper=no)
+]])],[ac_safe_toupper=yes],[ac_safe_toupper=no])
 AC_MSG_RESULT([$ac_safe_toupper])
 if test "x$ac_safe_toupper" = xyes; then
 	AC_DEFINE(HAVE_SAFE_TOUPPER)
