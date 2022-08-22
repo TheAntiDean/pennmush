@@ -1,6 +1,7 @@
 #include "conf.h"
 #include "space.h"
 #include "notify.h"
+#include "websock.h"
 
 extern DESC *lookup_desc(dbref executor, const char *name);
 cJSON *get_ship_power(int shipSDB);
@@ -13,60 +14,58 @@ space_json_iterate()
 {
   for (int x = MIN_SPACE_OBJECTS; x <= max_space_objects; ++x) {
     ATTR *a, *b;
-    char *q, *pq, show_message[BUFFER_LEN], *smp;
-    smp = show_message;
+    char *q, *pq, show_message[BUFFER_LEN];
+    
     dbref console, user;
     memset(show_message, 0, sizeof(show_message));
     if (!sdb[x].status.active)
-        continue;
-      
-      get_space_status("ship", NULL, x, NULL, NULL);
+      continue;
 
-      a = atr_get(sdb[x].object, CONSOLE_ATTR_NAME);
+    get_space_status("ship", NULL, x, NULL, NULL);
 
-      if (a && *AL_STR(a)) { // Attribute exists AND isn't empty
+    a = atr_get(sdb[x].object, CONSOLE_ATTR_NAME);
 
-        q = safe_atr_value(a, "space.consoles.all");
-        pq = trim_space_sep(q, ' ');
-        while (pq) {
-          console = parse_dbref(split_token(&pq, ' '));
+    if (a && *AL_STR(a)) { // Attribute exists AND isn't empty
 
-          if (console != NOTHING) {
-            b = atr_get(console, CONSOLE_USER_ATTR_NAME);
-            if (b != NULL) {
-              user = parse_dbref(atr_value(b));
-              if (GoodObject(user) &&
-                  has_flag_by_name(user, "SPACE-JSON", TYPE_PLAYER)) {
-                DESC *match = lookup_desc(user, Name(user));
-                if (match) {
-                  if (match->conn_flags & CONN_WEBSOCKETS) {
-                    send_websocket_object(
-                      match, "ship",
-                      get_space_status("ship", NULL, x, NULL, NULL));
-                  }
-                  if (match->conn_flags & CONN_GMCP) {
-                    send_oob(match, "ship",
-                             get_space_status("ship", NULL, x, NULL, NULL));
-                  }
+      q = safe_atr_value(a, "space.consoles.all");
+      pq = trim_space_sep(q, ' ');
+      while (pq) {
+        console = parse_dbref(split_token(&pq, ' '));
+
+        if (console != NOTHING) {
+          b = atr_get(console, CONSOLE_USER_ATTR_NAME);
+          if (b != NULL) {
+            user = parse_dbref(atr_value(b));
+            if (GoodObject(user) &&
+                has_flag_by_name(user, "SPACE-JSON", TYPE_PLAYER)) {
+              DESC *match = lookup_desc(user, Name(user));
+              if (match) {
+                if (match->conn_flags & CONN_WEBSOCKETS) {
+                  send_websocket_object(
+                    match, "ship",
+                    get_space_status("ship", NULL, x, NULL, NULL));
+                }
+                if (match->conn_flags & CONN_GMCP) {
+                  send_oob(match, "ship",
+                           get_space_status("ship", NULL, x, NULL, NULL));
                 }
               }
             }
           }
         }
-        mush_free(q, "space.consoles.all");
-        // mush_free(show_message, "console_message");
-      } else {
-        write_spacelog(
-          GOD, sdb[x].object,
-          tprintf(
-            "CONSOLE_NOTIFY_ALL: Missing or Empty %s ATTRIBUTE on #%d (%d)",
-            CONSOLE_ATTR_NAME, sdb[x].object, x));
-        return;
       }
-      // mush_free(q, "space.consoles.some");
+      mush_free(q, "space.consoles.all");
       // mush_free(show_message, "console_message");
+    } else {
+      write_spacelog(
+        GOD, sdb[x].object,
+        tprintf("CONSOLE_NOTIFY_ALL: Missing or Empty %s ATTRIBUTE on #%d (%d)",
+                CONSOLE_ATTR_NAME, sdb[x].object, x));
       return;
-    
+    }
+    // mush_free(q, "space.consoles.some");
+    // mush_free(show_message, "console_message");
+    return;
   }
 }
 FUNCTION(fun_aspace_jsondata)
@@ -104,7 +103,7 @@ get_space_status(char *system, char *subsystem, int shipSDB, char *buff,
       cJSON_AddItemToObject(ship, "Contacts", get_sensor_report(shipSDB));
       return ship;
     } else {
-      safe_format(buff, bp, "#-1 %s IS NOT A VALID ARGUMENT 2 FOR SPACEDATA()");
+      safe_format(buff, bp, "#-1 %s IS NOT A VALID ARGUMENT 2 FOR SPACEDATA()",system);
     }
 
   } else {

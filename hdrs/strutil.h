@@ -131,7 +131,7 @@ char *replace_string(const char *restrict old, const char *restrict newbit,
 char *replace_string2(const char *const old[2], const char *const newbits[2],
                       const char *restrict string) __attribute_malloc__;
 
-char *copy_up_to(char *RESTRICT dest, const char *RESTRICT src, char c);
+char *copy_up_to(char *restrict dest, const char *restrict src, char c);
 char *trim_space_sep(char *str, char sep);
 int do_wordcount(char *str, char sep);
 char *remove_word(char *list, char *word, char sep);

@@ -8,6 +8,11 @@
 /* This stuff is included here, cos all the space_*.c files would
  * normally include them
  */
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wcast-function-type"
+#pragma GCC diagnostic ignored "-Wpedantic"
 
 #include <ctype.h>
 #include <string.h>
@@ -30,7 +35,6 @@
 #include "intrface.h"
 #include "strutil.h"
 #include "parse.h"
-#include "confmagic.h"
 #include "dbdefs.h"
 #include "flags.h"
 #include "match.h"
@@ -311,13 +315,10 @@ struct spaceconfig {
 };
 
 
-#if __GNUC__ > 10
+
 extern intmap *border_map;
 extern HASHTAB aspace_consoles;
-#else
-intmap *border_map;
-HASHTAB aspace_consoles;
-#endif
+
 
 typedef struct spaceconfig SPACETAB;
 extern SPACETAB configstruct;

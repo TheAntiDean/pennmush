@@ -68,9 +68,9 @@ int good_atr_name(char const *s);
 ATTR *atr_match(char const *string);
 ATTR *atr_sub_branch(ATTR *branch);
 ATTR *atr_sub_branch_prev(ATTR *branch);
-void atr_new_add(dbref thing, char const *RESTRICT atr, char const *RESTRICT s,
+void atr_new_add(dbref thing, char const *restrict atr, char const *restrict s,
                  dbref player, uint32_t flags, uint8_t derefs, bool makeroots);
-atr_err atr_add(dbref thing, char const *RESTRICT atr, char const *RESTRICT s,
+atr_err atr_add(dbref thing, char const *restrict atr, char const *restrict s,
                 dbref player, uint32_t flags);
 atr_err atr_clr(dbref thing, char const *atr, dbref player);
 atr_err wipe_atr(dbref thing, char const *atr, dbref player);
@@ -104,7 +104,7 @@ int atr_comm_match(dbref thing, dbref player, int type, int end,
 int cmdatr_lock_check(dbref player, dbref thing, const char *atrname, char const *str, MQUE *from_queue);
 int one_comm_match(dbref thing, dbref player, const char *atr, const char *str,
                    MQUE *from_queue, int queue_type, PE_REGS *pe_regs_parent);
-int do_set_atr(dbref thing, char const *RESTRICT atr, char const *RESTRICT s,
+int do_set_atr(dbref thing, char const *restrict atr, char const *restrict s,
                dbref player, uint32_t flags);
 void do_atrlock(dbref player, char const *src, char const *action);
 int do_atrchown(dbref player, char const *arg1, char const *arg2);

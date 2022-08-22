@@ -1149,7 +1149,8 @@ FUNCTION(fun_ln)
 /* Cygwin has a log2 that configure doesn't detect. Macro, maybe? */
 #if !defined(HAVE_LOG2) && !defined(__CYGWIN__)
 static inline double
-log2(double x)
+ log2(double x)
+
 {
   return log(x) / log(2.0);
 }

@@ -105,7 +105,7 @@ init_conndb(bool rebooting)
   int app_id, version;
   char *err;
 
-  connlog_db = open_sql_db(options.connlog_db, 0);
+  connlog_db = open_sql_db(options.connlog_db, 1);
 
   if (!connlog_db) {
     return 0;

@@ -2134,6 +2134,7 @@ spellfix.o: ../hdrs/sqlite3.h
 sql.o: ../config.h
 sql.o: ../confmagic.h
 sql.o: ../options.h
+sql.o: ../hdrs/sql.h
 sql.o: ../hdrs/copyrite.h
 sql.o: ../hdrs/sqlite3.h
 sql.o: ../hdrs/ansi.h

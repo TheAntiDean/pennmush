@@ -8,7 +8,6 @@ double
 do_space_read_attr(dbref ship, char *baseName, char *atrName)
 {
   ATTR *a;
-  double ret;
   char buff[BUFFER_LEN];
   memset(buff, 0, sizeof(buff));
 

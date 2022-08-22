@@ -21,7 +21,6 @@
 #include "intrface.h"
 #include "strutil.h"
 #include "parse.h"
-#include "confmagic.h"
 #include "dbdefs.h"
 #include "flags.h"
 #include "match.h"

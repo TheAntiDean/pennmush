@@ -753,7 +753,7 @@ create_atr(dbref thing, char const *atr_name)
  *                  doesn't exist, should we create it instead of aborting?
  */
 void
-atr_new_add(dbref thing, const char *RESTRICT atr, const char *RESTRICT s,
+atr_new_add(dbref thing, const char *restrict atr, const char *restrict s,
             dbref player, uint32_t flags, uint8_t derefs, bool makeroots)
 {
   ATTR *ptr;
@@ -920,7 +920,7 @@ warn:
  * \return AE_OKAY or an AE_* error code.
  */
 atr_err
-atr_add(dbref thing, const char *RESTRICT atr, const char *RESTRICT s,
+atr_add(dbref thing, const char *restrict atr, const char *restrict s,
         dbref player, uint32_t flags)
 {
   ATTR *ptr, *root = NULL;
@@ -1833,7 +1833,7 @@ cmdatr_lock_check(dbref player, dbref thing, const char *atrname,
 
   ATTR *lockAtr;
   char lockAtrName[BUFFER_LEN];
-  char *lp;
+
   char buff[BUFFER_LEN];
   memset(lockAtrName, 0, sizeof(lockAtrName));
   memset(buff, 0, sizeof(buff));
@@ -1870,7 +1870,7 @@ cmdatr_lock_check(dbref player, dbref thing, const char *atrname,
   snprintf(lockAtrName, BUFFER_LEN, "%s`LOCK", atrname);
   // If there isn't an attribute
   lockAtr = atr_get(thing, lockAtrName);
-  lock_type *ltype;
+
 
   if (!lockAtr)
     return 1;
@@ -2323,7 +2323,7 @@ one_comm_match(dbref thing, dbref player, const char *atr, const char *str,
  * \retval 1 success.
  */
 int
-do_set_atr(dbref thing, const char *RESTRICT atr, const char *RESTRICT s,
+do_set_atr(dbref thing, const char *restrict atr, const char *restrict s,
            dbref player, uint32_t flags)
 {
   ATTR *old;

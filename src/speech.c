@@ -204,7 +204,6 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   char modmsg[BUFFER_LEN];
   char *mog = mush_malloc(BUFFER_LEN, "say_string");
   char *says = mush_malloc(BUFFER_LEN, "say_string");
-  int mod = 0;
   loc = speech_loc(player);
   if (!GoodObject(loc))
     return;
@@ -231,8 +230,6 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   
   pe_regs_free(pe_regs);
     
-  const char *argv[10] = {NULL};
-  memset(mog, 0, sizeof(mog));
 
   snprintf(mog, BUFFER_LEN, "%s",player_mogrify(player, MOG_SPEECH,strdup(message)));
                  
@@ -666,7 +663,6 @@ do_pose(dbref player, const char *tbuf1, int nospace, NEW_PE_INFO *pe_info)
   char tbuf2[BUFFER_LEN];
   char *message = mush_malloc(BUFFER_LEN, "pose_string");
   PE_REGS *pe_regs;
-  int mod = 0;
 
   loc = speech_loc(player);
   if (!GoodObject(loc))

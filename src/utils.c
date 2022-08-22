@@ -733,7 +733,7 @@ shortname(dbref it)
 
 char * format_name(dbref thing)
 {
-  static char name[BUFFER_LEN], *np;
+  static char name[BUFFER_LEN];
   char *namef = mush_malloc(BUFFER_LEN, "string_fname");
   memset(name,0, sizeof(name));
   nameformat(thing, thing, namef, Name(thing),1, NULL);

@@ -5717,7 +5717,7 @@ void do_whofile_admin(dbref player)
     *bp = '\0';
 
     mush_free(tbuf, "fun_eval.attr_value");
-    res = NULL;
+    res = 0;
     return;
 
   }
@@ -5995,7 +5995,7 @@ do_whofile_mortal(dbref player)
     } else
       flag_broadcast(0, "HEAR_CONNECT", "%s %s", T("GAME:"), tbuf1);
 
-      snprintf(tbuf1, BUFFER_LEN, "%s", player_mogrify(player, MOG_POSE, tbuf1));
+    snprintf(tbuf1, BUFFER_LEN, "%s", player_mogrify(player, MOG_POSE, tbuf1));
 
     if (ANNOUNCE_CONNECTS)
       chat_player_announce(d, message, 0);

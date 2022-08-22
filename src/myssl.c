@@ -444,23 +444,37 @@ get_dh2048(void)
 
   DH_set0_pqg(dh, p, NULL, g);
 #else
-  dh->p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
-  if (!dh->p) {
-    lock_file(stderr);
-    fprintf(stderr, "%s Error in BN_bin2bn 1!\n", time_string());
-    unlock_file(stderr);
-    DH_free(dh);
-    return NULL;
-  }
+    
+    BIGNUM *p, *g;
 
-  dh->g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
-  if (!dh->g) {
-    lock_file(stderr);
-    fprintf(stderr, "%s Error in BN_bin2bn 2!\n", time_string());
-    unlock_file(stderr);
-    DH_free(dh);
-    return NULL;
-  }
+    p = BN_bin2bn(dh2048_p, sizeof(dh2048_p), NULL);
+    if (p == NULL) {
+	BN_free(p);
+	return (NULL);
+    }
+
+    g = BN_bin2bn(dh2048_g, sizeof(dh2048_g), NULL);
+    if (g == NULL) {
+	BN_free(g);
+	return (NULL);
+    }
+
+    if ((dh = DH_new()) == NULL) {
+	BN_free(p);
+	BN_free(g);
+	return (NULL);
+    }
+
+    if (!DH_set0_pqg(dh, p, NULL, g)) {
+	BN_free(p);
+	BN_free(g);
+	DH_free(dh);
+	return (NULL);
+    }
+
+    return (dh);
+
+
 #endif
 
   return dh;

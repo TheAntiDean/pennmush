@@ -1,0 +1,15 @@
+
+
+
+MACRO (CHECK_MATH_FUNC)
+
+
+
+
+
+
+
+
+
+
+ENDMACRO(CHECK_MATH_FUNC)

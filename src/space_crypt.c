@@ -5,7 +5,8 @@
 
 /* ------------------------------------------------------------------------ */
 
-char *space_crunch_code(char *code)
+char *
+space_crunch_code(char *code)
 {
   char *in;
   char *out;
@@ -17,7 +18,7 @@ char *space_crunch_code(char *code)
     while (*in == ESC_CHAR) {
       while (*in && *in != 'm')
         in++;
-      in++;                     /* skip 'm' */
+      in++; /* skip 'm' */
     }
     if ((*in >= 32) && (*in <= 126)) {
       *out++ = *in;
@@ -28,7 +29,8 @@ char *space_crunch_code(char *code)
   return output;
 }
 
-char *space_crypt_code(char *code, char *text, int type)
+char *
+space_crypt_code(char *code, char *text, int type)
 {
   static char textbuff[BUFFER_LEN];
   char codebuff[BUFFER_LEN];

@@ -206,7 +206,7 @@ strncasecmp(const char *s1, const char *s2, size_t n)
  * \retval 0 string does not begin with prefix.
  */
 bool
-string_prefix(const char *RESTRICT string, const char *RESTRICT prefix)
+string_prefix(const char *restrict string, const char *restrict prefix)
 {
   if (!string || !prefix)
     return 0;
@@ -237,7 +237,7 @@ TEST_GROUP(string_prefix)
  * \retval 0 string does not begin with prefix.
  */
 bool
-string_prefixe(const char *RESTRICT string, const char *RESTRICT prefix)
+string_prefixe(const char *restrict string, const char *restrict prefix)
 {
   if (!string || !prefix || !*prefix)
     return 0;
@@ -491,7 +491,7 @@ upcasestr(char *s)
  * \retval 0 success.
  */
 int
-safe_accent(const char *RESTRICT base, const char *RESTRICT tmplate, size_t len,
+safe_accent(const char *restrict base, const char *restrict tmplate, size_t len,
             char *buff, char **bp)
 {
   /* base and tmplate must be the same length */
@@ -841,7 +841,7 @@ safe_accent(const char *RESTRICT base, const char *RESTRICT tmplate, size_t len,
  * \return number of characters left over, or 0 for success.
  */
 int
-safe_format(char *buff, char **bp, const char *RESTRICT fmt, ...)
+safe_format(char *buff, char **bp, const char *restrict fmt, ...)
 {
   APPEND_ARGS;
   char c[BUFFER_LEN];
@@ -1263,7 +1263,7 @@ replace_string2(const char *const old[2], const char *const newbits[2],
  * \return pointer to the start of the string
  */
 char *
-copy_up_to(char *RESTRICT dest, const char *RESTRICT src, char c)
+copy_up_to(char *restrict dest, const char *restrict src, char c)
 {
   char *d;
 
