@@ -231,7 +231,7 @@ ODBC_dump_attrs(dbref objID)
   SQLLEN lenName = 0, lenFlags = 0, lenAttrval = 0;
   SQLCHAR *buff = "INSERT INTO objectattrib (name, ownerId, flags, \
       derefs, objectId, value) VALUES ( ?, ? , ?, ? , ?, ?) \
-ON DUPLICATE KEY UPDATE ownerId=?, flags=?, derefs=?, value=?";
+ON DUPLICATE KEY UPDATE ownerId=VALUES(ownerId), flags=Values(flags), derefs=Values(derefs), value=Values(value)";
 
 
 
@@ -274,22 +274,6 @@ ON DUPLICATE KEY UPDATE ownerId=?, flags=?, derefs=?, value=?";
       retcode =
         SQLBindParameter(hstmt, 6, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                          lenAttrval, 0, attrval, sizeof(attrval), &lenAttrval);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 7, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-                         11, 0, &creator, sizeof(creator), NULL);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 8, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                         BUFFER_LEN, 0, flags, sizeof(flags), &lenFlags);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 9, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-                         11, 0, &derefs, sizeof(derefs), NULL);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 10, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                         BUFFER_LEN, 0, attrval, sizeof(attrval), &lenAttrval);
       ODBC_ERROR(retcode, hstmt);
       ODBC_ExecuteStatement(hstmt);
 
