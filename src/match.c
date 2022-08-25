@@ -294,37 +294,33 @@ match_player(dbref who, const char *name, int partial)
 int
 match_aliases(dbref match, const char *name)
 {
-  
+
   if (!IsPlayer(match) && !IsExit(match)) {
     return 0;
   }
 
   if (IsExit(match) && check_alias(name, Name(match)))
     return 1;
-  else 
-  {
+  else {
     char tbuf1[BUFFER_LEN];
-    ATTR *a = atr_get(Ancestor_Parent(match),"ALIAS");
+    ATTR *a = atr_get(Ancestor_Parent(match), "ALIAS");
+
     char eval[BUFFER_LEN];
-     if(IsExit(match) && call_attrib(match,"ALIAS",eval,match,NULL,NULL))
-     { 
+    if (call_attrib(match, "ALIAS", eval, match, NULL, NULL)) {
 
-        if(check_alias(name, eval))
-          return 1;
+      mush_strncpy(tbuf1, eval, BUFFER_LEN);
+    } else {
+      a = atr_get_noparent(match, "ALIAS");
+      if (a) {
+        char *v = safe_atr_value(a, "string-alias");
+        mush_strncpy(tbuf1, v, BUFFER_LEN);
+        mush_free(v, "string-alias");
       }
+    }
 
-
-    a = atr_get_noparent(match, "ALIAS");
-    if (!a)
-      return 0;
-
-    
-    mush_strncpy(tbuf1, atr_value(a), BUFFER_LEN);
-    
     return check_alias(name, tbuf1);
   }
 }
-
 
 dbref
 match_result(dbref who, const char *xname, int type, long flags)

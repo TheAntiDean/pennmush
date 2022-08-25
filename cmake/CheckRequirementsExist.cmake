@@ -7,6 +7,7 @@ MACRO(CHECK_REQUIREMENTS_EXIST)
     include(CheckFunctionExists)
     include(CheckStructHasMember)
     include(CheckCSourceRuns)
+    include(FindODBC)
 
     TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
     list(APPEND CMAKE_REQUIRED_LIBRARIES m)
@@ -98,6 +99,16 @@ MACRO(CHECK_REQUIREMENTS_EXIST)
     CHECK_LIBRARY_EXISTS(event event_base_loop "/usr/local/lib/" HAVE_LIBEVENT)
     CHECK_LIBRARY_EXISTS(event_extra event_base_new "/usr/local/lib/" HAVE_LIBEVENT_EXTRA)
     CHECK_LIBRARY_EXISTS(event_openssl bufferevent_openssl_socket_new "/usr/local/lib/" HAVE_EVENT_OPENSSL)
+    
+    # ODBC
+    find_package(ODBC)
+
+    if(ODBC_FOUND)
+    target_link_libraries(netmud ODBC::ODBC)
+    else()
+    Message(FATAL_ERROR "The ODBC library must be installed to run PennMUSH.")
+    endif()
+
 
     # OPENSSL
     set(OPENSSL_USE_STATIC_LIBS TRUE)

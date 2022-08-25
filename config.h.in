@@ -84,13 +84,14 @@
 
 /* Libraries */
 
-#cmakedefine01 HAVE_MYSQL
+#undef HAVE_MYSQL
 
-#cmakedefine HAVE_POSTGRESQL
+#undef HAVE_POSTGRESQL
 
 #cmakedefine HAVE_SSL 1
 
 #define HAVE_PCRE 1
+//#define UNICODE 1
 
 #cmakedefine HAVE_EVENT2_EVENT_H 1
 

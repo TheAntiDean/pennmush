@@ -53,6 +53,7 @@
 #include "strutil.h"
 #include "mushsql.h"
 #include "charclass.h"
+#include "odbc.h"
 
 #ifdef WIN32
 #pragma warning(disable : 4761) /* disable warning re conversion */
@@ -137,7 +138,11 @@ set_name(dbref obj, const char *newname)
     st_delete(Name(obj), &object_names);
   if (!newname || !*newname)
     return NULL;
-  Name(obj) = st_insert(newname, &object_names);
+  
+  // Hackish, we had a bug where the obj.name pointer was not actually the same as the one
+  // On the string tree.
+  Name(obj) = strdup(newname);
+  st_insert(Name(obj), &object_names);
   return Name(obj);
 }
 
@@ -648,6 +653,7 @@ putlocks(PENNFILE *f, lock_list *l)
 static void
 db_write_obj_basic(PENNFILE *f, dbref i, struct object *o)
 {
+
   db_write_labeled_string(f, "name", o->name);
   db_write_labeled_dbref(f, "location", o->location);
   db_write_labeled_dbref(f, "contents", o->contents);
@@ -681,7 +687,9 @@ db_write_object(PENNFILE *f, dbref i)
   int count = 0;
 
   o = db + i;
+  
   db_write_obj_basic(f, i, o);
+  ODBC_Set_Object(i, o);
 
   /* write the attribute list */
 
