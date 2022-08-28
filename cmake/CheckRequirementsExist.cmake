@@ -122,7 +122,7 @@ MACRO(CHECK_REQUIREMENTS_EXIST)
         message(FATAL_ERROR, "pkg-config is required by CMake to ensure libraries are loaded, please add this tool to your system")
     endif()
 
-    find_package(MariaDBClient REQUIRED)
+    find_package(MariaDBClient)
 
     if(MariaDBClient_FOUND)
         include_directories(${MariaDBClient_INCLUDE_DIRS})

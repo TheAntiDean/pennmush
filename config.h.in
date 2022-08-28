@@ -84,7 +84,7 @@
 
 /* Libraries */
 
-#cmakedefine01 HAVE_MYSQL
+#undef HAVE_MYSQL
 
 #cmakedefine HAVE_POSTGRESQL
 
