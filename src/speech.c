@@ -238,7 +238,7 @@ do_say(dbref player, const char *message, NEW_PE_INFO *pe_info)
   
 
   snprintf(says, BUFFER_LEN, T("You say \"%s\""), mog);
-  notify_format(player, player_mogrify(player, MOG_POSE ,says));
+  notify_format(player, "%s", player_mogrify(player, MOG_POSE ,says));
 
 
   snprintf(says, BUFFER_LEN, T("%s says \"%s\""),spname(player), mog);

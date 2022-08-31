@@ -210,9 +210,9 @@ target_precompile_headers(netmud PUBLIC "${CMAKE_HOME_DIRECTORY}/config.h" PUBLI
 target_precompile_headers(ssl_slave PUBLIC "${CMAKE_HOME_DIRECTORY}/config.h" PUBLIC "${CMAKE_HOME_DIRECTORY}/confmagic.h")
 target_precompile_headers(info_slave PUBLIC "${CMAKE_HOME_DIRECTORY}/config.h" PUBLIC "${CMAKE_HOME_DIRECTORY}/confmagic.h")
 
-target_compile_options(info_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -Wa,--noexecstack -DSLAVE -DINFO_SLAVE)
-target_compile_options(ssl_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -Wa,--noexecstack -DSLAVE -DSSL_SLAVE)
-target_compile_options(netmud PRIVATE -g -O2 -pipe -Og -march=native -Wall -Wextra -Wpedantic -Wno-comment -Wno-char-subscripts -funsigned-char -Wformat-truncation=0 -Wa,--noexecstack -fstack-protector -Wl,--as-needed -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -ggdb -DPROFILING)
+target_compile_options(info_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -DSLAVE -DINFO_SLAVE)
+target_compile_options(ssl_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -DSLAVE -DSSL_SLAVE)
+target_compile_options(netmud PRIVATE -g -O2 -pipe -Og -march=native -Wall -Wextra -Wpedantic -Wno-comment -Wno-char-subscripts -funsigned-char -ggdb -DPROFILING)
 CHECK_REQUIREMENTS_EXIST()
 
 CONFIGURE_FILE(${CMAKE_HOME_DIRECTORY}/config.h.in ${CMAKE_HOME_DIRECTORY}/config.h)
@@ -232,6 +232,9 @@ add_custom_command(TARGET ssl_slave
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/netmud ${CMAKE_HOME_DIRECTORY}/game/netmush
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/info_slave ${CMAKE_HOME_DIRECTORY}/game/info_slave
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/ssl_slave ${CMAKE_HOME_DIRECTORY}/game/ssl_slave
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
+    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
     COMMENT "Installing Links"
     
 )

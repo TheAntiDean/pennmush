@@ -12,8 +12,6 @@ get_space_config(char *filename)
 {
   struct spaceconfig configstruct;
   FILE *file = fopen(filename, "r");
-
-  if (file != NULL) {
     char line[MAXBUF];
     int i = 0;
 
@@ -27,7 +25,7 @@ get_space_config(char *filename)
       }
 
       i++;
-    }
+    
 
     fclose(file);
   }

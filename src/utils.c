@@ -664,7 +664,7 @@ fullalias(dbref it)
     char eval[BUFFER_LEN];
     
      
-    mush_strncpy(n, eval + ';', BUFFER_LEN);
+    mush_strncpy(n, &eval [ ';'], BUFFER_LEN);
 
     if ((sep = strchr(Name(it), ';'))) {
       sep++;

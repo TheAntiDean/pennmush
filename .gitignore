@@ -62,6 +62,7 @@ dbtools/pwutil
 pcre2/
 pcre2-10.*/
 pcre2-prefix/
+ThirdParty/
 *.tar.gz
 install_manifest.txt
 cmake_install.cmake
@@ -70,3 +71,5 @@ cmake_install.cmake
 .*
 *.pids
 game/*.pid
+compile_commands.json
+compile_flags.txt
