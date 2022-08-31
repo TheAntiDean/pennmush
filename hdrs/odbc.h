@@ -24,7 +24,12 @@ int ODBC_InsertQuery(SQLCHAR *query);
 extern int
 ODBC_Set_Object(dbref objID, struct object *DBObj);
 extern void
+ODBC_Get_Object(dbref objID, struct object *DBObj);
+
+extern void
 ODBC_dump_attrs(dbref objID);
 extern void ODBC_dump_locks(dbref objID, lock_list *l);
+extern void
+ODBC_get_locks(dbref objID);
 
 #endif /* __ODBC_H */

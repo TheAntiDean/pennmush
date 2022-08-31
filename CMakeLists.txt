@@ -186,7 +186,7 @@ ExternalProject_Add(pcre2
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
-add_dependencies(netmud pcre2)
+add_dependencies(netmud pcre2 link_dynamic_headers)
 add_dependencies(info_slave file_toucher)
 add_dependencies(ssl_slave file_toucher)
 
@@ -217,6 +217,15 @@ CHECK_REQUIREMENTS_EXIST()
 
 CONFIGURE_FILE(${CMAKE_HOME_DIRECTORY}/config.h.in ${CMAKE_HOME_DIRECTORY}/config.h)
 
+add_custom_target(link_dynamic_headers
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/funs.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/switches.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
+        COMMENT "Linking cmds.h switches.h funs.h"
+
+
+)
+
 add_custom_target(file_toucher
     COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${CMAKE_HOME_DIRECTORY}/src/mysocket.c
     COMMENT "Rebuilding mysocket.c"
@@ -232,9 +241,6 @@ add_custom_command(TARGET ssl_slave
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/netmud ${CMAKE_HOME_DIRECTORY}/game/netmush
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/info_slave ${CMAKE_HOME_DIRECTORY}/game/info_slave
     COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/src/ssl_slave ${CMAKE_HOME_DIRECTORY}/game/ssl_slave
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
     COMMENT "Installing Links"
     
 )

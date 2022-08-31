@@ -86,8 +86,6 @@ const char EOD[] = "***END OF DUMP***\n";
 
 dbref db_size = DB_INITIAL_SIZE; /**< Current size of db array */
 
-static void db_grow(dbref newtop);
-
 static void db_write_obj_basic(PENNFILE *f, dbref i, struct object *o);
 int db_paranoid_write_object(PENNFILE *f, dbref i, int flag);
 int db_write_object(PENNFILE *f, dbref i);
@@ -148,7 +146,7 @@ set_name(dbref obj, const char *newname)
 
 int db_init = 0; /**< Has the db array been initialized yet? */
 
-static void
+void
 db_grow(dbref newtop)
 {
   struct object *newdb;
@@ -1172,7 +1170,7 @@ get_new_locks(dbref i, PENNFILE *f, int c)
       break;
 
     found++;
-
+    lock_privs()
     /* Name of the lock */
     db_read_this_labeled_string(f, "type", &val);
     strcpy(type, val);
@@ -1763,6 +1761,7 @@ db_read(PENNFILE *f)
                            *entry;
         enum known_labels the_label;
 
+        ODBC_Get_Object(i, o);
         i = getref(f);
         db_grow(i + 1);
         o = db + i;
