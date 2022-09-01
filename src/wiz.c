@@ -1535,6 +1535,7 @@ build_linked_table(void)
     if (IsGarbage(n)) {
       continue;
     } else if (IsPlayer(n) || IsThing(n)) {
+      add_player(n);
       to = Home(n);
       type = IsPlayer(n) ? TYPE_PLAYER : TYPE_THING;
     } else if (IsRoom(n)) {

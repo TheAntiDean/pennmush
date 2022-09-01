@@ -3,6 +3,7 @@
 
 #include "dbdefs.h"
 #include "mushtype.h"
+#include "privtab.h"
 #include "sqltypes.h"
 
 #define ODBC_ERROR(res, handle) (ODBC_Process_Error(res, handle))
@@ -10,6 +11,7 @@
 extern SQLRETURN retcode;
 extern SQLHENV henv;
 extern SQLHDBC hdbc;
+
 
 extern void ODBC_Init(void);
 
@@ -23,8 +25,8 @@ int ODBC_InsertQuery(SQLCHAR *query);
 
 extern int
 ODBC_Set_Object(dbref objID, struct object *DBObj);
-extern void
-ODBC_Get_Object(dbref objID, struct object *DBObj);
+extern int
+ODBC_Get_Object(dbref objID);
 
 extern void
 ODBC_dump_attrs(dbref objID);

@@ -7,31 +7,33 @@
 
 SPACETAB configstruct;
 
-struct spaceconfig
-get_space_config(char *filename)
-{
-  struct spaceconfig configstruct;
-  FILE *file = fopen(filename, "r");
-    char line[MAXBUF];
-    int i = 0;
 
-    while (fgets(line, sizeof(line), file) != NULL) {
-      char *cfline;
-      cfline = strstr((char *) line, DELIM);
-      cfline = cfline + strlen(DELIM);
+struct spaceconfig get_space_config(char *filename) {
+	struct spaceconfig configstruct;
+	FILE *file = fopen(filename, "r");
+	
+	if ( file != NULL ) {
+		char line[MAXBUF];
+		int i = 0;
 
-      if (i == 0) {
-        configstruct.cochrane_rate = parse_number(cfline);
-      }
+		while(fgets(line, sizeof(line), file) != NULL) {
+			char *cfline;
+			cfline = strstr((char *) line, DELIM);
+			cfline = cfline + strlen(DELIM);
 
-      i++;
-    
+			if ( i == 0 ) {
+				configstruct.cochrane_rate = parse_number(cfline);
+			}
 
-    fclose(file);
-  }
+			i++;
+		}
 
-  return configstruct;
+		fclose(file);
+	}
+
+	return configstruct;
 }
+
 
 void
 loadDefaultConfig()

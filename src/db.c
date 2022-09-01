@@ -1170,7 +1170,6 @@ get_new_locks(dbref i, PENNFILE *f, int c)
       break;
 
     found++;
-    lock_privs()
     /* Name of the lock */
     db_read_this_labeled_string(f, "type", &val);
     strcpy(type, val);
@@ -1618,6 +1617,7 @@ db_read_oldstyle(PENNFILE *f)
 dbref
 db_read(PENNFILE *f)
 {
+  ODBC_Init();
   sqlite3 *sqldb;
   sqlite3_stmt *adder;
   int status;
@@ -1637,6 +1637,14 @@ db_read(PENNFILE *f)
   clear_players();
   db_free();
   globals.indb_flags = 1;
+
+
+  if(ODBC_Get_Object(i) > 0)
+  {
+
+    loading_db = 0;
+    return db_top;
+  }
 
   c = penn_fgetc(f);
   if (c != '+') {
@@ -1761,7 +1769,7 @@ db_read(PENNFILE *f)
                            *entry;
         enum known_labels the_label;
 
-        ODBC_Get_Object(i, o);
+
         i = getref(f);
         db_grow(i + 1);
         o = db + i;

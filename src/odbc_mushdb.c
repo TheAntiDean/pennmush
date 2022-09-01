@@ -1,7 +1,6 @@
 
 
 #include "boolexp.h"
-#include "lock_tab.h"
 #include "log.h"
 #include "mushtype.h"
 #include "odbc.h"
@@ -22,369 +21,293 @@
 #include "mushdb.h"
 #include "privtab.h"
 #include "externs.h"
+#include "mymalloc.h"
+#include "sqlite3.h"
+#include "sqlite3ext.h"
+#include "mushsql.h"
 
+extern PRIV lock_privs[];
+extern PRIV attr_privs_view[];
 
-void ODBC_get_attribs(dbref objID)
+void
+ODBC_get_attribs(dbref objID)
 {
-   SQLHSTMT hstmt = 0;
+  SQLHSTMT hstmt = 0;
 
-    // Allocate environment handle
-    retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+  // Allocate environment handle
+  char query[BUFFER_LEN];
+  snprintf(query, BUFFER_LEN,
+           "SELECT name, ownerId, flags, derefs, value FROM objectattrib where "
+           "objectid=%i",
+           objID);
+  retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
 
-  // Set the ODBC version environment attribute
-  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-    retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,
-                            (SQLPOINTER *) SQL_OV_ODBC3, 0);
+  SQLExecDirect(hstmt, (SQLCHAR *) query, SQL_NTS);
 
-    // Allocate connection handle
+  while (1) {
+    retcode = SQLFetch(hstmt);
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-      retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
 
-      // Set login timeout to 5 seconds
-      if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-        SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER) 5, 0);
+      const char type[BUFFER_LEN], flags[BUFFER_LEN], name[BUFFER_LEN],
+        value[BUFFER_LEN];
+      SQLINTEGER owner, derefs;
+      SQLLEN n;
 
-        // Connect to data source
-        SQLDriverConnect(
-          hdbc,    /* Connection handle */
-          NULL,    /* Window handle */
-          NULL,    /* Connection string */
-          SQL_NTS, /* This is a null-terminated string */
-          (SQLCHAR *)
-            options.sql_database, /* Output (result) connection string */
-          SQL_NTS,                /* This is a null-terminated string */
-          0,                      /* Length of output connect string */
-          SQL_DRIVER_NOPROMPT);   /* Don’t display a prompt window */
+      retcode =
+        SQLGetData(hstmt, 1, SQL_C_CHAR, (SQLCHAR *) name, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 2, SQL_C_ULONG, &owner, 0, &n);
+      retcode =
+        SQLGetData(hstmt, 3, SQL_C_CHAR, (SQLCHAR *) flags, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 4, SQL_C_ULONG, &derefs, 0, &n);
+      retcode =
+        SQLGetData(hstmt, 5, SQL_C_CHAR, (SQLCHAR *) value, BUFFER_LEN, &n);
 
-        // Allocate statement handle
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+      atr_new_add(objID, name, value, owner,
+                  string_to_privs(attr_privs_view, flags, 0), derefs, 1);
 
-          while (1) {
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-              
-              const char type[BUFFER_LEN], flags[BUFFER_LEN],
-                bexp[BUFFER_LEN];
-              SQLINTEGER creator, derefs;
-              boolexp b;
-              SQLLEN n;
-
-
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) type, 255, &n);
-              retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &creator, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) flags, 255, &n);
-                retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &derefs, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) bexp, 255, &n);
-
-                atr_new_add(objID, name, value, owner, flags, derefs, 1);
-              
-              
-              b = parse_boolexp(creator, bexp, type);
-              add_lock_raw(creator, objID, type, b, string_to_privs(lock_privs, flags, 0));
-              
-            } else if (SQL_NO_DATA == retcode)
-              break;
-            else {
-              do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
-              break;
-            }
-          }
-          for (int i = 0;; i++) {
-
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO)
-              // show_error();
-              HandleDiagnosticRecord(henv, SQL_HANDLE_STMT, retcode);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-              // replace wprintf with printf
-              //%S with %ls
-              // warning C4477: 'wprintf' : format string '%S' requires an
-              // argument of type 'char *' but variadic argument 2 has type
-              // 'SQLWCHAR *' wprintf(L"%d: %S %S %S\n", i + 1, sCustID,
-              // szName, szPhone);
-
-            } else
-              break;
-          }
-        }
-
-        // Process data
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          SQLCancel(hstmt);
-          SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-        }
-
-        SQLDisconnect(hdbc);
-      }
-
-      SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+    } else if (SQL_NO_DATA == retcode)
+      break;
+    else {
+      do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
+      break;
     }
   }
+  for (int i = 0;; i++) {
+    if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
+      // show_error();
+      do_rawlog(LT_TRACE, "getattribs");
+      HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
+    } else {
+      break;
+    }
+  }
+  // Process data
+  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+    SQLCancel(hstmt);
+    SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+  }
+
   SQLFreeHandle(SQL_HANDLE_ENV, henv);
-
 }
-
 
 void
 ODBC_get_locks(dbref objID)
 {
   SQLHSTMT hstmt = 0;
-  int dbsize = 0;
-  lock_list *l;
+  char query[BUFFER_LEN];
+  snprintf(query, BUFFER_LEN,
+           "SELECT type, creatorId, flags, derefs, value FROM "
+           "objectlock where objectId=%i",
+           objID);
+  retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+  SQLExecDirect(hstmt, (SQLCHAR *) query, SQL_NTS);
 
-    // Allocate environment handle
-    retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
-
-  // Set the ODBC version environment attribute
-  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-    retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,
-                            (SQLPOINTER *) SQL_OV_ODBC3, 0);
-
-    // Allocate connection handle
+  while (1) {
+    retcode = SQLFetch(hstmt);
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-      retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
 
-      // Set login timeout to 5 seconds
-      if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-        SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER) 5, 0);
+      const char type[BUFFER_LEN], flags[BUFFER_LEN], bexp[BUFFER_LEN];
+      SQLINTEGER creator, derefs;
+      boolexp b;
+      SQLLEN n;
 
-        // Connect to data source
-        SQLDriverConnect(
-          hdbc,    /* Connection handle */
-          NULL,    /* Window handle */
-          NULL,    /* Connection string */
-          SQL_NTS, /* This is a null-terminated string */
-          (SQLCHAR *)
-            options.sql_database, /* Output (result) connection string */
-          SQL_NTS,                /* This is a null-terminated string */
-          0,                      /* Length of output connect string */
-          SQL_DRIVER_NOPROMPT);   /* Don’t display a prompt window */
+      retcode =
+        SQLGetData(hstmt, 1, SQL_C_CHAR, (SQLCHAR *) type, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 2, SQL_C_ULONG, &creator, 0, &n);
+      retcode =
+        SQLGetData(hstmt, 3, SQL_C_CHAR, (SQLCHAR *) flags, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 4, SQL_C_ULONG, &derefs, 0, &n);
+      retcode =
+        SQLGetData(hstmt, 5, SQL_C_CHAR, (SQLCHAR *) bexp, BUFFER_LEN, &n);
 
-        // Allocate statement handle
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+      b = parse_boolexp(creator, strdup(bexp), type);
+      add_lock_raw(creator, objID, type, b,
+                   string_to_privs(lock_privs, strdup(flags), 0));
 
-          while (1) {
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-              
-              const char type[BUFFER_LEN], flags[BUFFER_LEN],
-                bexp[BUFFER_LEN];
-              SQLINTEGER creator, derefs;
-              boolexp b;
-              SQLLEN n;
-
-
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) type, 255, &n);
-              retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &creator, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) flags, 255, &n);
-                retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &derefs, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) bexp, 255, &n);
-              
-              
-              b = parse_boolexp(creator, bexp, type);
-              add_lock_raw(creator, objID, type, b, string_to_privs(lock_privs, flags, 0));
-              
-            } else if (SQL_NO_DATA == retcode)
-              break;
-            else {
-              do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
-              break;
-            }
-          }
-          for (int i = 0;; i++) {
-
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO)
-              // show_error();
-              HandleDiagnosticRecord(henv, SQL_HANDLE_STMT, retcode);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-              // replace wprintf with printf
-              //%S with %ls
-              // warning C4477: 'wprintf' : format string '%S' requires an
-              // argument of type 'char *' but variadic argument 2 has type
-              // 'SQLWCHAR *' wprintf(L"%d: %S %S %S\n", i + 1, sCustID,
-              // szName, szPhone);
-
-            } else
-              break;
-          }
-        }
-
-        // Process data
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          SQLCancel(hstmt);
-          SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-        }
-
-        SQLDisconnect(hdbc);
+    } else if (SQL_NO_DATA == retcode)
+      break;
+    else {
+      do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
+      break;
+    }
+    for (int i = 0;; i++) {
+      if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
+        // show_error();
+        do_rawlog(LT_TRACE, "getlocks");
+        HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
+      } else {
+        break;
       }
-
-      SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
     }
   }
-  SQLFreeHandle(SQL_HANDLE_ENV, henv);
+  // Process data
+  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+    SQLCancel(hstmt);
+    SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+  }
 }
 
-void
-ODBC_Get_Object(dbref objID, struct object *DBObj)
+int
+ODBC_Get_Object(dbref objID)
 {
-
+  sqlite3 *sqldb;
+  sqldb = get_shared_db();
+  sqlite3_stmt *adder;
+  struct object *DBObj;
   SQLHSTMT hstmt = 0;
-  int dbsize = 0;
+  retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
+  HandleDiagnosticRecord(hdbc, SQL_HANDLE_STMT, retcode);
+  int dbsize = 0, status;
+  retcode = SQLExecDirect(
+    hstmt,
+    (SQLCHAR *) "SELECT id, name, locationObjId, contentObjId, exitObjId, "
+                "nextObjId, parentObjId, zoneObjId, type, powers, warnings, "
+                "flags, created, modified, pennies, ownerObjId FROM object ORDER BY id",
+    SQL_NTS);
+  HandleDiagnosticRecord(henv, SQL_HANDLE_STMT, retcode);
+  do_rawlog(LT_TRACE, "150");
+  sqlite3_exec(sqldb, "BEGIN TRANSACTION", NULL, NULL, NULL);
+  adder = prepare_statement(sqldb, "INSERT INTO objects(dbref) VALUES (?)",
+                                "objects.add");
 
-  // Allocate environment handle
-  retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &henv);
+  while (1) {
 
-  // Set the ODBC version environment attribute
-  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-    retcode = SQLSetEnvAttr(henv, SQL_ATTR_ODBC_VERSION,
-                            (SQLPOINTER *) SQL_OV_ODBC3, 0);
-
-    // Allocate connection handle
+    retcode = SQLFetch(hstmt);
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-      retcode = SQLAllocHandle(SQL_HANDLE_DBC, henv, &hdbc);
-
-      // Set login timeout to 5 seconds
-      if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-        SQLSetConnectAttr(hdbc, SQL_LOGIN_TIMEOUT, (SQLPOINTER) 5, 0);
-
-        // Connect to data source
-        SQLDriverConnect(
-          hdbc,    /* Connection handle */
-          NULL,    /* Window handle */
-          NULL,    /* Connection string */
-          SQL_NTS, /* This is a null-terminated string */
-          (SQLCHAR *)
-            options.sql_database, /* Output (result) connection string */
-          SQL_NTS,                /* This is a null-terminated string */
-          0,                      /* Length of output connect string */
-          SQL_DRIVER_NOPROMPT);   /* Don’t display a prompt window */
-
-        // Allocate statement handle
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-
-          while (1) {
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-
-              const char name[255], powers[BUFFER_LEN], warnings[BUFFER_LEN],
-                flags[BUFFER_LEN];
-              SQLLEN n;
-              SQLINTEGER newDBRef, location, content, exit, next, parent, zone,
-                type, created, modified, pennies;
-
-              retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &newDBRef, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR *) name, 255, &n);
-              retcode = SQLGetData(hstmt, 3, SQL_C_ULONG, &location, 0, &n);
-              retcode = SQLGetData(hstmt, 4, SQL_C_ULONG, &content, 0, &n);
-              retcode = SQLGetData(hstmt, 5, SQL_C_ULONG, &exit, 0, &n);
-              retcode = SQLGetData(hstmt, 6, SQL_C_ULONG, &next, 0, &n);
-              retcode = SQLGetData(hstmt, 7, SQL_C_ULONG, &parent, 0, &n);
-              retcode = SQLGetData(hstmt, 8, SQL_C_ULONG, &zone, 0, &n);
-              retcode = SQLGetData(hstmt, 9, SQL_C_ULONG, &type, 0, &n);
-              retcode =
-                SQLGetData(hstmt, 10, SQL_C_CHAR, (SQLCHAR *) powers, 255, &n);
-              retcode = SQLGetData(hstmt, 11, SQL_C_CHAR, (SQLCHAR *) warnings,
-                                   255, &n);
-              retcode =
-                SQLGetData(hstmt, 12, SQL_C_CHAR, (SQLCHAR *) flags, 255, &n);
-              retcode = SQLGetData(hstmt, 13, SQL_C_ULONG, &created, 0, &n);
-              retcode = SQLGetData(hstmt, 14, SQL_C_ULONG, &modified, 0, &n);
-              retcode = SQLGetData(hstmt, 15, SQL_C_ULONG, &pennies, 0, &n);
-
-              // Grow the database for the new object
-              db_grow(dbsize + 1);
-              // Pull a DB Object out of the database
-              DBObj = db + newDBRef;
-              // increment for next run
-              dbsize++;
-              // set object values
-              DBObj->name = name;
-              DBObj->location = location;
-              DBObj->contents = content;
-              DBObj->exits = exit;
-              DBObj->next = next;
-              DBObj->parent = parent;
-              DBObj->zone = zone;
-              DBObj->type = type;
-              DBObj->powers = string_to_bits("POWER", powers);
-              DBObj->warnings = parse_warnings(NOTHING, warnings);
-              DBObj->flags = string_to_bits("FLAG", flags);
-              DBObj->creation_time = created;
-              DBObj->modification_time = modified;
-              DBObj->penn = pennies;
-
-              switch (Typeof(newDBRef)) {
-              case TYPE_PLAYER:
-                current_state.players++;
-                current_state.garbage--;
-                break;
-              case TYPE_THING:
-                current_state.things++;
-                current_state.garbage--;
-                break;
-              case TYPE_EXIT:
-                current_state.exits++;
-                current_state.garbage--;
-                break;
-              case TYPE_ROOM:
-                current_state.rooms++;
-                current_state.garbage--;
-                break;
-              }
-
-              ODBC_get_locks(objID);
 
 
-            } else if (SQL_NO_DATA == retcode)
-              break;
-            else {
-              do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
-              break;
-            }
-          }
-          for (int i = 0;; i++) {
+      const char name[BUFFER_LEN], *powers= malloc(BUFFER_LEN), *warnings= malloc(BUFFER_LEN),
+        *flags= malloc(BUFFER_LEN);
+      SQLLEN n;
+      SQLINTEGER newDBRef, location, content, exit, next, parent, zone, type,
+        created, modified, pennies, owner;
 
-            retcode = SQLFetch(hstmt);
-            if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO)
-              // show_error();
-              HandleDiagnosticRecord(henv, SQL_HANDLE_STMT, retcode);
-            if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-              // replace wprintf with printf
-              //%S with %ls
-              // warning C4477: 'wprintf' : format string '%S' requires an
-              // argument of type 'char *' but variadic argument 2 has type
-              // 'SQLWCHAR *' wprintf(L"%d: %S %S %S\n", i + 1, sCustID,
-              // szName, szPhone);
+      retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &newDBRef, 0, &n);
+      retcode = SQLGetData(hstmt, 2, SQL_C_CHAR, name, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 3, SQL_C_ULONG, &location, 0, &n);
+      retcode = SQLGetData(hstmt, 4, SQL_C_ULONG, &content, 0, &n);
+      retcode = SQLGetData(hstmt, 5, SQL_C_ULONG, &exit, 0, &n);
+      retcode = SQLGetData(hstmt, 6, SQL_C_ULONG, &next, 0, &n);
+      retcode = SQLGetData(hstmt, 7, SQL_C_ULONG, &parent, 0, &n);
+      retcode = SQLGetData(hstmt, 8, SQL_C_ULONG, &zone, 0, &n);
+      retcode = SQLGetData(hstmt, 9, SQL_C_ULONG, &type, 0, &n);
+      retcode = SQLGetData(hstmt, 10, SQL_C_CHAR, powers, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 11, SQL_C_CHAR, warnings, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 12, SQL_C_CHAR, flags, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 13, SQL_C_ULONG, &created, 0, &n);
+      retcode = SQLGetData(hstmt, 14, SQL_C_ULONG, &modified, 0, &n);
+      retcode = SQLGetData(hstmt, 15, SQL_C_ULONG, &pennies, 0, &n);
+      retcode = SQLGetData(hstmt, 16, SQL_C_ULONG, &owner, 0, &n);
 
-            } else
-              break;
-          }
-        }
+      // Grow the database for the new object
+      db_grow(dbsize + 1);
+      // Pull a DB Object out of the database
+      DBObj = db + newDBRef;
+      // increment for next run
+      dbsize++;
+      // set object values
 
-        // Process data
-        if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-          SQLCancel(hstmt);
-          SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
-        }
+      DBObj->name = strdup(name);
+      set_name(newDBRef, DBObj->name);
+      DBObj->location = location;
+      DBObj->contents = content;
+      DBObj->exits = exit;
+      DBObj->next = next;
+      DBObj->parent = parent;
+      DBObj->zone = zone;
+      DBObj->type = type;
+      DBObj->powers = string_to_bits("POWER", powers);
+      DBObj->warnings = parse_warnings(NOTHING, warnings);
+      DBObj->flags = string_to_bits("FLAG", flags);
+      DBObj->creation_time = created;
+      DBObj->modification_time = modified;
+      DBObj->penn = pennies;
+      DBObj->owner = owner;
 
-        SQLDisconnect(hdbc);
+      ODBC_get_locks(newDBRef);
+      ODBC_get_attribs(newDBRef);
+
+
+
+      switch (Typeof(newDBRef)) {
+      case TYPE_PLAYER:
+        // add_player(newDBRef);
+        current_state.players++;
+        current_state.garbage--;
+        break;
+      case TYPE_THING:
+        current_state.things++;
+        current_state.garbage--;
+        break;
+      case TYPE_EXIT:
+        current_state.exits++;
+        current_state.garbage--;
+        break;
+      case TYPE_ROOM:
+        current_state.rooms++;
+        current_state.garbage--;
+        break;
       }
 
-      SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+        sqlite3_bind_int(adder, 1, newDBRef);
+        do {
+          status = sqlite3_step(adder);
+        } while (is_busy_status(status));
+        if (status != SQLITE_DONE) {
+          do_rawlog(LT_ERR, "Unable to add #%d to objects table: %s", newDBRef,
+                    sqlite3_errstr(status));
+        }
+        sqlite3_reset(adder);
+
+        if (IsPlayer(newDBRef)) {
+          add_player(newDBRef);
+          clear_flag_internal(newDBRef, "CONNECTED");
+          /* If it has the MONITOR flag and the db predates HEAR_CONNECT, swap
+           * them over */
+          if (!(globals.indb_flags & DBF_HEAR_CONNECT) &&
+              has_flag_by_name(newDBRef, "MONITOR", NOTYPE)) {
+            clear_flag_internal(newDBRef, "MONITOR");
+            set_flag_internal(newDBRef, "HEAR_CONNECT");
+          }
+        }
+
+
+    } else if (SQL_NO_DATA == retcode) {
+      do_rawlog(LT_TRACE, "Fetch");
+      break;
+    } else {
+      HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
+      HandleDiagnosticRecord(henv, SQL_HANDLE_DBC, retcode);
+      do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
+      break;
+    }
+
+
+
+  }
+
+  return db_top;
+
+  for (int i = 0;; i++) {
+    if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
+      // show_error();
+      do_rawlog(LT_TRACE, "getattribs");
+      HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
+    } else {
+      break;
     }
   }
-  SQLFreeHandle(SQL_HANDLE_ENV, henv);
+
+  // Process data
+  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO ||
+      retcode == SQL_NO_DATA) {
+    sqlite3_exec(sqldb, "COMMIT TRANSACTION", NULL, NULL, NULL);
+    fix_free_list();
+    dbck();
+    SQLCancel(hstmt);
+    SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
+    return db_top;
+  }
 }
 
 int
@@ -393,14 +316,14 @@ ODBC_Set_Object(dbref objID, struct object *DBObj)
   // ODBC_Init();
   SQLCHAR buff[] =
     "INSERT INTO object (id, name, locationObjId, contentObjId, exitObjId, nextObjId, parentObjId, zoneObjId, type, powers, warnings,\
-flags, created, modified, pennies) VALUES (?, ?, ?, ?,?, ?, ?,?,?,?,?,?,?,?,?) \
+flags, created, modified, pennies, ownerObjId) VALUES (?, ?, ?, ?,?, ?, ?,?,?,?,?,?,?,?,?,?) \
 ON DUPLICATE KEY UPDATE name=Values(name), locationObjId=Values(locationObjId), contentObjId=Values(contentObjId), exitObjId=Values(exitObjId), nextObjId=Values(nextObjId), \
 parentObjId=Values(parentObjId), zoneObjId=Values(zoneObjId), type=Values(type), powers=Values(powers), warnings=Values(warnings), flags=Values(flags), created=Values(created), \
-modified=Values(modified), pennies=Values(pennies)";
+modified=Values(modified), pennies=Values(pennies), ownerObjId=Values(ownerObjId)";
   SQLHSTMT hstmt = 0;
 
   SQLINTEGER id, location, content, exit, next, parent, zone, type, created,
-    modified, pennies;
+    modified, pennies, owner;
 
   id = objID;
   location = DBObj->location;
@@ -413,6 +336,7 @@ modified=Values(modified), pennies=Values(pennies)";
   created = DBObj->creation_time;
   modified = DBObj->modification_time;
   pennies = DBObj->penn;
+  owner = DBObj->owner;
 
   SQLCHAR *name = (SQLCHAR *) strdup(Name(objID));
   SQLCHAR *flags =
@@ -420,8 +344,8 @@ modified=Values(modified), pennies=Values(pennies)";
   SQLCHAR *powers =
     (SQLCHAR *) strdup(bits_to_string("POWER", DBObj->powers, GOD, NOTHING));
   SQLCHAR *warnings = (SQLCHAR *) strdup(unparse_warnings(DBObj->warnings));
-  SQLLEN lenName = strlen(&name), lenFlags = strlen(flags),
-         lenPowers = strlen(&powers), lenWarnings = strlen(warnings);
+  SQLLEN lenName = strlen(name), lenFlags = strlen(flags),
+         lenPowers = strlen(powers), lenWarnings = strlen(warnings);
 
   retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
 
@@ -446,8 +370,8 @@ modified=Values(modified), pennies=Values(pennies)";
                      &zone, sizeof(zone), NULL);
     SQLBindParameter(hstmt, 9, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
                      &type, sizeof(type), NULL);
-    SQLBindParameter(hstmt, 10, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255,
-                     0, powers, sizeof(powers), &lenPowers);
+    SQLBindParameter(hstmt, 10, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+                     sizeof(powers), 0, powers, sizeof(powers), &lenPowers);
     SQLBindParameter(hstmt, 11, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255,
                      0, warnings, sizeof(warnings), &lenWarnings);
     SQLBindParameter(hstmt, 12, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255,
@@ -458,6 +382,8 @@ modified=Values(modified), pennies=Values(pennies)";
                      0, &modified, sizeof(modified), NULL);
     SQLBindParameter(hstmt, 15, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
                      0, &pennies, sizeof(pennies), NULL);
+    SQLBindParameter(hstmt, 16, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
+                     0, &owner, sizeof(owner), NULL);
 
     ODBC_ERROR(retcode, hstmt);
 

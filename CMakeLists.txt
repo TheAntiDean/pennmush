@@ -186,7 +186,7 @@ ExternalProject_Add(pcre2
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 
-add_dependencies(netmud pcre2 link_dynamic_headers)
+add_dependencies(netmud pcre2)
 add_dependencies(info_slave file_toucher)
 add_dependencies(ssl_slave file_toucher)
 
@@ -212,19 +212,19 @@ target_precompile_headers(info_slave PUBLIC "${CMAKE_HOME_DIRECTORY}/config.h" P
 
 target_compile_options(info_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -DSLAVE -DINFO_SLAVE)
 target_compile_options(ssl_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra -Wno-comment -Wno-char-subscripts -funsigned-char -DSLAVE -DSSL_SLAVE)
-target_compile_options(netmud PRIVATE -g -O2 -pipe -Og -march=native -Wall -Wextra -Wpedantic -Wno-comment -Wno-char-subscripts -funsigned-char -ggdb -DPROFILING)
+target_compile_options(netmud PRIVATE -g -O0 -pipe -Og -march=native -Wall -Wextra -Wpedantic -Wno-comment -Wno-char-subscripts -funsigned-char -ggdb -DPROFILING)
 CHECK_REQUIREMENTS_EXIST()
 
 CONFIGURE_FILE(${CMAKE_HOME_DIRECTORY}/config.h.in ${CMAKE_HOME_DIRECTORY}/config.h)
 
-add_custom_target(link_dynamic_headers
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/funs.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/switches.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
-        COMMENT "Linking cmds.h switches.h funs.h"
+# add_custom_target(link_dynamic_headers
+#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
+#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/funs.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
+#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/switches.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
+#         COMMENT "Linking cmds.h switches.h funs.h"
 
 
-)
+#)
 
 add_custom_target(file_toucher
     COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${CMAKE_HOME_DIRECTORY}/src/mysocket.c
