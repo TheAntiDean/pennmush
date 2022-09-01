@@ -293,6 +293,7 @@ ODBC_Get_Object(dbref objID)
       // show_error();
       do_rawlog(LT_TRACE, "getattribs");
       HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
+      return -1;
     } else {
       break;
     }
