@@ -183,7 +183,7 @@ ExternalProject_Add(pcre2
     DOWNLOAD_DIR ${CMAKE_HOME_DIRECTORY}/build
     URL "https://github.com/PhilipHazel/pcre2/releases/download/${PCRE2_VERSION}/${PCRE2_TARBALL}"
     CONFIGURE_COMMAND ${PCRE2_SRC}/configure --disable-shared --with-pic --prefix=${CMAKE_HOME_DIRECTORY}/3rdParty/pcre2 --enable-jit=auto
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    
 )
 
 add_dependencies(netmud pcre2)
