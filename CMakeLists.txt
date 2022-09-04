@@ -215,16 +215,8 @@ target_compile_options(ssl_slave PRIVATE -O2 -Wno-unknown-pragmas -Wall -Wextra 
 target_compile_options(netmud PRIVATE -g -O0 -pipe -Og -march=native -Wall -Wextra -Wpedantic -Wno-comment -Wno-char-subscripts -funsigned-char -ggdb -DPROFILING)
 CHECK_REQUIREMENTS_EXIST()
 
+
 CONFIGURE_FILE(${CMAKE_HOME_DIRECTORY}/config.h.in ${CMAKE_HOME_DIRECTORY}/config.h)
-
-# add_custom_target(link_dynamic_headers
-#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/cmds.h ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h
-#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/funs.h ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h
-#         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_HOME_DIRECTORY}/build/switches.h ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h
-#         COMMENT "Linking cmds.h switches.h funs.h"
-
-
-#)
 
 add_custom_target(file_toucher
     COMMAND ${CMAKE_COMMAND} -E touch_nocreate ${CMAKE_HOME_DIRECTORY}/src/mysocket.c
@@ -245,5 +237,7 @@ add_custom_command(TARGET ssl_slave
     
 )
 
+PennMUSH_MKHDRS()
+PennMUSH_MKFILES()
 PennMUSH_MKCMDS()
 PennMUSH_MKSWITCHES()

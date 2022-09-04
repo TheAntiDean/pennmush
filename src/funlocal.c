@@ -103,6 +103,7 @@ FUNCTION(local_fun_nameformat)
   char argval[BUFFER_LEN];
   char *ap;
   ap = argval;
+  memset(tbuf1, 0, BUFFER_LEN);
 
   if (GoodObject(it)) {
     if (flaglist_check_long("FLAG", executor, it, "HALT", 1) == 1)
@@ -139,7 +140,7 @@ FUNCTION(local_fun_nameformat)
         safe_str(tbuf1, buff, bp);
       }
     } else {
-      safe_str(accented_name(it), buff, bp);
+      safe_str(Name(it), buff, bp);
     }
 
     // else {

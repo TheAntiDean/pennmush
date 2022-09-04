@@ -127,13 +127,13 @@ ODBC_get_locks(dbref objID)
     } else if (SQL_NO_DATA == retcode)
       break;
     else {
-      do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
+      
       break;
     }
     for (int i = 0;; i++) {
       if (retcode == SQL_ERROR || retcode == SQL_SUCCESS_WITH_INFO) {
         // show_error();
-        do_rawlog(LT_TRACE, "getlocks");
+        
         HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
       } else {
         break;
@@ -176,14 +176,14 @@ ODBC_Get_Object(dbref objID)
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
 
-      const char name[BUFFER_LEN], *powers= malloc(BUFFER_LEN), *warnings= malloc(BUFFER_LEN),
-        *flags= malloc(BUFFER_LEN);
+      const char name[BUFFER_LEN], powers[BUFFER_LEN], warnings[BUFFER_LEN],
+        flags[BUFFER_LEN];
       SQLLEN n;
       SQLINTEGER newDBRef, location, content, exit, next, parent, zone, type,
         created, modified, pennies, owner;
 
       retcode = SQLGetData(hstmt, 1, SQL_C_ULONG, &newDBRef, 0, &n);
-      retcode = SQLGetData(hstmt, 2, SQL_C_CHAR, name, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 2, SQL_C_CHAR, (SQLCHAR*) &name, BUFFER_LEN, &n);
       retcode = SQLGetData(hstmt, 3, SQL_C_ULONG, &location, 0, &n);
       retcode = SQLGetData(hstmt, 4, SQL_C_ULONG, &content, 0, &n);
       retcode = SQLGetData(hstmt, 5, SQL_C_ULONG, &exit, 0, &n);
@@ -191,9 +191,9 @@ ODBC_Get_Object(dbref objID)
       retcode = SQLGetData(hstmt, 7, SQL_C_ULONG, &parent, 0, &n);
       retcode = SQLGetData(hstmt, 8, SQL_C_ULONG, &zone, 0, &n);
       retcode = SQLGetData(hstmt, 9, SQL_C_ULONG, &type, 0, &n);
-      retcode = SQLGetData(hstmt, 10, SQL_C_CHAR, powers, BUFFER_LEN, &n);
-      retcode = SQLGetData(hstmt, 11, SQL_C_CHAR, warnings, BUFFER_LEN, &n);
-      retcode = SQLGetData(hstmt, 12, SQL_C_CHAR, flags, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 10, SQL_C_CHAR, (SQLCHAR*)powers, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 11, SQL_C_CHAR, (SQLCHAR*)warnings, BUFFER_LEN, &n);
+      retcode = SQLGetData(hstmt, 12, SQL_C_CHAR, (SQLCHAR*)flags, BUFFER_LEN, &n);
       retcode = SQLGetData(hstmt, 13, SQL_C_ULONG, &created, 0, &n);
       retcode = SQLGetData(hstmt, 14, SQL_C_ULONG, &modified, 0, &n);
       retcode = SQLGetData(hstmt, 15, SQL_C_ULONG, &pennies, 0, &n);
@@ -207,8 +207,7 @@ ODBC_Get_Object(dbref objID)
       dbsize++;
       // set object values
 
-      DBObj->name = strdup(name);
-      set_name(newDBRef, DBObj->name);
+      set_name(newDBRef,&name);
       DBObj->location = location;
       DBObj->contents = content;
       DBObj->exits = exit;
@@ -248,6 +247,10 @@ ODBC_Get_Object(dbref objID)
         current_state.garbage--;
         break;
       }
+        if (globals.new_indb_version < 2) {
+          add_new_attr("MONIKER",
+                       AF_WIZARD | AF_NOPROG | AF_VISUAL | AF_LOCKED);
+        }
 
         sqlite3_bind_int(adder, 1, newDBRef);
         do {
@@ -273,12 +276,12 @@ ODBC_Get_Object(dbref objID)
 
 
     } else if (SQL_NO_DATA == retcode) {
-      do_rawlog(LT_TRACE, "Fetch");
+      
       break;
     } else {
       HandleDiagnosticRecord(hstmt, SQL_HANDLE_STMT, retcode);
       HandleDiagnosticRecord(henv, SQL_HANDLE_DBC, retcode);
-      do_rawlog(LT_TRACE, "%s\n", "fail to fetch data");
+      
       break;
     }
 
