@@ -687,7 +687,7 @@ db_write_object(PENNFILE *f, dbref i)
   o = db + i;
   
   db_write_obj_basic(f, i, o);
-  ODBC_Set_Object(i, o);
+  ODBC_Write_Object(i, o);
 
   /* write the attribute list */
 
@@ -1639,7 +1639,7 @@ db_read(PENNFILE *f)
   globals.indb_flags = 1;
 
 
-  if(ODBC_Get_Object(i) > 0)
+  if(ODBC_DBRead() > 0)
   {
 
     loading_db = 0;

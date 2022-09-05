@@ -48,7 +48,7 @@ ODBC_get_attribs(dbref objID)
     retcode = SQLFetch(hstmt);
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
 
-      const char type[BUFFER_LEN], flags[BUFFER_LEN], name[BUFFER_LEN],
+      const char flags[BUFFER_LEN], name[BUFFER_LEN],
         value[BUFFER_LEN];
       SQLINTEGER owner, derefs;
       SQLLEN n;
@@ -86,7 +86,6 @@ ODBC_get_attribs(dbref objID)
     SQLCancel(hstmt);
     SQLFreeHandle(SQL_HANDLE_STMT, hstmt);
   }
-
   SQLFreeHandle(SQL_HANDLE_ENV, henv);
 }
 
@@ -148,7 +147,7 @@ ODBC_get_locks(dbref objID)
 }
 
 int
-ODBC_Get_Object(dbref objID)
+ODBC_DBRead(void)
 {
   sqlite3 *sqldb;
   sqldb = get_shared_db();
@@ -315,147 +314,108 @@ ODBC_Get_Object(dbref objID)
 }
 
 int
-ODBC_Set_Object(dbref objID, struct object *DBObj)
+ODBC_Write_Object(dbref objID, struct object *DBObj)
 {
-  // ODBC_Init();
-  SQLCHAR buff[] =
-    "INSERT INTO object (id, name, locationObjId, contentObjId, exitObjId, nextObjId, parentObjId, zoneObjId, type, powers, warnings,\
-flags, created, modified, pennies, ownerObjId) VALUES (?, ?, ?, ?,?, ?, ?,?,?,?,?,?,?,?,?,?) \
-ON DUPLICATE KEY UPDATE name=Values(name), locationObjId=Values(locationObjId), contentObjId=Values(contentObjId), exitObjId=Values(exitObjId), nextObjId=Values(nextObjId), \
-parentObjId=Values(parentObjId), zoneObjId=Values(zoneObjId), type=Values(type), powers=Values(powers), warnings=Values(warnings), flags=Values(flags), created=Values(created), \
-modified=Values(modified), pennies=Values(pennies), ownerObjId=Values(ownerObjId)";
-  SQLHSTMT hstmt = 0;
-
-  SQLINTEGER id, location, content, exit, next, parent, zone, type, created,
-    modified, pennies, owner;
-
-  id = objID;
-  location = DBObj->location;
-  content = DBObj->contents;
-  exit = DBObj->exits;
-  next = DBObj->next;
-  parent = DBObj->parent;
-  zone = DBObj->zone;
-  type = Typeof(objID);
-  created = DBObj->creation_time;
-  modified = DBObj->modification_time;
-  pennies = DBObj->penn;
-  owner = DBObj->owner;
-
-  SQLCHAR *name = (SQLCHAR *) strdup(Name(objID));
-  SQLCHAR *flags =
-    (SQLCHAR *) strdup(bits_to_string("FLAG", DBObj->flags, GOD, NOTHING));
-  SQLCHAR *powers =
-    (SQLCHAR *) strdup(bits_to_string("POWER", DBObj->powers, GOD, NOTHING));
-  SQLCHAR *warnings = (SQLCHAR *) strdup(unparse_warnings(DBObj->warnings));
-  SQLLEN lenName = strlen(name), lenFlags = strlen(flags),
-         lenPowers = strlen(powers), lenWarnings = strlen(warnings);
-
-  retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-
-  ODBC_ERROR(retcode, hstmt);
-  if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
-    SQLPrepareA(hstmt, buff, strlen(buff));
-    SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &id, sizeof(id), NULL);
-    SQLBindParameter(hstmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255, 0,
-                     name, sizeof(name), &lenName);
-    SQLBindParameter(hstmt, 3, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &location, sizeof(location), NULL);
-    SQLBindParameter(hstmt, 4, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &content, sizeof(content), NULL);
-    SQLBindParameter(hstmt, 5, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &exit, sizeof(exit), NULL);
-    SQLBindParameter(hstmt, 6, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &next, sizeof(next), NULL);
-    SQLBindParameter(hstmt, 7, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &parent, sizeof(parent), NULL);
-    SQLBindParameter(hstmt, 8, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &zone, sizeof(zone), NULL);
-    SQLBindParameter(hstmt, 9, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11, 0,
-                     &type, sizeof(type), NULL);
-    SQLBindParameter(hstmt, 10, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                     sizeof(powers), 0, powers, sizeof(powers), &lenPowers);
-    SQLBindParameter(hstmt, 11, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255,
-                     0, warnings, sizeof(warnings), &lenWarnings);
-    SQLBindParameter(hstmt, 12, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 255,
-                     0, flags, sizeof(flags), &lenFlags);
-    SQLBindParameter(hstmt, 13, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
-                     0, &created, sizeof(created), NULL);
-    SQLBindParameter(hstmt, 14, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
-                     0, &modified, sizeof(modified), NULL);
-    SQLBindParameter(hstmt, 15, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
-                     0, &pennies, sizeof(pennies), NULL);
-    SQLBindParameter(hstmt, 16, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 11,
-                     0, &owner, sizeof(owner), NULL);
-
-    ODBC_ERROR(retcode, hstmt);
-
-    ODBC_ExecuteStatement(hstmt);
-
-    ODBC_dump_locks(objID, DBObj->locks);
-    ODBC_dump_attrs(objID);
-  }
+  ODBC_Query q;
+  q.type = ODBC_PUT;
+  q.table = "object";
+  q.field_count = 16;
+  ODBC_Field *fields = malloc(sizeof(ODBC_Field) * q.field_count);
+  q.fields = fields;
+  q.fields[0].name = "id";
+  q.fields[0].type = ODBC_INT;
+  q.fields[0].iValue = objID;
+  q.fields[1].name = "name";
+  q.fields[1].type = ODBC_CHAR;
+  q.fields[1].sValue = (SQLCHAR*)Name(objID);
+  q.fields[2].name = "locationObjId";
+  q.fields[2].type = ODBC_INT;
+  q.fields[2].iValue = DBObj->location;
+  q.fields[3].name = "contentObjId";
+  q.fields[3].type = ODBC_INT;
+  q.fields[3].iValue = DBObj->contents;
+  q.fields[4].name = "exitObjId";
+  q.fields[4].type = ODBC_INT;
+  q.fields[4].iValue = DBObj->exits;
+  q.fields[5].name = "nextObjId";
+  q.fields[5].type = ODBC_INT;
+  q.fields[5].iValue = DBObj->next;
+  q.fields[6].name = "parentObjId";
+  q.fields[6].type = ODBC_INT;
+  q.fields[6].iValue = DBObj->parent;
+  q.fields[7].name = "zoneObjId";
+  q.fields[7].type = ODBC_INT;
+  q.fields[7].iValue = DBObj->zone;
+  q.fields[8].name = "type";
+  q.fields[8].type = ODBC_INT;
+  q.fields[8].iValue = Typeof(objID);
+  q.fields[9].name = "powers";
+  q.fields[9].type = ODBC_CHAR;
+  q.fields[9].sValue = (SQLCHAR*)bits_to_string("POWER", DBObj->powers, GOD, NOTHING);
+  q.fields[10].name = "warnings";
+  q.fields[10].type = ODBC_CHAR;
+  q.fields[10].sValue = (SQLCHAR*)unparse_warnings(DBObj->warnings);
+  q.fields[11].name = "flags";
+  q.fields[11].type = ODBC_CHAR;
+  q.fields[11].sValue = (SQLCHAR*)bits_to_string("FLAG", DBObj->flags, GOD, NOTHING);
+  q.fields[12].name = "created";
+  q.fields[12].type = ODBC_INT;
+  q.fields[12].iValue = DBObj->creation_time;
+  q.fields[13].name = "modified";
+  q.fields[13].type = ODBC_INT;
+  q.fields[13].iValue = DBObj->modification_time;
+  q.fields[14].name = "pennies";
+  q.fields[14].type = ODBC_INT;
+  q.fields[14].iValue = DBObj->penn;
+  q.fields[15].name = "ownerObjId";
+  q.fields[15].type = ODBC_INT;
+  q.fields[15].iValue = DBObj->owner;
+  ODBC_ExecuteQuery(&q);
+  free(q.fields);
+  return 1;
 }
 
 void
 ODBC_dump_attrs(dbref objID)
 {
-
+  char buff[BUFFER_LEN];
   ALIST *list;
-  SQLHSTMT hstmt = 0;
-  SQLCHAR *name;
-  SQLINTEGER *creator;
-  SQLCHAR *flags;
-  SQLINTEGER *derefs;
-  SQLCHAR *attrval;
-  SQLLEN lenName = 0, lenFlags = 0, lenAttrval = 0;
-  SQLCHAR *buff = "INSERT INTO objectattrib (name, ownerId, flags, \
-      derefs, objectId, value) VALUES ( ?, ? , ?, ? , ?, ?) \
-ON DUPLICATE KEY UPDATE ownerId=VALUES(ownerId), flags=Values(flags), derefs=Values(derefs), value=Values(value)";
+  ODBC_Query da;
+  da.type = ODBC_DELETE;
+  snprintf(buff, BUFFER_LEN, "objectId=%d", objID);
+  da.where = buff;
+  da.table = "objectattrib";
+  ODBC_ExecuteQuery(&da);
+
 
   ATTR_FOR_EACH (objID, list) {
-    name = AL_NAME(list);
-    lenName = strlen(name);
-    creator = Owner(AL_CREATOR(list));
-    flags = atrflag_to_string(AL_FLAGS(list));
-    lenFlags = strlen(flags);
-    derefs = AL_DEREFS(list);
-    attrval = atr_value(list);
-    lenAttrval = strlen(attrval);
-    retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
-    if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {
+    ODBC_Query q;
+    q.type = ODBC_PUT;
+    q.table = "objectattrib";
+    q.field_count = 6;
+    ODBC_Field *fields = malloc(sizeof(ODBC_Field) * 6);
+    fields[0].name = "name";
+    fields[0].type = ODBC_CHAR;
+    fields[0].sValue = (SQLCHAR*)AL_NAME(list);
+    fields[1].name = "ownerId";
+    fields[1].type = ODBC_INT;
+    fields[1].iValue = Owner(AL_CREATOR(list));
+    fields[2].name = "flags";
+    fields[2].type = ODBC_CHAR;
+    fields[2].sValue = (SQLCHAR*)atrflag_to_string(AL_FLAGS(list));
+    fields[3].name = "derefs";
+    fields[3].type = ODBC_INT;
+    fields[3].iValue = AL_DEREFS(list);
+    fields[4].name = "objectId";
+    fields[4].type = ODBC_INT;
+    fields[4].iValue = objID;
+    fields[5].name = "value";
+    fields[5].type = ODBC_CHAR;
+    fields[5].sValue = (SQLCHAR*)atr_value(list);
+    q.fields = fields;
+    ODBC_ExecuteQuery(&q);
 
-      retcode = SQLPrepare(hstmt, buff, strlen(buff));
-
-      retcode =
-        SQLBindParameter(hstmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                         lenName, 0, name, sizeof(name), &lenName);
-      ODBC_ERROR(retcode, hstmt);
-
-      retcode =
-        SQLBindParameter(hstmt, 2, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-                         11, 0, &creator, sizeof(creator), NULL);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 3, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                         lenFlags, 0, flags, sizeof(flags), &lenFlags);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 4, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-                         11, 0, &derefs, sizeof(derefs), NULL);
-      ODBC_ERROR(retcode, hstmt);
-      retcode =
-        SQLBindParameter(hstmt, 5, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
-                         11, 0, &objID, sizeof(objID), NULL);
-      ODBC_ERROR(retcode, hstmt);
-
-      retcode =
-        SQLBindParameter(hstmt, 6, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
-                         lenAttrval, 0, attrval, sizeof(attrval), &lenAttrval);
-      ODBC_ERROR(retcode, hstmt);
-      ODBC_ExecuteStatement(hstmt);
-    }
+    free(fields);
   }
 }
 
@@ -463,20 +423,45 @@ void
 ODBC_dump_locks(dbref objID, lock_list *l)
 {
   char buff[BUFFER_LEN];
+  ODBC_Query dl;
   memset(buff, 0, sizeof(buff));
   lock_list *ll;
+  dl.type = ODBC_DELETE;
+  dl.table = "objectlock";
+  dl.field_count = 0;
+  snprintf(buff, BUFFER_LEN, "objectId=%d", objID);
+  dl.where = buff;
+  ODBC_ExecuteQuery(&dl);  
 
+  
   for (ll = l; ll; ll = ll->next) {
+    ODBC_Query q;
+    q.type = ODBC_PUT;
+    q.field_count = 6;
+    ODBC_Field *fields = malloc(sizeof(ODBC_Field) * 6);
 
-    snprintf(
-      buff, BUFFER_LEN,
-      "INSERT INTO objectlock (type,creatorId,flags,derefs,objectId, boolexp) VALUES (\"%s\",%i, \"%s\",%i, %i, \"%s\") \
-  ON DUPLICATE KEY UPDATE creatorId=%i, flags=\"%s\", derefs=%i, boolexp=\"%s\"",
-      ll->type, L_CREATOR(ll), lock_flags_long(ll), chunk_derefs(L_KEY(ll)),
-      objID, unparse_boolexp(GOD, ll->key, UB_DBREF), L_CREATOR(ll),
-      lock_flags_long(ll), chunk_derefs(L_KEY(ll)),
-      unparse_boolexp(GOD, ll->key, UB_DBREF));
-    ODBC_InsertQuery(buff);
-    memset(buff, 0, sizeof(buff));
+    fields[0].name = "type";
+    fields[0].type = ODBC_CHAR;
+    fields[0].sValue = (SQLCHAR*)ll->type;
+    fields[1].name = "creatorId";
+    fields[1].type = ODBC_INT;
+    fields[1].iValue = Owner(ll->creator);
+    fields[2].name = "flags";
+    fields[2].type = ODBC_CHAR;
+    fields[2].sValue = (SQLCHAR*)lock_flags_long(ll);
+    fields[3].name = "derefs";
+    fields[3].type = ODBC_INT;
+    fields[3].iValue = chunk_derefs(L_KEY(ll));
+    fields[4].name = "objectId";
+    fields[4].type = ODBC_INT;
+    fields[4].iValue = objID;
+    fields[5].name = "boolexp";
+    fields[5].type = ODBC_CHAR;
+    fields[5].sValue = (SQLCHAR*)unparse_boolexp(GOD, ll->key, UB_DBREF);
+    q.fields = fields;
+    q.table = "objectlock";
+
+    ODBC_ExecuteQuery(&q);
+    free(fields);   
   }
 }
