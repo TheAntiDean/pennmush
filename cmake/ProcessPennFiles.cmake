@@ -46,8 +46,24 @@ MACRO(PennMUSH_MKCMDS)
     file(APPEND build/cmds.h "#endif\n")
     message(STATUS "cmds.h: Rebuild Complete")
 
-    file(COPY ${CMAKE_HOME_DIRECTORY}/build/cmds.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs/)
-    file(COPY ${CMAKE_HOME_DIRECTORY}/build/funs.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs/)
+    # copy files to hdrs directory if they are different to the ones there already
+    if(EXISTS ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h)
+        file(READ ${CMAKE_HOME_DIRECTORY}/hdrs/cmds.h cmds)
+        file(READ ${CMAKE_HOME_DIRECTORY}/hdrs/funs.h funs)
+        file(READ ${CMAKE_HOME_DIRECTORY}/build/cmds.h cmds_new)
+        file(READ ${CMAKE_HOME_DIRECTORY}/build/funs.h funs_new)
+
+        if(NOT "${cmds}" STREQUAL "${cmds_new}")
+            file(COPY ${CMAKE_HOME_DIRECTORY}/build/cmds.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+        endif()
+
+        if(NOT "${funs}" STREQUAL "${funs_new}")
+            file(COPY ${CMAKE_HOME_DIRECTORY}/build/funs.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+        endif()
+    else()
+        file(COPY ${CMAKE_HOME_DIRECTORY}/build/cmds.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+        file(COPY ${CMAKE_HOME_DIRECTORY}/build/funs.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+    endif()
 ENDMACRO(PennMUSH_MKCMDS)
 
 MACRO(PennMUSH_MKSWITCHES)
@@ -66,7 +82,20 @@ MACRO(PennMUSH_MKSWITCHES)
     file(APPEND build/switches.h "\n#endif\n")
 
     file(COPY ${CMAKE_HOME_DIRECTORY}/build/funs.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs/)
-endmacro(PennMUSH_MKSWITCHES)
+
+    # copy switches.h into hdrs directory if it is different to the one there already
+    if(EXISTS ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h)
+        file(READ ${CMAKE_HOME_DIRECTORY}/hdrs/switches.h switches)
+        file(READ ${CMAKE_HOME_DIRECTORY}/build/switches.h switches_new)
+
+        if(NOT "${switches}" STREQUAL "${switches_new}")
+            file(COPY ${CMAKE_HOME_DIRECTORY}/build/switches.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+        endif()
+    else()
+        file(COPY ${CMAKE_HOME_DIRECTORY}/build/switches.h DESTINATION ${CMAKE_HOME_DIRECTORY}/hdrs)
+
+    endif()
+ENDMACRO(PennMUSH_MKSWITCHES)
 
 macro(PennMUSH_MKHDRS)
 

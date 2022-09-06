@@ -849,6 +849,7 @@ init_game_dbs(void)
 
   /* read small text files into cache */
   fcache_init();
+  
 
   if (setjmp(db_err) == 1) {
     do_rawlog(LT_ERR, "Couldn't open %s! Creating minimal world.", infile);
