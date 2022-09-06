@@ -4,9 +4,9 @@
 #include "space.h"
 
 /* ------------------------------------------------------------------------ */
+#if __GNUC__ > 10
 intmap *border_map;
 HASHTAB aspace_consoles;
-
 
 struct pennmush_flag_info {
   const char *name;

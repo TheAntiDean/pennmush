@@ -21,6 +21,7 @@
 #include "lock.h"
 #include "parse.h"
 #include "space.h"
+#include "odbc.h"
 
 extern HASHTAB htab_reserved_aliases;
 
@@ -49,7 +50,7 @@ local_startup(void)
 #if 1 /* As above, but in milliseconds */
 sq_register_loop_msec(250, local_timer, NULL, NULL);
 #endif
-
+  ODBC_Init();
   initCombat();
   (void) initSpace(); /**< ASpace Related */
 }

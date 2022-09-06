@@ -53,6 +53,7 @@
 #include "strutil.h"
 #include "mushsql.h"
 #include "charclass.h"
+#include "odbc.h"
 
 #ifdef WIN32
 #pragma warning(disable : 4761) /* disable warning re conversion */
@@ -84,8 +85,6 @@ const char EOD[] = "***END OF DUMP***\n";
 #endif                       /* DB_INITIAL_SIZE */
 
 dbref db_size = DB_INITIAL_SIZE; /**< Current size of db array */
-
-static void db_grow(dbref newtop);
 
 static void db_write_obj_basic(PENNFILE *f, dbref i, struct object *o);
 int db_paranoid_write_object(PENNFILE *f, dbref i, int flag);
@@ -137,13 +136,17 @@ set_name(dbref obj, const char *newname)
     st_delete(Name(obj), &object_names);
   if (!newname || !*newname)
     return NULL;
-  Name(obj) = st_insert(newname, &object_names);
+  
+  // Hackish, we had a bug where the obj.name pointer was not actually the same as the one
+  // On the string tree.
+  Name(obj) = strdup(newname);
+  st_insert(Name(obj), &object_names);
   return Name(obj);
 }
 
 int db_init = 0; /**< Has the db array been initialized yet? */
 
-static void
+void
 db_grow(dbref newtop)
 {
   struct object *newdb;
@@ -648,6 +651,7 @@ putlocks(PENNFILE *f, lock_list *l)
 static void
 db_write_obj_basic(PENNFILE *f, dbref i, struct object *o)
 {
+
   db_write_labeled_string(f, "name", o->name);
   db_write_labeled_dbref(f, "location", o->location);
   db_write_labeled_dbref(f, "contents", o->contents);
@@ -681,7 +685,9 @@ db_write_object(PENNFILE *f, dbref i)
   int count = 0;
 
   o = db + i;
+  
   db_write_obj_basic(f, i, o);
+  odbc_write_object(i);
 
   /* write the attribute list */
 
@@ -1164,7 +1170,6 @@ get_new_locks(dbref i, PENNFILE *f, int c)
       break;
 
     found++;
-
     /* Name of the lock */
     db_read_this_labeled_string(f, "type", &val);
     strcpy(type, val);
@@ -1612,6 +1617,7 @@ db_read_oldstyle(PENNFILE *f)
 dbref
 db_read(PENNFILE *f)
 {
+  ODBC_Init();
   sqlite3 *sqldb;
   sqlite3_stmt *adder;
   int status;
@@ -1631,6 +1637,14 @@ db_read(PENNFILE *f)
   clear_players();
   db_free();
   globals.indb_flags = 1;
+
+
+  if(odbc_read_object() > 0)
+  {
+
+    loading_db = 0;
+    return db_top;
+  }
 
   c = penn_fgetc(f);
   if (c != '+') {
@@ -1754,6 +1768,7 @@ db_read(PENNFILE *f)
                                        {NULL, LBL_ERROR}},
                            *entry;
         enum known_labels the_label;
+
 
         i = getref(f);
         db_grow(i + 1);

@@ -295,9 +295,10 @@ struct db_stat_info {
 
 extern struct object *db;
 extern dbref db_top;
+extern struct db_stat_info current_state;
 
 void init_sqlite_db();
-
+extern void db_grow(dbref newtop);
 void *get_objdata(dbref thing, const char *keybase);
 void *set_objdata(dbref thing, const char *keybase, void *data);
 void delete_objdata(dbref thing, const char *keybase);
@@ -373,11 +374,10 @@ extern const char EOD[];
    (IsRoom(x) && (options.monikers & AN_ROOM)) ||                              \
    (IsExit(x) && (options.monikers & AN_EXIT)) ||                              \
    has_flag_by_name(x, "MONIKER", NOTYPE))
-
 #define AnsiNameWrapper(x, accents, level, p, len)                             \
   ((moniker_type(x) && (options.monikers & level))                             \
      ? ansi_name(x, accents, p, len)                                           \
-     : (accents ? accented_name(x) : CName(x)))
+     : (accents ? accented_name(x) : Name(x)))
 #define AName(x, level, p) AnsiNameWrapper(x, 0, level, p, 0)
 #define AaName(x, level, p) AnsiNameWrapper(x, 1, level, p, 0)
 
