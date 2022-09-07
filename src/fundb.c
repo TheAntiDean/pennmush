@@ -1798,6 +1798,88 @@ FUNCTION(fun_fullalias)
 }
 
 /* ARGSUSED */
+FUNCTION(fun_nameformat)
+{
+  // The player is the caller, not the executor
+  // get and match the object specified in arg 0
+  dbref thing = match_thing(executor, args[0]);
+  if (thing == NOTHING) {
+    safe_str("#-1", buff, bp);
+    return;
+  }
+
+  // Is the caller not a player? Display the standard Name
+  if (Typeof(caller) != TYPE_PLAYER) {
+    if (Typeof(thing) == TYPE_EXIT) {
+      safe_str(shortname(thing), buff, bp);
+    } else {
+      safe_str(Name(thing), buff, bp);
+    }
+    return;
+  }
+
+  // Does the target thing have the HALT flag set? display the accented name or
+  // if it is an exit, display the shortname
+  if (Halted(thing)) {
+    if (Typeof(thing) == TYPE_EXIT) {
+      safe_str(shortname(thing), buff, bp);
+    } else {
+      safe_str(Name(thing), buff, bp);
+    }
+    return;
+  }
+
+  // At this point we can generate a string using nameformat() for the target
+  // thing
+
+  // get the caller descriptor
+  DESC *d = lookup_desc(caller, Name(caller));
+  if (!d) {
+    safe_str("#-1", buff, bp);
+    return;
+  }
+
+
+    char *name = CName(thing);
+    char tbuf[BUFFER_LEN];
+    char tbuf1[BUFFER_LEN];
+    char *tp;
+    char *tp1;
+    // clear the buffers
+    memset(tbuf, 0, sizeof(tbuf));
+    memset(tbuf1, 0, sizeof(tbuf1));
+    // set the pointers
+    tp = tbuf;
+    tp1 = tbuf1;
+
+
+    // If the player has privs use HTML tag of XCH_CMD with attribute "examine
+    // dbref" to generate a clickable link
+    if (Hasprivs(caller)) {
+      safe_format(tbuf, &tp, "%s", name);
+      safe_format(tbuf1, &tp1, "XCH_CMD=\"examine %s\"", unparse_dbref(thing));
+      safe_tag_wrap("A", tbuf1,
+                    tbuf, buff, bp, NOTHING);
+    } else  {
+      // Otherwise, determine if we send look or goto based on whether its an exit or a thing/player
+      if (Typeof(thing) == TYPE_EXIT) {
+        
+        safe_format(tbuf, &tp, "%s", name);
+        
+        safe_format(tbuf1, &tp1, "XCH_CMD=\"goto %s\"", shortname(thing));
+        safe_tag_wrap("A", tbuf1, tbuf,
+                      buff, bp, NOTHING);
+      } else if (Location(caller) == Location(thing)){
+        safe_format(tbuf, &tp, "%s", name);
+        safe_format(tbuf1, &tp1, "XCH_CMD=\"look %s\"", Name(thing));
+        safe_tag_wrap("A", tbuf1, tbuf, buff,
+                      bp, NOTHING);
+      }
+
+    }
+}
+
+/* ARGSUSED */
 FUNCTION(fun_name)
 {
   dbref it;

@@ -51,40 +51,46 @@ FUNCTION(local_fun_silly) { safe_format(buff, bp, "Silly%sSilly", args[0]); }
 
 #endif
 
+/* Takes two arguments, returns an HTMLified coloured version of the string
+ * in the second argument. The first argument consists of one or two
+ * hex strings separated by a forward-slash. The first hex string is
+ * the foreground colour, the second is the background colour. If
+ * there is no second hex string, the background colour is black.
+ * The hex strings are in the format #RRGGBB, where RR is the red
+ * component, GG is the green component, and BB is the blue component.
+ * The hex strings may be preceded by a hash sign (#) or not.
+ */
+
 FUNCTION(local_fun_rgbcolor)
 {
   char *list[BUFFER_LEN / 2];
   char argval[BUFFER_LEN];
   char *ap;
-  memset(list,0,sizeof(list));
-  memset(argval,0,sizeof(argval));
+  memset(list, 0, sizeof(list));
+  memset(argval, 0, sizeof(argval));
   ap = argval;
- 
+
   ansi_data colors;
   int hex = -1;
   char value[BUFFER_LEN];
   char aColor[COLOR_NAME_LEN];
-  
-  
-  if (!define_ansi_data(&colors, remove_markup(args[0], NULL)))
-  {
-  if (HAS_ANSI(colors)) 
-    {
+
+  if (!define_ansi_data(&colors, remove_markup(args[0], NULL))) {
+    if (HAS_ANSI(colors)) {
       hex = color_to_hex(colors.fg, (colors.bits & 1));
       snprintf(aColor, COLOR_NAME_LEN, "#%06x", hex);
-    } 
+    }
   }
 
-    strcpy(value, args[1]);
+  strcpy(value, args[1]);
 
-
-  
-
-  int res = list2arr(list, BUFFER_LEN / 2, remove_markup(args[0], NULL), ' ', 1);
+  int res =
+    list2arr(list, BUFFER_LEN / 2, remove_markup(args[0], NULL), ' ', 1);
   if (res == 2) {
     safe_format(argval, &ap, "color=%s bgcolor=%s", list[0], list[1]);
   } else if (res == 1) {
-    safe_format(argval, &ap, "color=%s bgcolor=%s", (hex > 0? aColor : list[0]), "#000000");
+    safe_format(argval, &ap, "color=%s bgcolor=%s",
+                (hex > 0 ? aColor : list[0]), "#000000");
   } else {
     safe_str("#-1", buff, bp);
     return;
@@ -96,67 +102,10 @@ FUNCTION(local_fun_rgbcolor)
   // mush_free(list,"ptarray");
 }
 
-FUNCTION(local_fun_nameformat)
-{
-  dbref it = match_thing(executor, args[0]);
-  char tbuf1[BUFFER_LEN];
-  char argval[BUFFER_LEN];
-  char *ap;
-  ap = argval;
-  memset(tbuf1, 0, BUFFER_LEN);
-
-  if (GoodObject(it)) {
-    if (flaglist_check_long("FLAG", executor, it, "HALT", 1) == 1)
-      safe_str(accented_name(it), buff, bp);
-    else if (nameformat(executor, it, tbuf1,
-                        IsExit(it) ? shortname(it) : (char *) accented_name(it),
-                        1, pe_info)) {
-      DESC *match = lookup_desc(caller, Name(caller));
-
-      // if (caller != it) {
-      if (IsRoom(caller) ||
-          (Can_Locate(caller, it) &&
-           nargs == 2 && parse_number(args[1]))) {
-        if (IsExit(it)) {
-          safe_str("\"go ", argval, &ap);
-        } else {
-          safe_str("\"look ", argval, &ap);
-        }
-        if (!Hasprivs(caller)) {
-          safe_str(Name(it), argval, &ap);
-        } else {
-          safe_str(unparse_dbref(it), argval, &ap);
-        }
-        safe_str("\"", argval, &ap);
-        if(IsPlayer(caller) && (match->conn_flags & CONN_HTML))
-        {
-        safe_tag_wrap("send", argval, tbuf1, buff, bp, NOTHING);
-        } else 
-        {
-          safe_str(tbuf1, buff, bp);
-        }
-        *ap = '\0';
-      } else {
-        safe_str(tbuf1, buff, bp);
-      }
-    } else {
-      safe_str(Name(it), buff, bp);
-    }
-
-    // else {
-    //    safe_str(tbuf1, buff, bp);
-    //  }
-
-  } else
-    safe_str(T(e_notvis), buff, bp);
-}
-
-void
-local_functions(void)
-{
-  function_add("NAMEFORMAT", local_fun_nameformat, 1, 2, FN_REG | FN_STRIPANSI);
-  function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
+  void local_functions(void)
+  {
+    function_add("RGB", local_fun_rgbcolor, 2, 2, FN_REG);
 #ifdef EXAMPLE
-  function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
+    function_add("SILLY", local_fun_silly, 1, 1, FN_REG);
 #endif
-}
+  }

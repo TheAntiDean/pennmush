@@ -18,6 +18,7 @@
 #include "conf.h"
 #include "dbdefs.h"
 #include "externs.h"
+#include "mushtype.h"
 #include "flags.h"
 #include "funs.h"
 #include "game.h"
@@ -36,6 +37,7 @@
 
 static void func_hash_insert(const char *name, FUN *func);
 extern void local_functions(void);
+extern DESC *lookup_desc(dbref executor, const char *name);
 static int apply_restrictions(uint32_t result, const char *restriction);
 static char *build_function_report(dbref player, FUN *fp);
 static FUN *user_func_hash_lookup(const char *name);
@@ -611,6 +613,7 @@ FUNTAB flist[] = {
   {"MWHO", fun_lwho, 0, 0, FN_REG | FN_STRIPANSI},
   {"MWHOID", fun_lwho, 0, 0, FN_REG | FN_STRIPANSI},
   {"NAME", fun_name, 1, 2, FN_REG | FN_STRIPANSI},
+  {"NAMEFORMAT", fun_nameformat, 1,2, FN_REG | FN_STRIPANSI},
   {"MONIKER", fun_moniker, 1, 1, FN_REG | FN_STRIPANSI},
   {"NAMELIST", fun_namelist, 1, 2, FN_REG},
   {"NAMEGRAB", fun_namegrab, 2, 3, FN_REG | FN_STRIPANSI},
