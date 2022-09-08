@@ -607,7 +607,7 @@ do_create(dbref player, char *name, int cost, char *newdbref)
     local_data_create(thing);
 
     queue_event(player, "OBJECT`CREATE", "%s", unparse_objid(thing));
-    odbc_write_object(thing);
+    ODBC_MUSH_WriteObject(thing);
     return thing;
   }
   return NOTHING;
@@ -806,7 +806,7 @@ do_clone(dbref player, char *name, char *newname, bool preserve, char *newdbref,
                          "@powers, or @warnings."));
       notify_format(player, T("Cloned: Exit #%d."), clone);
       local_data_clone(clone, thing, preserve);
-      odbc_write_object(clone);
+      ODBC_MUSH_WriteObject(clone);
       return clone;
     }
   }

@@ -540,12 +540,12 @@ af_helper(dbref player, dbref thing, dbref parent __attribute__((__unused__)),
      char where[BUFFER_LEN];
     snprintf(where, BUFFER_LEN, "objectId=%d AND name=\"%s\"",thing,
              AL_NAME(atr));
-    ODBC_Query *query = ODBC_new_query("objectattrib", 1, where, ODBC_PUT);
+    ODBC_Query *query = ODBC_NewQuery("objectattrib", 1, where, ODBC_PUT);
     query->fields[0].name = "flags";
     query->fields[0].type = ODBC_CHAR;
     query->fields[0].sValue =  atrflag_to_string(AL_FLAGS(atr));
     ODBC_ExecuteQuery(query);
-    ODBC_free_query(query);
+    ODBC_FreeQuery(query);
 
   return 1;
 }

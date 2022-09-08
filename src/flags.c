@@ -1929,7 +1929,7 @@ set_flag(dbref player, dbref thing, const char *flag, int negate, int hear,
     }
   }
   // write flags to db
-  odbc_write_object(thing);
+  ODBC_MUSH_WriteObject(thing);
 }
 
 /** Set or clear powers on an object, with full permissions checking.

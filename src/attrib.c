@@ -2458,7 +2458,7 @@ do_set_atr(dbref thing, const char *restrict atr, const char *restrict s,
   if(s && res == AE_OKAY)
   {
       // Write Attr to DB
-  ODBC_Query *query = ODBC_new_query("objectattrib", 6, NULL, ODBC_PUT);
+  ODBC_Query *query = ODBC_NewQuery("objectattrib", 6, NULL, ODBC_PUT);
   query->fields[0].name = "objectId";
   query->fields[0].iValue = thing;
   query->fields[0].type = ODBC_INT;
@@ -2479,15 +2479,15 @@ do_set_atr(dbref thing, const char *restrict atr, const char *restrict s,
   query->fields[5].type = ODBC_INT;
 
   ODBC_ExecuteQuery(query);
-  ODBC_free_query(query);
+  ODBC_FreeQuery(query);
   } else if(res == AE_OKAY)
   {
     char where[BUFFER_LEN];
     sprintf(where, "objectId = %d AND name = '%s'", thing, name);
       // Delete Attr from DB
-  ODBC_Query *query = ODBC_new_query("objectattrib", 2, where, ODBC_DELETE);
+  ODBC_Query *query = ODBC_NewQuery("objectattrib", 2, where, ODBC_DELETE);
   ODBC_ExecuteQuery(query);
-  ODBC_free_query(query);
+  ODBC_FreeQuery(query);
 
   } else {
     // We have an error, work out which and continue.

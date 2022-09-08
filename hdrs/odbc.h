@@ -6,8 +6,9 @@
 #include "privtab.h"
 #include "sqltypes.h"
 #include "mymalloc.h"
+#include "boolexp.h"
 
-#define ODBC_ERROR(res, handle) (ODBC_Process_Error(res, handle))
+#define ODBC_ERROR(res, handle) (ODBC_ProcessError(res, handle))
 
 extern SQLRETURN retcode;
 extern SQLHENV henv;
@@ -78,7 +79,7 @@ struct ODBC_Result_t{
 
 // odbc_free_result(ODBC_Result)
 // Free the memory used by an ODBC_Result
-extern void ODBC_free_result(ODBC_Result *res);
+extern void ODBC_FreeResult(ODBC_Result *res);
 /*----------------------------------------------------------------------------*/
 /* ODBC_Put */
 /*----------------------------------------------------------------------------*/
@@ -89,20 +90,21 @@ extern void ODBC_Init(void);
 extern void HandleDiagnosticRecord(SQLHANDLE hHandle, SQLSMALLINT hType,
                                    RETCODE RetCode);
 
-int ODBC_Process_Error(SQLRETURN sqlreturn, SQLHANDLE handle);
+int ODBC_ProcessError(SQLRETURN sqlreturn, SQLHANDLE handle);
 extern int ODBC_ExecuteStatement(SQLHSTMT hstmt);
 int ODBC_InsertQuery(SQLCHAR *query);
 
-extern int odbc_write_object(dbref objID);
+extern int ODBC_MUSH_WriteObject(dbref objID);
 extern int
-odbc_read_object(void);
+ODBC_MUSH_LoadAllObjects(void);
 
-extern void odbc_write_attribs(dbref objID);
-extern void odbc_write_locks(dbref objID, lock_list *l);
-extern void odbc_get_locks(dbref objID);
-extern ODBC_Query *ODBC_new_query(const char *table, int field_count, char *where,
+extern void ODBC_MUSH_WriteObjAttributes(dbref objID);
+extern void ODBC_MUSH_WriteObjLocks(dbref objID, lock_list *l);
+extern void ODBC_MUSH_WriteChannelLock(char *name, char *type,  boolexp key);
+extern void ODBC_MUSH_LoadLock(dbref objID);
+extern ODBC_Query *ODBC_NewQuery(const char *table, int field_count, char *where,
                            int type);
-extern void ODBC_free_query(ODBC_Query *query);
+extern void ODBC_FreeQuery(ODBC_Query *query);
 extern int ODBC_NextResult(ODBC_Result *result);
 
 #endif /* __ODBC_H */

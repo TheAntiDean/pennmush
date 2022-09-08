@@ -25,12 +25,35 @@
 #include "sqlite3.h"
 #include "sqlite3ext.h"
 #include "mushsql.h"
+#include "extchat.h"
 
 extern PRIV lock_privs[];
 extern PRIV attr_privs_view[];
 
 
-// odbc_get_attribs
+// ODBC_MUSH_WriteChannelBoolexp(CHAN *channel, char *type,  boolexp *key)
+//
+// Write a channel's key to the database.
+//
+void ODBC_MUSH_WriteChannelLock(char *name, char *type,  boolexp key)
+{
+    ODBC_Query *q = ODBC_NewQuery("channellock", 2, NULL, ODBC_PUT);
+    q->fields[0].name = "name";
+    q->fields[0].type = ODBC_CHAR;
+    q->fields[0].sValue = name;
+    q->fields[1].name = "type";
+    q->fields[1].type = ODBC_CHAR;
+    q->fields[1].sValue = type;
+    q->fields[2].name = "boolexp";
+    q->fields[2].type = ODBC_CHAR;
+    q->fields[2].sValue = unparse_boolexp(GOD, key, UB_DBREF);
+    ODBC_ExecuteQuery(q);
+    ODBC_FreeQuery(q);
+}
+
+
+
+// ODBC_MUSH_LoadAttribute
 // Get all attributes for a given object
 // Parameters:
 // dbref obj - the object to get attributes for
@@ -38,13 +61,13 @@ extern PRIV attr_privs_view[];
 // Returns:
 // NOTHING
 void
-odbc_get_attribs(dbref objID)
+ODBC_MUSH_LoadAttribute(dbref objID)
 {
   char buff[BUFFER_LEN];
   memset(buff, 0, BUFFER_LEN);
   snprintf(buff, BUFFER_LEN, "objectId = %d", objID);
 
-  ODBC_Query *q = ODBC_new_query("objectattrib", 5, buff, ODBC_GET);
+  ODBC_Query *q = ODBC_NewQuery("objectattrib", 5, buff, ODBC_GET);
   q->fields[0].name = "name";
   q->fields[0].type = ODBC_CHAR;
   q->fields[1].name = "ownerId";
@@ -62,17 +85,18 @@ odbc_get_attribs(dbref objID)
 
   while(res)
   {
+    
     atr_new_add(objID, strdup((char *)res->fields[0].sValue), (char*)res->fields[4].sValue, res->fields[1].iValue,
-    string_to_privs(attr_privs_view, strdup((char*)res->fields[2].sValue), 0), res->fields[3].iValue, 1);
+    string_to_privs(attr_privs_view, strdup((char*)res->fields[2].sValue), 0), res->fields[3].iValue, true);
     // get next result
     tmp = res;
     res = res->next;
-    ODBC_free_result(tmp);
+    ODBC_FreeResult(tmp);
 
   }
   
 }
-// odbc_get_locks
+// ODBC_MUSH_LoadLock
 // Get all locks for a given object
 // Parameters:
 // dbref obj - the object to get locks for
@@ -80,13 +104,13 @@ odbc_get_attribs(dbref objID)
 // Returns:
 // NOTHING
 void
-odbc_get_locks(dbref objID)
+ODBC_MUSH_LoadLock(dbref objID)
 {
 
   char buff[BUFFER_LEN];
   memset(buff, 0, BUFFER_LEN);
   snprintf(buff, BUFFER_LEN, "objectId = %d", objID);
-  ODBC_Query *q = ODBC_new_query("objectlock", 5, buff, ODBC_GET);
+  ODBC_Query *q = ODBC_NewQuery("objectlock", 5, buff, ODBC_GET);
   q->fields[0].name = "type";
   q->fields[0].type = ODBC_CHAR;
   q->fields[1].name = "creatorId";
@@ -113,20 +137,20 @@ odbc_get_locks(dbref objID)
     // get next result
     tmp = res;
     res = res->next;
-    ODBC_free_result(tmp);
+    ODBC_FreeResult(tmp);
 
   }
 
 }
 
-// odbc_read_object
-// Read an object from the database
+// ODBC_MUSH_LoadAllObjects
+// Read all objects from the database
 // Parameters:
 // dbref obj - the object to read
 // Returns:
 // int - -1 if fail, dbmax if successful
 int
-odbc_read_object(void)
+ODBC_MUSH_LoadAllObjects(void)
 {
   ODBC_Query *q;
 
@@ -135,7 +159,7 @@ odbc_read_object(void)
   sqlite3_stmt *adder;
   int status = 0;
 
-  q = ODBC_new_query("object",16, NULL,ODBC_GET);
+  q = ODBC_NewQuery("object",16, NULL,ODBC_GET);
   q->reverse = 1;
   q->sort_field = (SQLCHAR*)"id";
   q->fields[0].name = "id";
@@ -173,7 +197,7 @@ odbc_read_object(void)
 
   ODBC_Result *res = ODBC_ExecuteQuery(q);
   ODBC_Result *tmp = NULL;
-  ODBC_free_query(q);
+  ODBC_FreeQuery(q);
   if (res == NULL) {
     return -1;
   return 1;
@@ -207,8 +231,8 @@ odbc_read_object(void)
     o->penn = res->fields[14].iValue;
     o->owner = res->fields[15].iValue;
 
-        odbc_get_locks(objId);
-    odbc_get_attribs(objId);
+        ODBC_MUSH_LoadLock(objId);
+    ODBC_MUSH_LoadAttribute(objId);
 
     switch (Typeof(objId)) {
     case TYPE_PLAYER:
@@ -256,7 +280,7 @@ odbc_read_object(void)
     }
     tmp = res;
     res = (ODBC_Result *)res->next;
-    ODBC_free_result(tmp);
+    ODBC_FreeResult(tmp);
   }
     if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO ||
         retcode == SQL_NO_DATA) {
@@ -269,18 +293,18 @@ odbc_read_object(void)
   
 }
 
-// odbc_write_object
+// ODBC_MUSH_WriteObject
 // Write an object to the database
 // Returns 1 on success, 0 on failure
 // Parameters:
 //   dbref objId - the object to write
 int
-odbc_write_object(dbref objID)
+ODBC_MUSH_WriteObject(dbref objID)
 {
   struct object *DBObj;
   DBObj = db + objID;
   ODBC_Query *q;
-  q = ODBC_new_query("object", 16, NULL, ODBC_PUT);
+  q = ODBC_NewQuery("object", 16, NULL, ODBC_PUT);
 
   q->fields[0].name = "id";
   q->fields[0].type = ODBC_INT;
@@ -333,33 +357,33 @@ odbc_write_object(dbref objID)
   q->fields[15].type = ODBC_INT;
   q->fields[15].iValue = DBObj->owner;
   ODBC_ExecuteQuery(q);
-  odbc_write_attribs(objID);
-  odbc_write_locks(objID, DBObj->locks);
-  ODBC_free_query(q);
+  ODBC_MUSH_WriteObjAttributes(objID);
+  ODBC_MUSH_WriteObjLocks(objID, DBObj->locks);
+  ODBC_FreeQuery(q);
 
   return 1;
 }
-// odbc_write_attribs
+// ODBC_MUSH_WriteObjAttributes
 // Write an object's attributes to the database
 // Returns 1 on success, 0 on failure
 // Parameters:
 //   dbref objId - the object to write
 void
-odbc_write_attribs(dbref objID)
+ODBC_MUSH_WriteObjAttributes(dbref objID)
 {
   char buff[BUFFER_LEN];
   ALIST *list;
   ODBC_Query *da;
   snprintf(buff, BUFFER_LEN, "objectId=%d", objID);
-  da = ODBC_new_query("objectattrib", 0, buff, ODBC_DELETE);
+  da = ODBC_NewQuery("objectattrib", 0, buff, ODBC_DELETE);
   ODBC_ExecuteQuery(da);
-  ODBC_free_query(da);
+  ODBC_FreeQuery(da);
   ODBC_Query *q;
   
 
   ATTR_FOR_EACH (objID, list) {
 
-    q = ODBC_new_query("objectattrib", 6, NULL, ODBC_PUT);
+    q = ODBC_NewQuery("objectattrib", 6, NULL, ODBC_PUT);
     q->fields[0].name = "name";
     q->fields[0].type = ODBC_CHAR;
     q->fields[0].sValue = (SQLCHAR *) AL_NAME(list);
@@ -380,13 +404,13 @@ odbc_write_attribs(dbref objID)
     q->fields[5].sValue = (SQLCHAR *) atr_value(list);
 
     ODBC_ExecuteQuery(q);
-    ODBC_free_query(q);
+    ODBC_FreeQuery(q);
 
   }
   
 }
 
-// odbc_write_locks
+// ODBC_MUSH_WriteObjLocks
 // Write an object's locks to the database
 // Returns 1 on success, 0 on failure
 // Parameters:
@@ -394,7 +418,7 @@ odbc_write_attribs(dbref objID)
 //   LOCK *locks - the locks to write
 
 void
-odbc_write_locks(dbref objID, lock_list *l)
+ODBC_MUSH_WriteObjLocks(dbref objID, lock_list *l)
 {
   char buff[BUFFER_LEN];
   ODBC_Query dl;
@@ -408,7 +432,7 @@ odbc_write_locks(dbref objID, lock_list *l)
   ODBC_ExecuteQuery(&dl);
 
   for (ll = l; ll; ll = ll->next) {
-    ODBC_Query *q = ODBC_new_query("objectlock", 6, NULL, ODBC_PUT);
+    ODBC_Query *q = ODBC_NewQuery("objectlock", 6, NULL, ODBC_PUT);
 
     q->fields[0].name = "type";
     q->fields[0].type = ODBC_CHAR;
@@ -430,6 +454,6 @@ odbc_write_locks(dbref objID, lock_list *l)
     q->fields[5].sValue = (SQLCHAR *) unparse_boolexp(GOD, L_KEY(ll), UB_DBREF);
 
     ODBC_ExecuteQuery(q);
-    ODBC_free_query(q);
+    ODBC_FreeQuery(q);
   }
 }

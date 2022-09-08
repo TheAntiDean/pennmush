@@ -341,9 +341,9 @@ do_destroy(dbref player, char *name, int confirm, NEW_PE_INFO *pe_info)
     notify(player, T("Destroyed."));
     char where[BUFFER_LEN];
     snprintf(where, BUFFER_LEN, "id=%d", thing);
-    ODBC_Query *q = ODBC_new_query("object", 0, where, ODBC_DELETE);
+    ODBC_Query *q = ODBC_NewQuery("object", 0, where, ODBC_DELETE);
     ODBC_ExecuteQuery(q);
-    ODBC_free_query(q);
+    ODBC_FreeQuery(q);
     return;
   }
   /* Present informative messages. */

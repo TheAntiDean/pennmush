@@ -18,7 +18,7 @@ SQLRETURN retcode;
 SQLHENV henv;
 SQLHDBC hdbc;
 
-// ODBC_free_query
+// ODBC_FreeQuery
 // Free the memory used by an ODBC_Query structure.
 //
 // Parameters:
@@ -28,7 +28,7 @@ SQLHDBC hdbc;
 //   Nothing.
 //
 void
-ODBC_free_query(ODBC_Query *query)
+ODBC_FreeQuery(ODBC_Query *query)
 {
 
 
@@ -46,7 +46,7 @@ ODBC_free_query(ODBC_Query *query)
 }
 
 
-// ODBC_new_query
+// ODBC_NewQuery
 // Create a new ODBC_Query structure.
 //
 // Parameters:
@@ -57,7 +57,7 @@ ODBC_free_query(ODBC_Query *query)
 //   A pointer to the new ODBC_Query structure.
 //
 ODBC_Query *
-ODBC_new_query(const char *table, int field_count, char *where, int type)
+ODBC_NewQuery(const char *table, int field_count, char *where, int type)
 {
   ODBC_Query *query;
 
@@ -76,7 +76,7 @@ ODBC_new_query(const char *table, int field_count, char *where, int type)
   return query;
 }
 
-// ODBC_free_result
+// ODBC_FreeResult
 // Free the memory used by an ODBC_Result structure.
 //
 // Parameters:
@@ -86,7 +86,7 @@ ODBC_new_query(const char *table, int field_count, char *where, int type)
 //   Nothing.
 //
 void
-ODBC_free_result(ODBC_Result *result)
+ODBC_FreeResult(ODBC_Result *result)
 {
   int i;
 
@@ -103,7 +103,7 @@ ODBC_free_result(ODBC_Result *result)
 }
   
 
-// ODBC_new_result
+// ODBC_NewResult
 // Create a new ODBC_Result structure.
 //
 // Parameters:
@@ -113,7 +113,7 @@ ODBC_free_result(ODBC_Result *result)
 //   A pointer to the new ODBC_Result structure.
 //
 ODBC_Result *
-ODBC_new_result(int field_count)
+ODBC_NewResult(int field_count)
 {
   ODBC_Result *result;
   int i;
@@ -292,7 +292,7 @@ ODBC_ExecuteQuery(ODBC_Query *query)
 
         while (1) {
           ODBC_Result *temp =
-            (ODBC_Result *) ODBC_new_result(query->field_count);
+            (ODBC_Result *) ODBC_NewResult(query->field_count);
 
           retcode = SQLFetch(hstmt);
           // ODBC error
@@ -366,11 +366,11 @@ ODBC_ExecuteQuery(ODBC_Query *query)
 
 
 
-// ODBC_Process_Error
+// ODBC_ProcessError
 // Process the error and return an integer
 //
 int
-ODBC_Process_Error(SQLRETURN sqlreturn, SQLHANDLE handle)
+ODBC_ProcessError(SQLRETURN sqlreturn, SQLHANDLE handle)
 {
   if (sqlreturn == SQL_SUCCESS || sqlreturn == SQL_SUCCESS_WITH_INFO) {
     HandleDiagnosticRecord(handle, SQL_HANDLE_STMT, sqlreturn);
