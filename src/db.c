@@ -784,7 +784,8 @@ db_write(PENNFILE *f, int flag)
     if (IsGarbage(i))
       continue;
     penn_fprintf(f, "!%d\n", i);
-    db_write_object(f, i);
+    if(!odbc_write_object(i))
+      db_write_object(f, i);
   }
   penn_fputs(EOD, f);
   return db_top;

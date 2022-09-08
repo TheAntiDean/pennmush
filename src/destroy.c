@@ -72,6 +72,7 @@
 #include "mushdb.h"
 #include "parse.h"
 #include "mushsql.h"
+#include "odbc.h"
 
 dbref first_free = NOTHING; /**< Object at top of free list */
 
@@ -338,6 +339,11 @@ do_destroy(dbref player, char *name, int confirm, NEW_PE_INFO *pe_info)
     free_object(thing);
     purge_locks();
     notify(player, T("Destroyed."));
+    char where[BUFFER_LEN];
+    snprintf(where, BUFFER_LEN, "id=%d", thing);
+    ODBC_Query *q = ODBC_new_query("object", 0, where, ODBC_DELETE);
+    ODBC_ExecuteQuery(q);
+    ODBC_free_query(q);
     return;
   }
   /* Present informative messages. */
@@ -623,6 +629,7 @@ free_object(dbref thing)
   default:
     do_log(LT_ERR, NOTHING, NOTHING, "Unknown type on #%d in free_object.",
            thing);
+
     return;
   }
 

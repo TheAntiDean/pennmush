@@ -57,6 +57,7 @@
 #include "ptab.h"
 #include "sort.h"
 #include "strutil.h"
+#include "odbc.h"
 
 static bool can_set_flag(dbref player, dbref thing, const FLAG *flagp,
                          int negate);
@@ -1927,6 +1928,8 @@ set_flag(dbref player, dbref thing, const char *flag, int negate, int hear,
       notify(player, tbuf1);
     }
   }
+  // write flags to db
+  odbc_write_object(thing);
 }
 
 /** Set or clear powers on an object, with full permissions checking.

@@ -176,19 +176,35 @@ ODBC_ExecuteQuery(ODBC_Query *query)
   if (query->type == ODBC_PUT) {
 
     for (int i = 0; i < query->field_count; i++) {
-      safe_format(columns, &cp, "%s", query->fields[i].name);
-      safe_format(values, &vp, "%s = VALUES(%s)", query->fields[i].name,
-                  query->fields[i].name);
-      safe_chr('?', valueSub, &vsp);
-      if (i < query->field_count - 1) {
-        safe_chr(',', columns, &cp);
-        safe_chr(',', values, &vp);
-        safe_chr(',', valueSub, &vsp);
+      if (query->where != NULL) {
+        safe_format(values, &vp, "%s = ?", query->fields[i].name,
+                    query->fields[i].name);
+        if (i < query->field_count - 1) {
+
+          safe_chr(',', values, &vp);
+        }
+      } else {
+        safe_format(columns, &cp, "%s", query->fields[i].name);
+        safe_format(values, &vp, "%s = VALUES(%s)", query->fields[i].name,
+                    query->fields[i].name);
+        safe_chr('?', valueSub, &vsp);
+        if (i < query->field_count - 1) {
+          safe_chr(',', columns, &cp);
+          safe_chr(',', values, &vp);
+          safe_chr(',', valueSub, &vsp);
+        }
       }
     }
+    // insert where
+    if (query->where != NULL) {
+          safe_format(tbuf1, &bp,
+               "UPDATE %s SET %s WHERE %s",
+               query->table, values, query->where);
+    } else {
           safe_format(tbuf1, &bp,
                "INSERT INTO %s (%s) VALUES(%s) ON DUPLICATE KEY UPDATE %s",
                query->table, columns, valueSub, values);
+    }
 
   } else if (query->type == ODBC_GET) {
     for (int i = 0; i < query->field_count; i++) {
@@ -212,7 +228,6 @@ ODBC_ExecuteQuery(ODBC_Query *query)
   
   }
   
-  do_rawlog(LT_TRACE,"ODBC: %s", tbuf1);
   
   retcode = SQLAllocHandle(SQL_HANDLE_STMT, hdbc, &hstmt);
   if (retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO) {

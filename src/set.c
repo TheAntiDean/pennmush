@@ -41,6 +41,7 @@
 #include "mypcre.h"
 #include "parse.h"
 #include "strutil.h"
+#include "odbc.h"
 
 static int chown_ok(dbref player, dbref thing, dbref newowner,
                     NEW_PE_INFO *pe_info);
@@ -535,6 +536,16 @@ af_helper(dbref player, dbref thing, dbref parent __attribute__((__unused__)),
       }
     }
   }
+    // write atrflags to DB
+     char where[BUFFER_LEN];
+    snprintf(where, BUFFER_LEN, "objectId=%d AND name=\"%s\"",thing,
+             AL_NAME(atr));
+    ODBC_Query *query = ODBC_new_query("objectattrib", 1, where, ODBC_PUT);
+    query->fields[0].name = "flags";
+    query->fields[0].type = ODBC_CHAR;
+    query->fields[0].sValue =  atrflag_to_string(AL_FLAGS(atr));
+    ODBC_ExecuteQuery(query);
+    ODBC_free_query(query);
 
   return 1;
 }
@@ -595,6 +606,9 @@ do_attrib_flags(dbref player, const char *obj, const char *atrname,
 
   af.clrflags = mush_strdup(atrflag_to_string(af.clrf), "af_flag list");
   af.setflags = mush_strdup(atrflag_to_string(af.setf), "af_flag list");
+
+
+
   if (!atr_iter_get(player, thing, atrname, AIG_NONE, af_helper, &af))
     notify(player, T("No attribute found to change."));
   mush_free(af.clrflags, "af_flag list");

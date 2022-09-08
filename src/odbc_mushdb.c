@@ -185,11 +185,9 @@ odbc_read_object(void)
   int dbsize = 0;
   while(res)
   {
-    
-    db_grow(dbsize + 1);
-    dbsize++;
     struct object *o;
     dbref objId = res->fields[0].iValue;
+    db_grow(objId + 1);
     o = db + objId;
 
     o->name = (char*)res->fields[1].sValue;
@@ -361,7 +359,7 @@ odbc_write_attribs(dbref objID)
 
   ATTR_FOR_EACH (objID, list) {
 
-    q = ODBC_new_query("objectattrib", 6, "1", ODBC_PUT);
+    q = ODBC_new_query("objectattrib", 6, NULL, ODBC_PUT);
     q->fields[0].name = "name";
     q->fields[0].type = ODBC_CHAR;
     q->fields[0].sValue = (SQLCHAR *) AL_NAME(list);

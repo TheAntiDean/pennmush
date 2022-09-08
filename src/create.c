@@ -25,6 +25,7 @@
 #include "mymalloc.h"
 #include "parse.h"
 #include "strutil.h"
+#include "odbc.h"
 
 static dbref parse_linkable_room(dbref player, const char *room_name,
                                  NEW_PE_INFO *pe_info);
@@ -606,7 +607,7 @@ do_create(dbref player, char *name, int cost, char *newdbref)
     local_data_create(thing);
 
     queue_event(player, "OBJECT`CREATE", "%s", unparse_objid(thing));
-
+    odbc_write_object(thing);
     return thing;
   }
   return NOTHING;
@@ -805,6 +806,7 @@ do_clone(dbref player, char *name, char *newname, bool preserve, char *newdbref,
                          "@powers, or @warnings."));
       notify_format(player, T("Cloned: Exit #%d."), clone);
       local_data_clone(clone, thing, preserve);
+      odbc_write_object(clone);
       return clone;
     }
   }

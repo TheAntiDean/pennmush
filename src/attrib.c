@@ -12,6 +12,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "odbc.h"
 #include "chunk.h"
 #include "conf.h"
 #include "dbdefs.h"
@@ -1408,6 +1409,7 @@ atr_iter_get(dbref player, dbref thing, const char *name, unsigned flags,
              ? qcomp_regexp_match(re, md, AL_NAME(ptr), PCRE2_ZERO_TERMINATED)
              : atr_wild(name, AL_NAME(ptr)))) {
         int r = func(player, thing, NOTHING, name, ptr, args);
+
         result += r;
         if (r && in_wipe) {
           ptr -= 1;
@@ -1426,11 +1428,13 @@ atr_iter_get(dbref player, dbref thing, const char *name, unsigned flags,
                                    : atr_wild(name, AL_NAME(ptr)))) {
             int r = func(player, thing, NOTHING, name, ptr, args);
             result += r;
+            
             if (r && in_wipe) {
               ptr -= 1;
             }
           }
         }
+
         ptr = prev;
       }
     }
@@ -2450,6 +2454,44 @@ do_set_atr(dbref thing, const char *restrict atr, const char *restrict s,
   was_listener = Listener(thing);
   res = s ? atr_add(thing, name, s, player, (flags & 0x02) ? AF_NOPROG : 0)
           : atr_clr(thing, name, player);
+
+  if(s && res == AE_OKAY)
+  {
+      // Write Attr to DB
+  ODBC_Query *query = ODBC_new_query("objectattrib", 6, NULL, ODBC_PUT);
+  query->fields[0].name = "objectId";
+  query->fields[0].iValue = thing;
+  query->fields[0].type = ODBC_INT;
+  query->fields[1].name = "name";
+  query->fields[1].sValue = name;
+  query->fields[1].type = ODBC_CHAR;
+  query->fields[2].name = "value";
+  query->fields[2].sValue = s;
+  query->fields[2].type = ODBC_CHAR;
+  query->fields[3].name = "ownerId";
+  query->fields[3].iValue = player;
+  query->fields[3].type = ODBC_INT;
+  query->fields[4].name = "flags";
+  query->fields[4].sValue = bits_to_string("FLAG", (flags > 1) ? flags : 0, GOD,thing);
+  query->fields[4].type = ODBC_CHAR;
+  query->fields[5].name = "derefs";
+  query->fields[5].iValue = 0;
+  query->fields[5].type = ODBC_INT;
+
+  ODBC_ExecuteQuery(query);
+  ODBC_free_query(query);
+  } else if(res == AE_OKAY)
+  {
+    char where[BUFFER_LEN];
+    sprintf(where, "objectId = %d AND name = '%s'", thing, name);
+      // Delete Attr from DB
+  ODBC_Query *query = ODBC_new_query("objectattrib", 2, where, ODBC_DELETE);
+  ODBC_ExecuteQuery(query);
+  ODBC_free_query(query);
+
+  } else {
+    // We have an error, work out which and continue.
+  }
   switch (res) {
   case AE_SAFE:
     notify_format(player, T("Attribute %s is SAFE. Set it !SAFE to modify it."),
@@ -2528,6 +2570,10 @@ do_set_atr(dbref thing, const char *restrict atr, const char *restrict s,
                     s ? T("Set") : T("Cleared"));
     }
   }
+
+
+
+
   return 1;
 }
 
