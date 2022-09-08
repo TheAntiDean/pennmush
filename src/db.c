@@ -763,17 +763,17 @@ db_write(PENNFILE *f, int flag)
   dbflag += DBF_HEAR_CONNECT;
   dbflag += DBF_NEW_VERSIONS;
 
-  penn_fprintf(f, "+V%d\n", dbflag * 256 + 2);
+  //penn_fprintf(f, "+V%d\n", dbflag * 256 + 2);
 
-  db_write_labeled_int(f, "dbversion", NDBF_VERSION);
+  //db_write_labeled_int(f, "dbversion", NDBF_VERSION);
 
-  db_write_labeled_string(f, "savedtime", show_time(mudtime, 1));
+  //db_write_labeled_string(f, "savedtime", show_time(mudtime, 1));
 
-  db_write_flags(f);
+  //db_write_flags(f);
 
-  db_write_attrs(f);
+  //db_write_attrs(f);
 
-  penn_fprintf(f, "~%d\n", db_top);
+  //penn_fprintf(f, "~%d\n", db_top);
 
   for (i = 0; i < db_top; i++) {
 #ifdef WIN32SERVICES
@@ -781,13 +781,13 @@ db_write(PENNFILE *f, int flag)
     if (shutdown_flag && (i & 0xFF) == 0)
       shutdown_checkpoint();
 #endif
-    if (IsGarbage(i))
-      continue;
+    //if (IsGarbage(i))
+     // continue;
     penn_fprintf(f, "!%d\n", i);
-    if(!odbc_write_object(i))
-      db_write_object(f, i);
+  //  if(!odbc_write_object(i))
+  //    db_write_object(f, i);
   }
-  penn_fputs(EOD, f);
+  //penn_fputs(EOD, f);
   return db_top;
 }
 
